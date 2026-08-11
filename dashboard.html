@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Titan Telemetri - Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+  body { font-family: -apple-system, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #1a1a1a; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .alt { color: #666; font-size: 13px; margin-bottom: 24px; }
+  .kontroller { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; margin-bottom: 24px; padding: 16px; border: 1px solid #ddd; border-radius: 12px; background: #fafafa; }
+  .alan { display: flex; flex-direction: column; gap: 4px; }
+  .alan label { font-size: 12px; color: #555; }
+  .alan input { padding: 8px 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; }
+  button { padding: 9px 18px; background: #1a1a1a; color: white; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; }
+  button:hover { background: #333; }
+  button:disabled { background: #999; cursor: default; }
+  #durum { font-size: 13px; color: #666; margin-bottom: 12px; }
+  #durum.hata { color: #c0392b; }
+  .kutu { border: 1px solid #ddd; border-radius: 12px; padding: 20px; }
+  canvas { max-height: 380px; }
+</style>
+</head>
+<body>
+  <h1>Titan Telemetri Dashboard</h1>
+  <div class="alt">CPU sicaklik gecmisi - Supabase uzerinden</div>
+
+  <div class="kontroller">
+    <div class="alan">
+      <label>Cihaz ID</label>
+      <input type="text" id="cihazId" value="iotitan">
+    </div>
+    <div class="alan">
+      <label>Baslangic</label>
+      <input type="datetime-local" id="baslangic">
+    </div>
+    <div class="alan">
+      <label>Bitis</label>
+      <input type="datetime-local" id="bitis">
+    </div>
+    <button id="getirBtn" onclick="veriGetir()">Getir</button>
+  </div>
+
+  <div id="durum">Hazir.</div>
+
+  <div class="kutu">
+    <canvas id="grafik"></canvas>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://glzmjuiajlkvqdtijxck.supabase.co";
+    const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdsem1qdWlhamxrdnFkdGlqeGNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NTE0MzUsImV4cCI6MjEwMjAyNzQzNX0.HCEBB3bifL9FrHKxHvR8RCZSSP0PebIza4jPiagJtyU";
+
+    let chart = null;
+
+    function varsayilanTarihleriAyarla() {
+      const simdi = new Date();
+      const birSaatOnce = new Date(simdi.getTime() - 60 * 60 * 1000);
+      document.getElementById("bitis").value = toLocalInputValue(simdi);
+      document.getElementById("baslangic").value = toLocalInputValue(birSaatOnce);
+    }
+
+    function toLocalInputValue(date) {
+      const off = date.getTimezoneOffset();
+      const local = new Date(date.getTime() - off * 60000);
+      return local.toISOString().slice(0, 16);
+    }
+
+    function sicakligiSayiyaCevir(metin) {
+      if (!metin) return null;
+      const sayi = parseFloat(String(metin).replace(",", "."));
+      return isNaN(sayi) ? null : sayi;
+    }
+
+    async function veriGetir() {
+      const durumEl = document.getElementById("durum");
+      const btn = document.getElementById("getirBtn");
+      const cihazId = document.getElementById("cihazId").value.trim();
+      const baslangic = document.getElementById("baslangic").value;
+      const bitis = document.getElementById("bitis").value;
+
+      if (!baslangic || !bitis) {
+        durumEl.textContent = "Baslangic ve bitis tarihini sec.";
+        durumEl.className = "hata";
+        return;
+      }
+
+      const baslangicISO = new Date(baslangic).toISOString();
+      const bitisISO = new Date(bitis).toISOString();
+
+      btn.disabled = true;
+      durumEl.textContent = "Yukleniyor...";
+      durumEl.className = "";
+
+      const url = `${SUPABASE_URL}/rest/v1/telemetri?select=*&cihaz_id=eq.${encodeURIComponent(cihazId)}&alindi_zaman=gte.${baslangicISO}&alindi_zaman=lte.${bitisISO}&order=alindi_zaman.asc&limit=2000`;
+
+      try {
+        const res = await fetch(url, {
+          headers: {
+            apikey: ANON_KEY,
+            Authorization: `Bearer ${ANON_KEY}`,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error(`Sunucu hatasi: ${res.status}`);
+        }
+
+        const satirlar = await res.json();
+
+        const etiketler = [];
+        const degerler = [];
+
+        for (const satir of satirlar) {
+          const veri = satir.veri || {};
+          const sicaklik = sicakligiSayiyaCevir(veri.cpu_sicaklik);
+          if (sicaklik === null) continue;
+          const zamanEtiketi = new Date(satir.alindi_zaman).toLocaleString("tr-TR");
+          etiketler.push(zamanEtiketi);
+          degerler.push(sicaklik);
+        }
+
+        grafigiCiz(etiketler, degerler);
+
+        durumEl.textContent = `${satirlar.length} kayit bulundu, ${degerler.length} tanesi grafige islendi.`;
+        durumEl.className = "";
+      } catch (e) {
+        durumEl.textContent = "Hata: " + e.message;
+        durumEl.className = "hata";
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function grafigiCiz(etiketler, degerler) {
+      const ctx = document.getElementById("grafik").getContext("2d");
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: etiketler,
+          datasets: [{
+            label: "CPU Sicaklik (C)",
+            data: degerler,
+            borderColor: "#1a1a1a",
+            backgroundColor: "rgba(26,26,26,0.06)",
+            tension: 0.25,
+            pointRadius: 2,
+            fill: true,
+          }],
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: { ticks: { maxTicksLimit: 10, autoSkip: true } },
+            y: { title: { display: true, text: "Derece (C)" } },
+          },
+          plugins: { legend: { display: false } },
+        },
+      });
+    }
+
+    varsayilanTarihleriAyarla();
+    veriGetir();
+  </script>
+</body>
+</html>
