@@ -82,8 +82,8 @@
 
     <div class="tablo-sarmal">
       <table>
-        <thead><tr><th>Dosya</th><th>Gorunen ad</th><th>Surum</th><th>Mesaj</th><th>Guncelleme</th></tr></thead>
-        <tbody id="dbcListeGovde"><tr><td colspan="5">Yukleniyor...</td></tr></tbody>
+        <thead><tr><th>Dosya</th><th>Gorunen ad</th><th>Surum</th><th>Mesaj</th><th>Guncelleme</th><th>Islem</th></tr></thead>
+        <tbody id="dbcListeGovde"><tr><td colspan="6">Yukleniyor...</td></tr></tbody>
       </table>
     </div>
 
@@ -245,16 +245,17 @@
               <td>${htmlKacir(dbc.surum)}</td>
               <td>${dbc.mesaj_sayisi ?? "-"}</td>
               <td>${new Date(dbc.guncellenme_zamani).toLocaleString("tr-TR")}</td>
+              <td><button class="mini-btn tehlike-btn" data-dbc-id="${htmlKacir(dbc.id)}" data-dbc-name="${htmlKacir(dbc.dosya_adi)}" onclick="dbcSilButonu(this)">DBC'yi Sil</button></td>
             </tr>`).join("");
           durumEl.textContent = `${satirlar.length} DBC dosyasi kutuphanede.`;
           durumEl.className = "basari";
         } else {
-          govde.innerHTML = '<tr><td colspan="5" class="bos-mesaj">Henuz DBC yuklenmedi.</td></tr>';
+          govde.innerHTML = '<tr><td colspan="6" class="bos-mesaj">Henuz DBC yuklenmedi.</td></tr>';
           durumEl.textContent = "DBC kutuphanesi bos.";
           durumEl.className = "";
         }
       } catch (e) {
-        govde.innerHTML = '<tr><td colspan="5" class="bos-mesaj">Liste okunamadi.</td></tr>';
+        govde.innerHTML = '<tr><td colspan="6" class="bos-mesaj">Liste okunamadi.</td></tr>';
         durumEl.textContent = "DBC kutuphanesi okunamadi: " + e.message;
         durumEl.className = "hata";
       }
@@ -342,6 +343,41 @@
         durumEl.className = "hata";
       } finally {
         btn.disabled = false;
+      }
+    }
+
+    async function dbcSilButonu(button) {
+      const dbcId = button.dataset.dbcId;
+      const dosyaAdi = button.dataset.dbcName;
+      const girilen = prompt(
+        `Bu DBC ve ona bagli tum cihaz/CAN atamalari silinecek.\n\nOnaylamak icin dosya adini aynen yazin:\n${dosyaAdi}`
+      );
+      if (girilen === null) return;
+      if (girilen !== dosyaAdi) {
+        const durumEl = document.getElementById("dbcDurum");
+        durumEl.textContent = "Dosya adi eslesmedigi icin silme iptal edildi.";
+        durumEl.className = "hata";
+        return;
+      }
+
+      button.disabled = true;
+      const durumEl = document.getElementById("dbcDurum");
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/dbc_dosyalari?id=eq.${encodeURIComponent(dbcId)}`, {
+          method: "DELETE",
+          headers: apiHeaders({ Prefer: "return=representation" }),
+        });
+        if (!res.ok) throw new Error(await hataMetni(res));
+        const silinenler = await res.json();
+        if (!silinenler.length) throw new Error("DBC bulunamadi veya silme yetkisi yok.");
+
+        durumEl.textContent = `${dosyaAdi} silindi. Bagli cihaz/CAN atamalari da kaldirildi. Cihazlar en gec 60 saniye icinde guncellenecek.`;
+        durumEl.className = "basari";
+        await dbcYonetiminiYenile();
+      } catch (e) {
+        durumEl.textContent = "DBC silinemedi: " + e.message;
+        durumEl.className = "hata";
+        button.disabled = false;
       }
     }
 
