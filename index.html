@@ -7,43 +7,64 @@
 <style>
   body { font-family: -apple-system, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #1a1a1a; }
   h1 { font-size: 22px; margin-bottom: 4px; }
-  .alt { color: #666; font-size: 13px; margin-bottom: 24px; }
-  .kontroller { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; margin-bottom: 24px; padding: 16px; border: 1px solid #ddd; border-radius: 12px; background: #fafafa; }
+  h2 { font-size: 15px; margin: 0 0 10px 0; }
+  .alt { color: #666; font-size: 13px; margin-bottom: 20px; }
+  .kutu { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin-bottom: 20px; background: #fafafa; }
+  .kontroller { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; }
   .alan { display: flex; flex-direction: column; gap: 4px; }
   .alan label { font-size: 12px; color: #555; }
-  .alan input { padding: 8px 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; }
+  .alan input, .alan select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; min-width: 160px; }
   button { padding: 9px 18px; background: #1a1a1a; color: white; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; }
   button:hover { background: #333; }
   button:disabled { background: #999; cursor: default; }
-  #durum { font-size: 13px; color: #666; margin-bottom: 12px; }
-  #durum.hata { color: #c0392b; }
-  .kutu { border: 1px solid #ddd; border-radius: 12px; padding: 20px; }
+  #durum, #dbcDurum { font-size: 13px; color: #666; margin-top: 8px; }
+  #durum.hata, #dbcDurum.hata { color: #c0392b; }
+  #durum.basari, #dbcDurum.basari { color: #1a7a3c; }
+  .grafik-kutu { border: 1px solid #ddd; border-radius: 12px; padding: 20px; }
   canvas { max-height: 380px; }
 </style>
 </head>
 <body>
   <h1>Titan Telemetri Dashboard</h1>
-  <div class="alt">CPU sicaklik gecmisi - Supabase uzerinden</div>
-
-  <div class="kontroller">
-    <div class="alan">
-      <label>Cihaz ID</label>
-      <input type="text" id="cihazId" value="iotitan">
-    </div>
-    <div class="alan">
-      <label>Baslangic</label>
-      <input type="datetime-local" id="baslangic">
-    </div>
-    <div class="alan">
-      <label>Bitis</label>
-      <input type="datetime-local" id="bitis">
-    </div>
-    <button id="getirBtn" onclick="veriGetir()">Getir</button>
-  </div>
-
-  <div id="durum">Hazir.</div>
+  <div class="alt">Gercek CAN sinyalleri - DBC ile cozulmus - Supabase uzerinden</div>
 
   <div class="kutu">
+    <h2>DBC Dosyasi</h2>
+    <div class="kontroller">
+      <div class="alan">
+        <label>DBC dosyasi sec (.dbc)</label>
+        <input type="file" id="dbcDosya" accept=".dbc">
+      </div>
+      <button id="dbcYukleBtn" onclick="dbcYukle()">Yukle</button>
+    </div>
+    <div id="dbcDurum">Kontrol ediliyor...</div>
+  </div>
+
+  <div class="kutu">
+    <h2>Veri Filtresi</h2>
+    <div class="kontroller">
+      <div class="alan">
+        <label>Cihaz ID</label>
+        <input type="text" id="cihazId" value="iotitan">
+      </div>
+      <div class="alan">
+        <label>Baslangic</label>
+        <input type="datetime-local" id="baslangic">
+      </div>
+      <div class="alan">
+        <label>Bitis</label>
+        <input type="datetime-local" id="bitis">
+      </div>
+      <div class="alan">
+        <label>Sinyal</label>
+        <select id="sinyalSecici"><option value="">- once veri getir -</option></select>
+      </div>
+      <button id="getirBtn" onclick="veriGetir()">Getir</button>
+    </div>
+    <div id="durum">Hazir.</div>
+  </div>
+
+  <div class="grafik-kutu">
     <canvas id="grafik"></canvas>
   </div>
 
@@ -52,6 +73,7 @@
     const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdsem1qdWlhamxrdnFkdGlqeGNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NTE0MzUsImV4cCI6MjEwMjAyNzQzNX0.HCEBB3bifL9FrHKxHvR8RCZSSP0PebIza4jPiagJtyU";
 
     let chart = null;
+    let mevcutVeriSatirlari = [];
 
     function varsayilanTarihleriAyarla() {
       const simdi = new Date();
@@ -66,10 +88,71 @@
       return local.toISOString().slice(0, 16);
     }
 
-    function sicakligiSayiyaCevir(metin) {
-      if (!metin) return null;
-      const sayi = parseFloat(String(metin).replace(",", "."));
-      return isNaN(sayi) ? null : sayi;
+    async function dbcDurumGetir() {
+      const durumEl = document.getElementById("dbcDurum");
+      try {
+        const url = `${SUPABASE_URL}/rest/v1/aktif_dbc?id=eq.1&select=dosya_adi,guncellenme_zamani`;
+        const res = await fetch(url, {
+          headers: { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` },
+        });
+        const satirlar = await res.json();
+        if (satirlar.length && satirlar[0].dosya_adi) {
+          const zaman = new Date(satirlar[0].guncellenme_zamani).toLocaleString("tr-TR");
+          durumEl.textContent = `Aktif DBC: ${satirlar[0].dosya_adi} (${zaman} tarihinde yuklendi)`;
+          durumEl.className = "basari";
+        } else {
+          durumEl.textContent = "Henuz DBC yuklenmedi.";
+          durumEl.className = "";
+        }
+      } catch (e) {
+        durumEl.textContent = "DBC durumu okunamadi: " + e.message;
+        durumEl.className = "hata";
+      }
+    }
+
+    async function dbcYukle() {
+      const durumEl = document.getElementById("dbcDurum");
+      const btn = document.getElementById("dbcYukleBtn");
+      const dosya = document.getElementById("dbcDosya").files[0];
+      if (!dosya) {
+        durumEl.textContent = "Once bir .dbc dosyasi sec.";
+        durumEl.className = "hata";
+        return;
+      }
+
+      btn.disabled = true;
+      durumEl.textContent = "Yukleniyor...";
+      durumEl.className = "";
+
+      try {
+        const icerik = await dosya.text();
+        const url = `${SUPABASE_URL}/rest/v1/aktif_dbc?id=eq.1`;
+        const res = await fetch(url, {
+          method: "PATCH",
+          headers: {
+            apikey: ANON_KEY,
+            Authorization: `Bearer ${ANON_KEY}`,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal",
+          },
+          body: JSON.stringify({
+            dosya_adi: dosya.name,
+            icerik: icerik,
+            guncellenme_zamani: new Date().toISOString(),
+          }),
+        });
+
+        if (!res.ok) throw new Error(`Sunucu hatasi: ${res.status}`);
+
+        durumEl.textContent = `Yuklendi: ${dosya.name}. Cihaz en gec 60 saniye icinde yeni DBC'yi alacak.`;
+        durumEl.className = "basari";
+        dbcDurumGetir();
+      } catch (e) {
+        durumEl.textContent = "Hata: " + e.message;
+        durumEl.className = "hata";
+      } finally {
+        btn.disabled = false;
+      }
     }
 
     async function veriGetir() {
@@ -96,34 +179,40 @@
 
       try {
         const res = await fetch(url, {
-          headers: {
-            apikey: ANON_KEY,
-            Authorization: `Bearer ${ANON_KEY}`,
-          },
+          headers: { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` },
         });
-
-        if (!res.ok) {
-          throw new Error(`Sunucu hatasi: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`Sunucu hatasi: ${res.status}`);
 
         const satirlar = await res.json();
+        mevcutVeriSatirlari = satirlar;
 
-        const etiketler = [];
-        const degerler = [];
-
+        const sinyalAdlari = new Set();
         for (const satir of satirlar) {
           const veri = satir.veri || {};
-          const sicaklik = sicakligiSayiyaCevir(veri.cpu_sicaklik);
-          if (sicaklik === null) continue;
-          const zamanEtiketi = new Date(satir.alindi_zaman).toLocaleString("tr-TR");
-          etiketler.push(zamanEtiketi);
-          degerler.push(sicaklik);
+          for (const k of Object.keys(veri)) {
+            if (k !== "id" && k !== "cihaz_id" && k !== "zaman") sinyalAdlari.add(k);
+          }
         }
 
-        grafigiCiz(etiketler, degerler);
+        const secici = document.getElementById("sinyalSecici");
+        const oncekiSecim = secici.value;
+        secici.innerHTML = "";
+        if (sinyalAdlari.size === 0) {
+          const opt = document.createElement("option");
+          opt.value = ""; opt.textContent = "- sinyal bulunamadi -";
+          secici.appendChild(opt);
+        } else {
+          [...sinyalAdlari].sort().forEach((ad) => {
+            const opt = document.createElement("option");
+            opt.value = ad; opt.textContent = ad;
+            secici.appendChild(opt);
+          });
+          if ([...sinyalAdlari].includes(oncekiSecim)) secici.value = oncekiSecim;
+        }
 
-        durumEl.textContent = `${satirlar.length} kayit bulundu, ${degerler.length} tanesi grafige islendi.`;
-        durumEl.className = "";
+        sinyaliCiz();
+        durumEl.textContent = `${satirlar.length} kayit bulundu, ${sinyalAdlari.size} farkli sinyal tespit edildi.`;
+        durumEl.className = "basari";
       } catch (e) {
         durumEl.textContent = "Hata: " + e.message;
         durumEl.className = "hata";
@@ -132,7 +221,30 @@
       }
     }
 
-    function grafigiCiz(etiketler, degerler) {
+    function sinyaliCiz() {
+      const secilenSinyal = document.getElementById("sinyalSecici").value;
+      if (!secilenSinyal) {
+        if (chart) { chart.destroy(); chart = null; }
+        return;
+      }
+
+      const etiketler = [];
+      const degerler = [];
+
+      for (const satir of mevcutVeriSatirlari) {
+        const veri = satir.veri || {};
+        if (!(secilenSinyal in veri)) continue;
+        const ham = veri[secilenSinyal];
+        const sayi = typeof ham === "number" ? ham : parseFloat(String(ham).replace(",", "."));
+        if (isNaN(sayi)) continue;
+        etiketler.push(new Date(satir.alindi_zaman).toLocaleString("tr-TR"));
+        degerler.push(sayi);
+      }
+
+      grafigiCiz(etiketler, degerler, secilenSinyal);
+    }
+
+    function grafigiCiz(etiketler, degerler, etiket) {
       const ctx = document.getElementById("grafik").getContext("2d");
       if (chart) chart.destroy();
       chart = new Chart(ctx, {
@@ -140,7 +252,7 @@
         data: {
           labels: etiketler,
           datasets: [{
-            label: "CPU Sicaklik (C)",
+            label: etiket,
             data: degerler,
             borderColor: "#1a1a1a",
             backgroundColor: "rgba(26,26,26,0.06)",
@@ -153,14 +265,17 @@
           responsive: true,
           scales: {
             x: { ticks: { maxTicksLimit: 10, autoSkip: true } },
-            y: { title: { display: true, text: "Derece (C)" } },
+            y: { title: { display: true, text: etiket } },
           },
-          plugins: { legend: { display: false } },
+          plugins: { legend: { display: true } },
         },
       });
     }
 
+    document.getElementById("sinyalSecici").addEventListener("change", sinyaliCiz);
+
     varsayilanTarihleriAyarla();
+    dbcDurumGetir();
     veriGetir();
   </script>
 </body>
