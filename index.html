@@ -46,8 +46,12 @@
   .dashboard-toolbar { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; margin-bottom: 14px; }
   .dashboard-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
   .widget-kart { position: relative; grid-column: span 6; min-height: 180px; border: 1px solid #ddd; border-radius: 12px; padding: 16px; background: white; overflow: hidden; }
+  .widget-kart[draggable="true"] { cursor: grab; }
+  .widget-kart.surukleniyor { opacity: .45; }
+  .widget-kart.hedef { outline: 2px dashed #1565c0; outline-offset: 2px; }
   .widget-kart h3 { margin: 0 70px 12px 0; font-size: 14px; }
-  .widget-sil { position: absolute; top: 10px; right: 10px; padding: 5px 8px; font-size: 11px; background: #b63838; }
+  .widget-islemler { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+  .widget-islemler button { padding: 5px 8px; font-size: 11px; }
   .widget-deger { display: flex; align-items: baseline; justify-content: center; gap: 8px; min-height: 110px; }
   .widget-deger strong { font-size: 42px; font-weight: 650; letter-spacing: -1px; }
   .widget-deger span { color: #666; font-size: 14px; }
@@ -146,7 +150,8 @@
             <option value="12">Tam</option>
           </select>
         </div>
-        <button id="widgetEkleBtn" onclick="widgetEkle()">Widget Ekle</button>
+        <button id="widgetEkleBtn" onclick="widgetKaydet()">Widget Ekle</button>
+        <button id="widgetDuzenlemeIptalBtn" class="ikincil-btn gizli" onclick="widgetDuzenlemeIptal()">Duzenlemeyi Iptal Et</button>
       </div>
       <div class="yenileme-bilgisi">Birden cok sinyal secmek icin Ctrl (Windows) veya Command (Mac) tusunu kullanin.</div>
     </div>
@@ -276,6 +281,8 @@
     let aktifDashboard = null;
     let aktifWidgetlar = [];
     let mevcutSinyalAdlari = [];
+    let duzenlenenWidgetId = null;
+    let suruklenenWidgetId = null;
     const widgetChartlari = new Map();
     const RENKLER = ["#1565c0", "#e65100", "#c62828", "#2e7d32", "#6a1b9a", "#00838f", "#ad1457", "#455a64"];
     const ONLINE_ESIK_SN = 30;
@@ -620,6 +627,7 @@
 
     async function dashboardSecildi() {
       const id = document.getElementById("dashboardSec").value;
+      widgetDuzenlemeIptal();
       aktifDashboard = dashboardlar.find((d) => d.id === id) || null;
       document.getElementById("dashboardSilBtn").disabled = !aktifDashboard;
       document.getElementById("widgetForm").classList.toggle("gizli", !aktifDashboard);
@@ -682,7 +690,7 @@
       }
     }
 
-    async function widgetEkle() {
+    async function widgetKaydet() {
       const durumEl = document.getElementById("dashboardDurum");
       const btn = document.getElementById("widgetEkleBtn");
       if (!aktifDashboard) return;
@@ -701,15 +709,17 @@
 
       const birim = document.getElementById("widgetBirim").value.trim();
       const baslik = document.getElementById("widgetBaslik").value.trim() || secilenler.join(" / ");
+      const eskiWidget = aktifWidgetlar.find((w) => w.id === duzenlenenWidgetId);
       let ayarlar;
       if (tip === "time_series") {
+        const eskiSinyaller = Array.isArray(eskiWidget?.ayarlar?.signals) ? eskiWidget.ayarlar.signals : [];
         ayarlar = {
           time_window_minutes: 60,
           signals: secilenler.map((name, i) => ({
             name,
-            label: name,
-            color: RENKLER[i % RENKLER.length],
-            axis: i === 0 ? "left" : "right",
+            label: eskiSinyaller.find((x) => x.name === name)?.label || name,
+            color: eskiSinyaller.find((x) => x.name === name)?.color || RENKLER[i % RENKLER.length],
+            axis: eskiSinyaller.find((x) => x.name === name)?.axis || (i === 0 ? "left" : "right"),
           })),
         };
       } else if (tip === "gauge") {
@@ -729,9 +739,13 @@
 
       btn.disabled = true;
       try {
-        const sira = aktifWidgetlar.length ? Math.max(...aktifWidgetlar.map((w) => w.sira || 0)) + 1 : 0;
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/dashboard_widgetlari`, {
-          method: "POST",
+        const duzenleniyor = Boolean(eskiWidget);
+        const sira = duzenleniyor ? eskiWidget.sira : aktifWidgetlar.length ? Math.max(...aktifWidgetlar.map((w) => w.sira || 0)) + 1 : 0;
+        const hedef = duzenleniyor
+          ? `${SUPABASE_URL}/rest/v1/dashboard_widgetlari?id=eq.${encodeURIComponent(eskiWidget.id)}`
+          : `${SUPABASE_URL}/rest/v1/dashboard_widgetlari`;
+        const res = await fetch(hedef, {
+          method: duzenleniyor ? "PATCH" : "POST",
           headers: apiHeaders({ "Content-Type": "application/json", Prefer: "return=minimal" }),
           body: JSON.stringify({
             dashboard_id: aktifDashboard.id,
@@ -745,16 +759,58 @@
           }),
         });
         if (!res.ok) throw new Error(await hataMetni(res));
-        document.getElementById("widgetBaslik").value = "";
+        widgetDuzenlemeIptal();
         await widgetlariGetir();
-        durumEl.textContent = `${baslik} widget'i eklendi.`;
+        durumEl.textContent = `${baslik} widget'i ${duzenleniyor ? "guncellendi" : "eklendi"}.`;
         durumEl.className = "basari";
       } catch (e) {
-        durumEl.textContent = "Widget eklenemedi: " + e.message;
+        durumEl.textContent = "Widget kaydedilemedi: " + e.message;
         durumEl.className = "hata";
       } finally {
         btn.disabled = false;
       }
+    }
+
+    function widgetDuzenleButonu(button) {
+      const widget = aktifWidgetlar.find((w) => w.id === button.dataset.widgetId);
+      if (!widget) return;
+      duzenlenenWidgetId = widget.id;
+      const ayar = widget.ayarlar || {};
+      document.getElementById("widgetTipi").value = widget.widget_tipi;
+      document.getElementById("widgetBaslik").value = widget.baslik;
+      document.getElementById("widgetBirim").value = ayar.unit || "";
+      document.getElementById("widgetMin").value = ayar.min ?? 0;
+      document.getElementById("widgetMax").value = ayar.max ?? 2500;
+      document.getElementById("widgetOnDegeri").value = ayar.on_value ?? "1";
+      document.getElementById("widgetGenislik").value = String(widget.genislik || 6);
+
+      const secilecekler = widget.widget_tipi === "time_series"
+        ? (Array.isArray(ayar.signals) ? ayar.signals.map((x) => x.name) : [])
+        : [ayar.signal].filter(Boolean);
+      const secici = document.getElementById("widgetSinyaller");
+      for (const ad of secilecekler) {
+        if (![...secici.options].some((x) => x.value === ad)) {
+          const opt = document.createElement("option");
+          opt.value = ad;
+          opt.textContent = `${ad} (eski sinyal)`;
+          secici.appendChild(opt);
+        }
+      }
+      for (const opt of secici.options) opt.selected = secilecekler.includes(opt.value);
+
+      widgetFormunuGuncelle();
+      document.getElementById("widgetEkleBtn").textContent = "Degisiklikleri Kaydet";
+      document.getElementById("widgetDuzenlemeIptalBtn").classList.remove("gizli");
+      document.getElementById("widgetForm").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function widgetDuzenlemeIptal() {
+      duzenlenenWidgetId = null;
+      document.getElementById("widgetBaslik").value = "";
+      document.getElementById("widgetBirim").value = "";
+      for (const opt of document.getElementById("widgetSinyaller").options) opt.selected = false;
+      document.getElementById("widgetEkleBtn").textContent = "Widget Ekle";
+      document.getElementById("widgetDuzenlemeIptalBtn").classList.add("gizli");
     }
 
     async function widgetlariGetir() {
@@ -772,6 +828,7 @@
 
     async function widgetSilButonu(button) {
       if (!confirm("Bu widget silinsin mi?")) return;
+      if (duzenlenenWidgetId === button.dataset.widgetId) widgetDuzenlemeIptal();
       const res = await fetch(`${SUPABASE_URL}/rest/v1/dashboard_widgetlari?id=eq.${encodeURIComponent(button.dataset.widgetId)}`, {
         method: "DELETE",
         headers: apiHeaders({ Prefer: "return=minimal" }),
@@ -782,6 +839,73 @@
         return;
       }
       await widgetlariGetir();
+    }
+
+    async function widgetSirala(widgetId, yon) {
+      const index = aktifWidgetlar.findIndex((w) => w.id === widgetId);
+      const hedef = index + yon;
+      if (index < 0 || hedef < 0 || hedef >= aktifWidgetlar.length) return;
+      const yeni = [...aktifWidgetlar];
+      [yeni[index], yeni[hedef]] = [yeni[hedef], yeni[index]];
+      await widgetSiralamasiniKaydet(yeni);
+    }
+
+    async function widgetSiralamasiniKaydet(yeniSira) {
+      const durumEl = document.getElementById("dashboardDurum");
+      const eski = aktifWidgetlar;
+      aktifWidgetlar = yeniSira.map((w, i) => ({ ...w, sira: i }));
+      dashboardCiz();
+      try {
+        for (let i = 0; i < aktifWidgetlar.length; i++) {
+          const widget = aktifWidgetlar[i];
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/dashboard_widgetlari?id=eq.${encodeURIComponent(widget.id)}`, {
+            method: "PATCH",
+            headers: apiHeaders({ "Content-Type": "application/json", Prefer: "return=minimal" }),
+            body: JSON.stringify({ sira: i, guncellenme_zamani: new Date().toISOString() }),
+          });
+          if (!res.ok) throw new Error(await hataMetni(res));
+        }
+        durumEl.textContent = "Widget siralamasi kaydedildi.";
+        durumEl.className = "basari";
+      } catch (e) {
+        aktifWidgetlar = eski;
+        dashboardCiz();
+        durumEl.textContent = "Widget siralamasi kaydedilemedi: " + e.message;
+        durumEl.className = "hata";
+      }
+    }
+
+    function widgetSurukleBaslat(event, widgetId) {
+      suruklenenWidgetId = widgetId;
+      event.currentTarget.classList.add("surukleniyor");
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", widgetId);
+    }
+
+    function widgetSurukleBitir(event) {
+      event.currentTarget.classList.remove("surukleniyor");
+      document.querySelectorAll(".widget-kart.hedef").forEach((x) => x.classList.remove("hedef"));
+      suruklenenWidgetId = null;
+    }
+
+    function widgetUzerinde(event) {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      event.currentTarget.classList.add("hedef");
+    }
+
+    async function widgetBirak(event, hedefWidgetId) {
+      event.preventDefault();
+      event.currentTarget.classList.remove("hedef");
+      const kaynakId = suruklenenWidgetId || event.dataTransfer.getData("text/plain");
+      if (!kaynakId || kaynakId === hedefWidgetId) return;
+      const kaynakIndex = aktifWidgetlar.findIndex((w) => w.id === kaynakId);
+      const hedefIndex = aktifWidgetlar.findIndex((w) => w.id === hedefWidgetId);
+      if (kaynakIndex < 0 || hedefIndex < 0) return;
+      const yeni = [...aktifWidgetlar];
+      const [tasinan] = yeni.splice(kaynakIndex, 1);
+      yeni.splice(hedefIndex, 0, tasinan);
+      await widgetSiralamasiniKaydet(yeni);
     }
 
     function widgetChartlariniTemizle() {
@@ -842,10 +966,22 @@
       for (const widget of aktifWidgetlar) {
         const kart = document.createElement("section");
         kart.className = "widget-kart";
+        kart.draggable = true;
+        kart.dataset.widgetId = widget.id;
         kart.style.gridColumn = `span ${widget.genislik || 6}`;
+        kart.addEventListener("dragstart", (event) => widgetSurukleBaslat(event, widget.id));
+        kart.addEventListener("dragend", widgetSurukleBitir);
+        kart.addEventListener("dragover", widgetUzerinde);
+        kart.addEventListener("dragleave", (event) => event.currentTarget.classList.remove("hedef"));
+        kart.addEventListener("drop", (event) => widgetBirak(event, widget.id));
         const govdeId = `widget-govde-${widget.id.replaceAll("-", "")}`;
         kart.innerHTML = `<h3>${htmlKacir(widget.baslik)}</h3>
-          <button class="widget-sil" data-widget-id="${htmlKacir(widget.id)}" onclick="widgetSilButonu(this)">Sil</button>
+          <div class="widget-islemler">
+            <button class="ikincil-btn" data-widget-id="${htmlKacir(widget.id)}" onclick="widgetDuzenleButonu(this)">Duzenle</button>
+            <button class="ikincil-btn" onclick="widgetSirala('${htmlKacir(widget.id)}', -1)" title="Sola veya yukari tasi">&#8592;</button>
+            <button class="ikincil-btn" onclick="widgetSirala('${htmlKacir(widget.id)}', 1)" title="Saga veya asagi tasi">&#8594;</button>
+            <button class="tehlike-btn" data-widget-id="${htmlKacir(widget.id)}" onclick="widgetSilButonu(this)">Sil</button>
+          </div>
           <div id="${govdeId}"></div>`;
         grid.appendChild(kart);
         widgetGovdesiniCiz(widget, document.getElementById(govdeId));
