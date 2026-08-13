@@ -17,9 +17,9 @@
   button { padding: 9px 18px; background: #1a1a1a; color: white; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; }
   button:hover { background: #333; }
   button:disabled { background: #999; cursor: default; }
-  #durum, #dbcDurum, #dashboardDurum, #atamaDurum { font-size: 13px; color: #666; margin-top: 8px; }
-  #durum.hata, #dbcDurum.hata, #dashboardDurum.hata, #atamaDurum.hata { color: #c0392b; }
-  #durum.basari, #dbcDurum.basari, #dashboardDurum.basari, #atamaDurum.basari { color: #1a7a3c; }
+  #durum, #dbcDurum, #dashboardDurum, #atamaDurum, #olayKuralDurum, #olayListeDurum { font-size: 13px; color: #666; margin-top: 8px; }
+  #durum.hata, #dbcDurum.hata, #dashboardDurum.hata, #atamaDurum.hata, #olayKuralDurum.hata, #olayListeDurum.hata { color: #c0392b; }
+  #durum.basari, #dbcDurum.basari, #dashboardDurum.basari, #atamaDurum.basari, #olayKuralDurum.basari, #olayListeDurum.basari { color: #1a7a3c; }
   .grafik-kutu { border: 1px solid #ddd; border-radius: 12px; padding: 20px; }
   .ust-satir { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
   .ust-satir .alt { margin-bottom: 0; }
@@ -68,9 +68,18 @@
   .gauge-merkez strong { display: block; font-size: 28px; }
   .gauge-merkez span { color: #666; font-size: 12px; }
   .gizli { display: none !important; }
+  .kosul-satiri { display: grid; grid-template-columns: 2fr 1.15fr 1fr 1fr 1fr auto; gap: 8px; align-items: end; padding: 10px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 10px; background: white; }
+  .kosul-satiri .alan input, .kosul-satiri .alan select { min-width: 0; width: 100%; box-sizing: border-box; }
+  .seviye-rozet { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .seviye-rozet.info { background: #dcecff; color: #1b5a96; }
+  .seviye-rozet.warning { background: #fff0c7; color: #8a5a00; }
+  .seviye-rozet.critical { background: #f8dada; color: #9b2525; }
+  .olay-acik { background: #fff8e7; }
+  .olay-detay { max-width: 300px; white-space: normal; word-break: break-word; color: #555; }
   @media (max-width: 760px) {
     .widget-kart { grid-column: span 12 !important; }
     .widget-form select[multiple] { min-width: 220px; }
+    .kosul-satiri { grid-template-columns: 1fr; }
   }
   canvas { max-height: 380px; }
 </style>
@@ -82,6 +91,112 @@
     <div class="cihaz-durum" title="Son telemetri kaydina gore hesaplanir">
       <span id="cihazDurumLambasi" class="durum-lambasi"></span>
       <span id="cihazDurumMetni">Cihaz kontrol ediliyor...</span>
+    </div>
+  </div>
+
+  <div class="kutu">
+    <h2>Olay Kurali Olusturucu</h2>
+    <div class="kontroller">
+      <div class="alan">
+        <label>Olay adi</label>
+        <input type="text" id="olayKuralAdi" placeholder="Orn. Yuksek motor yuku">
+      </div>
+      <div class="alan">
+        <label>Cihaz ID (bos = tum cihazlar)</label>
+        <input type="text" id="olayKuralCihazId" value="iotitan">
+      </div>
+      <div class="alan">
+        <label>Onem seviyesi</label>
+        <select id="olayKuralSeviye">
+          <option value="info">Bilgi</option>
+          <option value="warning" selected>Uyari</option>
+          <option value="critical">Kritik</option>
+        </select>
+      </div>
+      <div class="alan">
+        <label>Kosul mantigi</label>
+        <select id="olayKuralMantik">
+          <option value="AND" selected>Tum kosullar (AND)</option>
+          <option value="OR">Herhangi biri (OR)</option>
+        </select>
+      </div>
+      <div class="alan">
+        <label>Baslatma suresi (sn)</label>
+        <input type="number" id="olayBaslatmaSuresi" value="0" min="0">
+      </div>
+      <div class="alan">
+        <label>Bitirme suresi (sn)</label>
+        <input type="number" id="olayBitirmeSuresi" value="0" min="0">
+      </div>
+      <div class="alan">
+        <label>Cooldown (sn)</label>
+        <input type="number" id="olayCooldown" value="60" min="0">
+      </div>
+    </div>
+
+    <div class="dbc-bolum">
+      <h2>Kosullar</h2>
+      <div id="olayKosullari"></div>
+      <div class="kontroller">
+        <button class="ikincil-btn" onclick="olayKosuluEkle()">Kosul Ekle</button>
+        <button id="olayKuralKaydetBtn" onclick="olayKuralKaydet()">Kurali Kaydet</button>
+        <button id="olayKuralIptalBtn" class="ikincil-btn gizli" onclick="olayKuralDuzenlemeIptal()">Duzenlemeyi Iptal Et</button>
+      </div>
+      <div id="olayKuralDurum" class="yenileme-bilgisi">Kurallar kontrol ediliyor...</div>
+    </div>
+
+    <div class="tablo-sarmal">
+      <table>
+        <thead><tr><th>Olay</th><th>Cihaz</th><th>Seviye</th><th>Mantik</th><th>Kosul</th><th>Sureler</th><th>Surum</th><th>Durum</th><th>Islem</th></tr></thead>
+        <tbody id="olayKuralListeGovde"><tr><td colspan="9">Yukleniyor...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="kutu">
+    <h2>Yakalanan Olaylar</h2>
+    <div class="kontroller">
+      <div class="alan">
+        <label>Cihaz ID</label>
+        <input type="text" id="olayFiltreCihazId" value="iotitan">
+      </div>
+      <div class="alan">
+        <label>Olay adi</label>
+        <input type="text" id="olayFiltreAdi" placeholder="Bos = tum olaylar">
+      </div>
+      <div class="alan">
+        <label>Seviye</label>
+        <select id="olayFiltreSeviye">
+          <option value="">Tumu</option>
+          <option value="info">Bilgi</option>
+          <option value="warning">Uyari</option>
+          <option value="critical">Kritik</option>
+        </select>
+      </div>
+      <div class="alan">
+        <label>Durum</label>
+        <select id="olayFiltreDurum">
+          <option value="">Tumu</option>
+          <option value="open">Acik</option>
+          <option value="closed">Kapanmis</option>
+        </select>
+      </div>
+      <div class="alan">
+        <label>Baslangic</label>
+        <input type="datetime-local" id="olayFiltreBaslangic">
+      </div>
+      <div class="alan">
+        <label>Bitis</label>
+        <input type="datetime-local" id="olayFiltreBitis">
+      </div>
+      <button onclick="olaylariGetir()">Olaylari Getir</button>
+    </div>
+    <div id="olayListeDurum" class="yenileme-bilgisi">Olaylar kontrol ediliyor...</div>
+    <div class="tablo-sarmal">
+      <table>
+        <thead><tr><th>Olay</th><th>Makine</th><th>Seviye</th><th>Baslangic</th><th>Bitis</th><th>Sure</th><th>Durum</th><th>Tetik degerleri</th></tr></thead>
+        <tbody id="olayListeGovde"><tr><td colspan="8">Yukleniyor...</td></tr></tbody>
+      </table>
     </div>
   </div>
 
@@ -283,6 +398,9 @@
     let mevcutSinyalAdlari = [];
     let duzenlenenWidgetId = null;
     let suruklenenWidgetId = null;
+    let olayKurallari = [];
+    let duzenlenenOlayKuralId = null;
+    let olayKosulSayaci = 0;
     const widgetChartlari = new Map();
     const RENKLER = ["#1565c0", "#e65100", "#c62828", "#2e7d32", "#6a1b9a", "#00838f", "#ad1457", "#455a64"];
     const ONLINE_ESIK_SN = 30;
@@ -291,8 +409,11 @@
     function varsayilanTarihleriAyarla() {
       const simdi = new Date();
       const birSaatOnce = new Date(simdi.getTime() - 60 * 60 * 1000);
+      const birGunOnce = new Date(simdi.getTime() - 24 * 60 * 60 * 1000);
       document.getElementById("bitis").value = toLocalInputValue(simdi);
       document.getElementById("baslangic").value = toLocalInputValue(birSaatOnce);
+      document.getElementById("olayFiltreBitis").value = toLocalInputValue(simdi);
+      document.getElementById("olayFiltreBaslangic").value = toLocalInputValue(birGunOnce);
     }
 
     function toLocalInputValue(date) {
@@ -562,6 +683,302 @@
       await dbcAtamalariniGetir();
     }
 
+    function olaySinyalSecenekleriHtml(secilen = "") {
+      const sinyaller = [...mevcutSinyalAdlari];
+      if (secilen && !sinyaller.includes(secilen)) sinyaller.push(secilen);
+      return '<option value="">- sinyal sec -</option>' + sinyaller.sort().map((ad) =>
+        `<option value="${htmlKacir(ad)}" ${ad === secilen ? "selected" : ""}>${htmlKacir(ad)}</option>`
+      ).join("");
+    }
+
+    function olayKosuluEkle(kosul = {}) {
+      const kapsayici = document.getElementById("olayKosullari");
+      const satir = document.createElement("div");
+      satir.className = "kosul-satiri";
+      satir.dataset.kosulId = String(++olayKosulSayaci);
+      satir.innerHTML = `
+        <div class="alan"><label>Sinyal</label><select class="kosul-sinyal">${olaySinyalSecenekleriHtml(kosul.signal || "")}</select></div>
+        <div class="alan"><label>Operator</label><select class="kosul-operator" onchange="olayOperatorDegisti(this)">
+          <option value="gt">Buyuk (&gt;)</option><option value="gte">Buyuk esit (&gt;=)</option>
+          <option value="lt">Kucuk (&lt;)</option><option value="lte">Kucuk esit (&lt;=)</option>
+          <option value="eq">Esit</option><option value="neq">Esit degil</option>
+          <option value="between">Aralikta</option><option value="outside">Aralik disinda</option>
+          <option value="on">ON ise</option><option value="off">OFF ise</option>
+        </select></div>
+        <div class="alan deger1-alan"><label>Esik / Deger 1</label><input class="kosul-deger1" type="text" value="${htmlKacir(kosul.value ?? "")}"></div>
+        <div class="alan deger2-alan"><label>Deger 2</label><input class="kosul-deger2" type="text" value="${htmlKacir(kosul.value2 ?? "")}"></div>
+        <div class="alan temizleme-alan"><label>Bitis esigi</label><input class="kosul-temizleme" type="text" value="${htmlKacir(kosul.clear_value ?? "")}" placeholder="Histerezis"></div>
+        <button class="tehlike-btn" onclick="olayKosuluSil(this)">Sil</button>`;
+      kapsayici.appendChild(satir);
+      satir.querySelector(".kosul-operator").value = kosul.operator || "gt";
+      olayOperatorDegisti(satir.querySelector(".kosul-operator"));
+    }
+
+    function olayKosuluSil(button) {
+      const satirlar = document.querySelectorAll("#olayKosullari .kosul-satiri");
+      if (satirlar.length <= 1) {
+        document.getElementById("olayKuralDurum").textContent = "Bir olay kuralinda en az bir kosul bulunmalidir.";
+        document.getElementById("olayKuralDurum").className = "hata";
+        return;
+      }
+      button.closest(".kosul-satiri").remove();
+    }
+
+    function olayOperatorDegisti(select) {
+      const satir = select.closest(".kosul-satiri");
+      const op = select.value;
+      const degerYok = op === "on" || op === "off";
+      const ciftDeger = op === "between" || op === "outside";
+      const histerezis = ["gt", "gte", "lt", "lte"].includes(op);
+      satir.querySelector(".deger1-alan").classList.toggle("gizli", degerYok);
+      satir.querySelector(".deger2-alan").classList.toggle("gizli", !ciftDeger);
+      satir.querySelector(".temizleme-alan").classList.toggle("gizli", !histerezis);
+    }
+
+    function olaySinyalSecicileriniGuncelle() {
+      document.querySelectorAll("#olayKosullari .kosul-sinyal").forEach((secici) => {
+        const onceki = secici.value;
+        secici.innerHTML = olaySinyalSecenekleriHtml(onceki);
+        secici.value = onceki;
+      });
+    }
+
+    function akilliDeger(ham) {
+      const metin = String(ham ?? "").trim();
+      if (metin === "") return null;
+      const sayi = Number(metin.replace(",", "."));
+      return Number.isFinite(sayi) ? sayi : metin;
+    }
+
+    function olayKosullariniTopla() {
+      const kosullar = [];
+      for (const satir of document.querySelectorAll("#olayKosullari .kosul-satiri")) {
+        const signal = satir.querySelector(".kosul-sinyal").value;
+        const operator = satir.querySelector(".kosul-operator").value;
+        if (!signal) throw new Error("Her kosul icin bir sinyal secin.");
+        const kosul = { signal, operator };
+        if (operator !== "on" && operator !== "off") {
+          kosul.value = akilliDeger(satir.querySelector(".kosul-deger1").value);
+          if (kosul.value === null) throw new Error(`${signal} icin esik/deger girin.`);
+        }
+        if (operator === "between" || operator === "outside") {
+          kosul.value2 = akilliDeger(satir.querySelector(".kosul-deger2").value);
+          if (kosul.value2 === null) throw new Error(`${signal} icin ikinci degeri girin.`);
+        }
+        if (["gt", "gte", "lt", "lte"].includes(operator)) {
+          const temizleme = akilliDeger(satir.querySelector(".kosul-temizleme").value);
+          if (temizleme !== null) kosul.clear_value = temizleme;
+        }
+        kosullar.push(kosul);
+      }
+      return kosullar;
+    }
+
+    async function olayKuralKaydet() {
+      const durumEl = document.getElementById("olayKuralDurum");
+      const btn = document.getElementById("olayKuralKaydetBtn");
+      const ad = document.getElementById("olayKuralAdi").value.trim();
+      if (!ad) {
+        durumEl.textContent = "Olay adini girin.";
+        durumEl.className = "hata";
+        return;
+      }
+      let kosullar;
+      try {
+        kosullar = olayKosullariniTopla();
+      } catch (e) {
+        durumEl.textContent = e.message;
+        durumEl.className = "hata";
+        return;
+      }
+      const eski = olayKurallari.find((x) => x.id === duzenlenenOlayKuralId);
+      const veri = {
+        ad,
+        cihaz_id: document.getElementById("olayKuralCihazId").value.trim() || null,
+        seviye: document.getElementById("olayKuralSeviye").value,
+        mantik: document.getElementById("olayKuralMantik").value,
+        kosullar,
+        baslatma_suresi_sn: Number(document.getElementById("olayBaslatmaSuresi").value),
+        bitirme_suresi_sn: Number(document.getElementById("olayBitirmeSuresi").value),
+        cooldown_sn: Number(document.getElementById("olayCooldown").value),
+        surum: eski ? (eski.surum || 1) + 1 : 1,
+        aktif: eski ? eski.aktif : true,
+      };
+      if ([veri.baslatma_suresi_sn, veri.bitirme_suresi_sn, veri.cooldown_sn].some((x) => !Number.isInteger(x) || x < 0)) {
+        durumEl.textContent = "Sureler sifir veya pozitif tam sayi olmalidir.";
+        durumEl.className = "hata";
+        return;
+      }
+      btn.disabled = true;
+      try {
+        const hedef = eski
+          ? `${SUPABASE_URL}/rest/v1/olay_kurallari?id=eq.${encodeURIComponent(eski.id)}`
+          : `${SUPABASE_URL}/rest/v1/olay_kurallari`;
+        const res = await fetch(hedef, {
+          method: eski ? "PATCH" : "POST",
+          headers: apiHeaders({ "Content-Type": "application/json", Prefer: "return=minimal" }),
+          body: JSON.stringify(veri),
+        });
+        if (!res.ok) throw new Error(await hataMetni(res));
+        olayKuralDuzenlemeIptal();
+        await olayKurallariniGetir();
+        durumEl.textContent = `${ad} kurali ${eski ? "guncellendi" : "olusturuldu"}.`;
+        durumEl.className = "basari";
+      } catch (e) {
+        durumEl.textContent = "Kural kaydedilemedi: " + e.message;
+        durumEl.className = "hata";
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function olayKurallariniGetir() {
+      const govde = document.getElementById("olayKuralListeGovde");
+      const durumEl = document.getElementById("olayKuralDurum");
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/olay_kurallari?select=*&order=olusturulma_zamani.asc`, { headers: apiHeaders() });
+        if (!res.ok) throw new Error(await hataMetni(res));
+        olayKurallari = await res.json();
+        if (!olayKurallari.length) {
+          govde.innerHTML = '<tr><td colspan="9" class="bos-mesaj">Henuz olay kurali yok.</td></tr>';
+          durumEl.textContent = "Henuz olay kurali yok.";
+          return;
+        }
+        govde.innerHTML = olayKurallari.map((kural) => {
+          const ozet = (kural.kosullar || []).map((k) => `${k.signal} ${k.operator} ${k.value ?? ""}${k.value2 !== undefined ? " / " + k.value2 : ""}`).join(` ${kural.mantik} `);
+          return `<tr>
+            <td>${htmlKacir(kural.ad)}</td><td>${htmlKacir(kural.cihaz_id || "Tum cihazlar")}</td>
+            <td><span class="seviye-rozet ${htmlKacir(kural.seviye)}">${htmlKacir(kural.seviye)}</span></td>
+            <td>${htmlKacir(kural.mantik)}</td><td class="olay-detay">${htmlKacir(ozet)}</td>
+            <td>Basla ${kural.baslatma_suresi_sn} sn / Bitir ${kural.bitirme_suresi_sn} sn / Bekle ${kural.cooldown_sn} sn</td>
+            <td>v${kural.surum}</td><td><span class="rozet ${kural.aktif ? "aktif" : "pasif"}">${kural.aktif ? "Aktif" : "Pasif"}</span></td>
+            <td><button class="mini-btn ikincil-btn" data-kural-id="${htmlKacir(kural.id)}" onclick="olayKuralDuzenle(this)">Duzenle</button>
+            <button class="mini-btn ikincil-btn" onclick="olayKuralAktifDegistir('${htmlKacir(kural.id)}', ${!kural.aktif})">${kural.aktif ? "Pasif Yap" : "Aktif Yap"}</button>
+            <button class="mini-btn tehlike-btn" data-kural-id="${htmlKacir(kural.id)}" data-kural-name="${htmlKacir(kural.ad)}" onclick="olayKuralSil(this)">Sil</button></td>
+          </tr>`;
+        }).join("");
+        durumEl.textContent = `${olayKurallari.length} olay kurali bulundu.`;
+        durumEl.className = "basari";
+      } catch (e) {
+        govde.innerHTML = '<tr><td colspan="9" class="bos-mesaj">Kurallar okunamadi.</td></tr>';
+        durumEl.textContent = "Kurallar okunamadi: " + e.message;
+        durumEl.className = "hata";
+      }
+    }
+
+    function olayKuralDuzenle(button) {
+      const kural = olayKurallari.find((x) => x.id === button.dataset.kuralId);
+      if (!kural) return;
+      duzenlenenOlayKuralId = kural.id;
+      document.getElementById("olayKuralAdi").value = kural.ad;
+      document.getElementById("olayKuralCihazId").value = kural.cihaz_id || "";
+      document.getElementById("olayKuralSeviye").value = kural.seviye;
+      document.getElementById("olayKuralMantik").value = kural.mantik;
+      document.getElementById("olayBaslatmaSuresi").value = kural.baslatma_suresi_sn;
+      document.getElementById("olayBitirmeSuresi").value = kural.bitirme_suresi_sn;
+      document.getElementById("olayCooldown").value = kural.cooldown_sn;
+      document.getElementById("olayKosullari").innerHTML = "";
+      for (const kosul of kural.kosullar || []) olayKosuluEkle(kosul);
+      if (!(kural.kosullar || []).length) olayKosuluEkle();
+      document.getElementById("olayKuralKaydetBtn").textContent = "Degisiklikleri Kaydet";
+      document.getElementById("olayKuralIptalBtn").classList.remove("gizli");
+      document.getElementById("olayKuralAdi").scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function olayKuralDuzenlemeIptal() {
+      duzenlenenOlayKuralId = null;
+      document.getElementById("olayKuralAdi").value = "";
+      document.getElementById("olayKuralSeviye").value = "warning";
+      document.getElementById("olayKuralMantik").value = "AND";
+      document.getElementById("olayBaslatmaSuresi").value = "0";
+      document.getElementById("olayBitirmeSuresi").value = "0";
+      document.getElementById("olayCooldown").value = "60";
+      document.getElementById("olayKosullari").innerHTML = "";
+      olayKosuluEkle();
+      document.getElementById("olayKuralKaydetBtn").textContent = "Kurali Kaydet";
+      document.getElementById("olayKuralIptalBtn").classList.add("gizli");
+    }
+
+    async function olayKuralAktifDegistir(kuralId, aktif) {
+      const kural = olayKurallari.find((x) => x.id === kuralId);
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/olay_kurallari?id=eq.${encodeURIComponent(kuralId)}`, {
+        method: "PATCH",
+        headers: apiHeaders({ "Content-Type": "application/json", Prefer: "return=minimal" }),
+        body: JSON.stringify({ aktif, surum: (kural?.surum || 1) + 1 }),
+      });
+      if (!res.ok) {
+        document.getElementById("olayKuralDurum").textContent = "Kural durumu degistirilemedi: " + await hataMetni(res);
+        document.getElementById("olayKuralDurum").className = "hata";
+        return;
+      }
+      await olayKurallariniGetir();
+    }
+
+    async function olayKuralSil(button) {
+      const ad = button.dataset.kuralName;
+      const girilen = prompt(`Kural silinecek. Gecmis olay kayitlari korunur.\nOnaylamak icin kural adini yazin:\n${ad}`);
+      if (girilen !== ad) return;
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/olay_kurallari?id=eq.${encodeURIComponent(button.dataset.kuralId)}`, {
+        method: "DELETE",
+        headers: apiHeaders({ Prefer: "return=minimal" }),
+      });
+      if (!res.ok) {
+        document.getElementById("olayKuralDurum").textContent = "Kural silinemedi: " + await hataMetni(res);
+        document.getElementById("olayKuralDurum").className = "hata";
+        return;
+      }
+      if (duzenlenenOlayKuralId === button.dataset.kuralId) olayKuralDuzenlemeIptal();
+      await olayKurallariniGetir();
+    }
+
+    function sureMetni(saniye) {
+      if (saniye === null || saniye === undefined) return "-";
+      if (saniye < 60) return `${Math.round(saniye)} sn`;
+      if (saniye < 3600) return `${Math.floor(saniye / 60)} dk ${Math.round(saniye % 60)} sn`;
+      return `${Math.floor(saniye / 3600)} sa ${Math.floor((saniye % 3600) / 60)} dk`;
+    }
+
+    async function olaylariGetir() {
+      const durumEl = document.getElementById("olayListeDurum");
+      const govde = document.getElementById("olayListeGovde");
+      try {
+        const params = new URLSearchParams({ select: "*", order: "baslangic_zamani.desc", limit: "500" });
+        const cihaz = document.getElementById("olayFiltreCihazId").value.trim();
+        const ad = document.getElementById("olayFiltreAdi").value.trim();
+        const seviye = document.getElementById("olayFiltreSeviye").value;
+        const durum = document.getElementById("olayFiltreDurum").value;
+        const baslangic = document.getElementById("olayFiltreBaslangic").value;
+        const bitis = document.getElementById("olayFiltreBitis").value;
+        if (cihaz) params.set("cihaz_id", `eq.${cihaz}`);
+        if (ad) params.set("olay_adi", `ilike.*${ad}*`);
+        if (seviye) params.set("seviye", `eq.${seviye}`);
+        if (durum) params.set("durum", `eq.${durum}`);
+        if (baslangic) params.set("baslangic_zamani", `gte.${new Date(baslangic).toISOString()}`);
+        if (bitis) params.append("baslangic_zamani", `lte.${new Date(bitis).toISOString()}`);
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/olaylar?${params.toString()}`, { headers: apiHeaders() });
+        if (!res.ok) throw new Error(await hataMetni(res));
+        const olaylar = await res.json();
+        if (!olaylar.length) {
+          govde.innerHTML = '<tr><td colspan="8" class="bos-mesaj">Secilen aralikta yakalanmis olay yok.</td></tr>';
+          durumEl.textContent = "Olay bulunamadi. Event Worker calismiyorsa kuyruktaki veriler henuz degerlendirilmemis olabilir.";
+          return;
+        }
+        govde.innerHTML = olaylar.map((olay) => `<tr class="${olay.durum === "open" ? "olay-acik" : ""}">
+          <td>${htmlKacir(olay.olay_adi)}</td><td>${htmlKacir(olay.cihaz_id)}</td>
+          <td><span class="seviye-rozet ${htmlKacir(olay.seviye)}">${htmlKacir(olay.seviye)}</span></td>
+          <td>${new Date(olay.baslangic_zamani).toLocaleString("tr-TR")}</td>
+          <td>${olay.bitis_zamani ? new Date(olay.bitis_zamani).toLocaleString("tr-TR") : "Devam ediyor"}</td>
+          <td>${sureMetni(olay.sure_sn)}</td><td><span class="rozet ${olay.durum === "open" ? "aktif" : "pasif"}">${olay.durum === "open" ? "Acik" : "Kapali"}</span></td>
+          <td class="olay-detay">${htmlKacir(JSON.stringify(olay.tetik_degerleri || {}))}</td></tr>`).join("");
+        durumEl.textContent = `${olaylar.length} olay bulundu.`;
+        durumEl.className = "basari";
+      } catch (e) {
+        govde.innerHTML = '<tr><td colspan="8" class="bos-mesaj">Olaylar okunamadi.</td></tr>';
+        durumEl.textContent = "Olaylar okunamadi: " + e.message;
+        durumEl.className = "hata";
+      }
+    }
+
     async function dashboardlariGetir() {
       const durumEl = document.getElementById("dashboardDurum");
       const secici = document.getElementById("dashboardSec");
@@ -638,6 +1055,8 @@
       }
       document.getElementById("cihazId").value = aktifDashboard.cihaz_id;
       document.getElementById("dashboardCihazId").value = aktifDashboard.cihaz_id;
+      document.getElementById("olayKuralCihazId").value = aktifDashboard.cihaz_id;
+      document.getElementById("olayFiltreCihazId").value = aktifDashboard.cihaz_id;
       await widgetlariGetir();
       tarihAraliginiSimdiyeTasi();
       await Promise.all([veriGetir(), cihazDurumunuGetir()]);
@@ -1075,6 +1494,19 @@
       baslangicEl.value = toLocalInputValue(new Date(simdi.getTime() - pencereMs));
     }
 
+    function olayTarihAraliginiSimdiyeTasi() {
+      const baslangicEl = document.getElementById("olayFiltreBaslangic");
+      const bitisEl = document.getElementById("olayFiltreBitis");
+      const eskiBaslangic = new Date(baslangicEl.value);
+      const eskiBitis = new Date(bitisEl.value);
+      const pencereMs = (!isNaN(eskiBaslangic) && !isNaN(eskiBitis) && eskiBitis > eskiBaslangic)
+        ? eskiBitis - eskiBaslangic
+        : 24 * 60 * 60 * 1000;
+      const simdi = new Date();
+      bitisEl.value = toLocalInputValue(simdi);
+      baslangicEl.value = toLocalInputValue(new Date(simdi.getTime() - pencereMs));
+    }
+
     async function cihazDurumunuGetir() {
       const lamba = document.getElementById("cihazDurumLambasi");
       const metin = document.getElementById("cihazDurumMetni");
@@ -1119,7 +1551,8 @@
 
     async function manuelYenile() {
       tarihAraliginiSimdiyeTasi();
-      await Promise.all([veriGetir(), cihazDurumunuGetir()]);
+      olayTarihAraliginiSimdiyeTasi();
+      await Promise.all([veriGetir(), cihazDurumunuGetir(), olaylariGetir()]);
     }
 
     function otomatikYenilemeyiAyarla() {
@@ -1184,6 +1617,7 @@
         }
         mevcutSinyalAdlari = [...sinyalAdlari].sort();
         widgetSinyalSecicisiniGuncelle();
+        olaySinyalSecicileriniGuncelle();
 
         const secici = document.getElementById("sinyalSecici");
         const oncekiSecim = secici.value;
@@ -1281,6 +1715,8 @@
     document.getElementById("sinyalSecici").addEventListener("change", sinyaliCiz);
 
     varsayilanTarihleriAyarla();
+    olayKosuluEkle();
+    olayKurallariniGetir();
     dbcYonetiminiYenile();
     widgetFormunuGuncelle();
     dashboardlariGetir();
