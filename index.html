@@ -31,6 +31,18 @@
   .yenileme-bilgisi { font-size: 12px; color: #666; margin-top: 8px; }
   .ikincil-btn { background: #52606d; }
   .ikincil-btn:hover { background: #3e4a55; }
+  .tehlike-btn { background: #b63838; padding: 6px 10px; }
+  .tehlike-btn:hover { background: #922d2d; }
+  .mini-btn { padding: 6px 10px; }
+  .dbc-bolum { margin-top: 18px; padding-top: 16px; border-top: 1px solid #ddd; }
+  .tablo-sarmal { overflow-x: auto; margin-top: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; background: white; }
+  th, td { padding: 9px 8px; border-bottom: 1px solid #e5e5e5; text-align: left; white-space: nowrap; }
+  th { color: #555; font-weight: 600; background: #f3f3f3; }
+  .rozet { display: inline-block; padding: 3px 7px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .rozet.aktif { color: #146c32; background: #dcf3e4; }
+  .rozet.pasif { color: #8a3232; background: #f8dfdf; }
+  .bos-mesaj { color: #777; font-size: 12px; padding: 10px 0; }
   canvas { max-height: 380px; }
 </style>
 </head>
@@ -45,15 +57,70 @@
   </div>
 
   <div class="kutu">
-    <h2>DBC Dosyasi</h2>
+    <h2>DBC Kutuphanesi</h2>
     <div class="kontroller">
       <div class="alan">
         <label>DBC dosyasi sec (.dbc)</label>
         <input type="file" id="dbcDosya" accept=".dbc">
       </div>
-      <button id="dbcYukleBtn" onclick="dbcYukle()">Yukle</button>
+      <div class="alan">
+        <label>Gorunen ad</label>
+        <input type="text" id="dbcGorunenAd" placeholder="Orn. DEUTZ Stage V">
+      </div>
+      <div class="alan">
+        <label>Surum</label>
+        <input type="text" id="dbcSurum" value="1.0">
+      </div>
+      <div class="alan">
+        <label>Aciklama</label>
+        <input type="text" id="dbcAciklama" placeholder="Istege bagli">
+      </div>
+      <button id="dbcYukleBtn" onclick="dbcYukle()">Kutuphaneye Ekle</button>
+      <button class="ikincil-btn" onclick="dbcYonetiminiYenile()">Listeyi Yenile</button>
     </div>
-    <div id="dbcDurum">Kontrol ediliyor...</div>
+    <div id="dbcDurum">DBC kutuphanesi kontrol ediliyor...</div>
+
+    <div class="tablo-sarmal">
+      <table>
+        <thead><tr><th>Dosya</th><th>Gorunen ad</th><th>Surum</th><th>Mesaj</th><th>Guncelleme</th></tr></thead>
+        <tbody id="dbcListeGovde"><tr><td colspan="5">Yukleniyor...</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="dbc-bolum">
+      <h2>Cihaz ve CAN Kanali Atamasi</h2>
+      <div class="kontroller">
+        <div class="alan">
+          <label>Cihaz ID</label>
+          <input type="text" id="atamaCihazId" value="iotitan">
+        </div>
+        <div class="alan">
+          <label>CAN kanali</label>
+          <select id="atamaCanKanali">
+            <option value="can0">can0</option>
+            <option value="can1">can1</option>
+            <option value="can2">can2</option>
+            <option value="can3">can3</option>
+          </select>
+        </div>
+        <div class="alan">
+          <label>DBC</label>
+          <select id="atamaDbcSec"><option value="">- DBC sec -</option></select>
+        </div>
+        <div class="alan">
+          <label>Oncelik (dusuk once)</label>
+          <input type="number" id="atamaOncelik" value="100" min="0" step="10">
+        </div>
+        <button id="dbcAtaBtn" onclick="dbcAta()">Aktif Olarak Ata</button>
+      </div>
+      <div id="atamaDurum" class="yenileme-bilgisi">Atamalar kontrol ediliyor...</div>
+      <div class="tablo-sarmal">
+        <table>
+          <thead><tr><th>Cihaz</th><th>Kanal</th><th>DBC</th><th>Surum</th><th>Oncelik</th><th>Durum</th><th>Islem</th></tr></thead>
+          <tbody id="atamaListeGovde"><tr><td colspan="7">Yukleniyor...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <div class="kutu">
@@ -104,6 +171,7 @@
     let otomatikYenilemeTimer = null;
     let veriSorgusuCalisiyor = false;
     let sonYenilemeZamani = null;
+    let dbcKutuphane = [];
     const ONLINE_ESIK_SN = 30;
     const GECIKMELI_ESIK_SN = 90;
 
@@ -120,24 +188,74 @@
       return local.toISOString().slice(0, 16);
     }
 
+    const apiHeaders = (ek = {}) => ({
+      apikey: ANON_KEY,
+      Authorization: `Bearer ${ANON_KEY}`,
+      ...ek,
+    });
+
+    function htmlKacir(deger) {
+      return String(deger ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    async function hataMetni(res) {
+      try {
+        const govde = await res.json();
+        return govde.message || govde.details || `Sunucu hatasi: ${res.status}`;
+      } catch (_) {
+        return `Sunucu hatasi: ${res.status}`;
+      }
+    }
+
+    async function dbcYonetiminiYenile() {
+      await Promise.all([dbcDurumGetir(), dbcAtamalariniGetir()]);
+    }
+
     async function dbcDurumGetir() {
       const durumEl = document.getElementById("dbcDurum");
+      const govde = document.getElementById("dbcListeGovde");
       try {
-        const url = `${SUPABASE_URL}/rest/v1/aktif_dbc?id=eq.1&select=dosya_adi,guncellenme_zamani`;
-        const res = await fetch(url, {
-          headers: { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` },
-        });
+        const url = `${SUPABASE_URL}/rest/v1/dbc_dosyalari?select=id,dosya_adi,gorunen_ad,surum,mesaj_sayisi,guncellenme_zamani&order=guncellenme_zamani.desc`;
+        const res = await fetch(url, { headers: apiHeaders() });
+        if (!res.ok) throw new Error(await hataMetni(res));
         const satirlar = await res.json();
-        if (satirlar.length && satirlar[0].dosya_adi) {
-          const zaman = new Date(satirlar[0].guncellenme_zamani).toLocaleString("tr-TR");
-          durumEl.textContent = `Aktif DBC: ${satirlar[0].dosya_adi} (${zaman} tarihinde yuklendi)`;
+        dbcKutuphane = satirlar;
+
+        const secici = document.getElementById("atamaDbcSec");
+        const onceki = secici.value;
+        secici.innerHTML = '<option value="">- DBC sec -</option>';
+        for (const dbc of satirlar) {
+          const opt = document.createElement("option");
+          opt.value = dbc.id;
+          opt.textContent = `${dbc.gorunen_ad || dbc.dosya_adi} - v${dbc.surum}`;
+          secici.appendChild(opt);
+        }
+        if (satirlar.some((x) => x.id === onceki)) secici.value = onceki;
+
+        if (satirlar.length) {
+          govde.innerHTML = satirlar.map((dbc) => `
+            <tr>
+              <td>${htmlKacir(dbc.dosya_adi)}</td>
+              <td>${htmlKacir(dbc.gorunen_ad || "-")}</td>
+              <td>${htmlKacir(dbc.surum)}</td>
+              <td>${dbc.mesaj_sayisi ?? "-"}</td>
+              <td>${new Date(dbc.guncellenme_zamani).toLocaleString("tr-TR")}</td>
+            </tr>`).join("");
+          durumEl.textContent = `${satirlar.length} DBC dosyasi kutuphanede.`;
           durumEl.className = "basari";
         } else {
-          durumEl.textContent = "Henuz DBC yuklenmedi.";
+          govde.innerHTML = '<tr><td colspan="5" class="bos-mesaj">Henuz DBC yuklenmedi.</td></tr>';
+          durumEl.textContent = "DBC kutuphanesi bos.";
           durumEl.className = "";
         }
       } catch (e) {
-        durumEl.textContent = "DBC durumu okunamadi: " + e.message;
+        govde.innerHTML = '<tr><td colspan="5" class="bos-mesaj">Liste okunamadi.</td></tr>';
+        durumEl.textContent = "DBC kutuphanesi okunamadi: " + e.message;
         durumEl.className = "hata";
       }
     }
@@ -146,8 +264,14 @@
       const durumEl = document.getElementById("dbcDurum");
       const btn = document.getElementById("dbcYukleBtn");
       const dosya = document.getElementById("dbcDosya").files[0];
+      const surum = document.getElementById("dbcSurum").value.trim();
       if (!dosya) {
         durumEl.textContent = "Once bir .dbc dosyasi sec.";
+        durumEl.className = "hata";
+        return;
+      }
+      if (!surum) {
+        durumEl.textContent = "DBC surumunu gir.";
         durumEl.className = "hata";
         return;
       }
@@ -158,33 +282,135 @@
 
       try {
         const icerik = await dosya.text();
-        const url = `${SUPABASE_URL}/rest/v1/aktif_dbc?id=eq.1`;
+        const mesajSayisi = (icerik.match(/^\s*BO_\s+\d+\s+/gm) || []).length;
+        const url = `${SUPABASE_URL}/rest/v1/dbc_dosyalari`;
         const res = await fetch(url, {
-          method: "PATCH",
-          headers: {
-            apikey: ANON_KEY,
-            Authorization: `Bearer ${ANON_KEY}`,
-            "Content-Type": "application/json",
-            Prefer: "return=minimal",
-          },
+          method: "POST",
+          headers: apiHeaders({ "Content-Type": "application/json", Prefer: "return=representation" }),
           body: JSON.stringify({
             dosya_adi: dosya.name,
+            gorunen_ad: document.getElementById("dbcGorunenAd").value.trim() || dosya.name.replace(/\.dbc$/i, ""),
+            surum: surum,
+            aciklama: document.getElementById("dbcAciklama").value.trim() || null,
             icerik: icerik,
+            mesaj_sayisi: mesajSayisi,
             guncellenme_zamani: new Date().toISOString(),
           }),
         });
 
-        if (!res.ok) throw new Error(`Sunucu hatasi: ${res.status}`);
+        if (!res.ok) throw new Error(await hataMetni(res));
 
-        durumEl.textContent = `Yuklendi: ${dosya.name}. Cihaz en gec 60 saniye icinde yeni DBC'yi alacak.`;
+        durumEl.textContent = `Kutuphaneye eklendi: ${dosya.name} v${surum}. Kullanmak icin cihaza ve CAN kanalina ata.`;
         durumEl.className = "basari";
-        dbcDurumGetir();
+        document.getElementById("dbcDosya").value = "";
+        await dbcDurumGetir();
       } catch (e) {
         durumEl.textContent = "Hata: " + e.message;
         durumEl.className = "hata";
       } finally {
         btn.disabled = false;
       }
+    }
+
+    async function dbcAta() {
+      const durumEl = document.getElementById("atamaDurum");
+      const btn = document.getElementById("dbcAtaBtn");
+      const cihazId = document.getElementById("atamaCihazId").value.trim();
+      const canKanali = document.getElementById("atamaCanKanali").value;
+      const dbcId = document.getElementById("atamaDbcSec").value;
+      const oncelik = Number(document.getElementById("atamaOncelik").value);
+
+      if (!cihazId || !dbcId || !Number.isInteger(oncelik) || oncelik < 0) {
+        durumEl.textContent = "Cihaz, DBC ve gecerli bir oncelik sec.";
+        durumEl.className = "hata";
+        return;
+      }
+
+      btn.disabled = true;
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/cihaz_dbc_atamalari`, {
+          method: "POST",
+          headers: apiHeaders({ "Content-Type": "application/json", Prefer: "return=minimal" }),
+          body: JSON.stringify({ cihaz_id: cihazId, can_kanali: canKanali, dbc_id: dbcId, aktif: true, oncelik }),
+        });
+        if (!res.ok) throw new Error(await hataMetni(res));
+        durumEl.textContent = `DBC, ${cihazId} / ${canKanali} kanalina atandi. Cihaz en gec 60 saniye icinde alacak.`;
+        durumEl.className = "basari";
+        await dbcAtamalariniGetir();
+      } catch (e) {
+        durumEl.textContent = "Atama hatasi: " + e.message;
+        durumEl.className = "hata";
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function dbcAtamalariniGetir() {
+      const durumEl = document.getElementById("atamaDurum");
+      const govde = document.getElementById("atamaListeGovde");
+      try {
+        const secim = "id,cihaz_id,can_kanali,aktif,oncelik,dbc_id,dbc_dosyalari!inner(dosya_adi,gorunen_ad,surum)";
+        const url = `${SUPABASE_URL}/rest/v1/cihaz_dbc_atamalari?select=${secim}&order=cihaz_id.asc,can_kanali.asc,oncelik.asc`;
+        const res = await fetch(url, { headers: apiHeaders() });
+        if (!res.ok) throw new Error(await hataMetni(res));
+        const satirlar = await res.json();
+
+        if (!satirlar.length) {
+          govde.innerHTML = '<tr><td colspan="7" class="bos-mesaj">Henuz DBC atamasi yok.</td></tr>';
+          durumEl.textContent = "Henuz DBC atamasi yok.";
+          return;
+        }
+
+        govde.innerHTML = satirlar.map((a) => {
+          const dbc = a.dbc_dosyalari || {};
+          return `<tr>
+            <td>${htmlKacir(a.cihaz_id)}</td>
+            <td>${htmlKacir(a.can_kanali)}</td>
+            <td>${htmlKacir(dbc.gorunen_ad || dbc.dosya_adi)}</td>
+            <td>${htmlKacir(dbc.surum)}</td>
+            <td>${a.oncelik}</td>
+            <td><span class="rozet ${a.aktif ? "aktif" : "pasif"}">${a.aktif ? "Aktif" : "Pasif"}</span></td>
+            <td>
+              <button class="mini-btn ikincil-btn" onclick="dbcAtamaDurumDegistir(${a.id}, ${!a.aktif})">${a.aktif ? "Pasif Yap" : "Aktif Yap"}</button>
+              <button class="mini-btn tehlike-btn" onclick="dbcAtamaSil(${a.id})">Sil</button>
+            </td>
+          </tr>`;
+        }).join("");
+        durumEl.textContent = `${satirlar.length} DBC atamasi bulundu.`;
+        durumEl.className = "basari";
+      } catch (e) {
+        govde.innerHTML = '<tr><td colspan="7" class="bos-mesaj">Atamalar okunamadi.</td></tr>';
+        durumEl.textContent = "Atamalar okunamadi: " + e.message;
+        durumEl.className = "hata";
+      }
+    }
+
+    async function dbcAtamaDurumDegistir(atamaId, aktif) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/cihaz_dbc_atamalari?id=eq.${atamaId}`, {
+        method: "PATCH",
+        headers: apiHeaders({ "Content-Type": "application/json", Prefer: "return=minimal" }),
+        body: JSON.stringify({ aktif }),
+      });
+      if (!res.ok) {
+        document.getElementById("atamaDurum").textContent = "Durum degistirilemedi: " + await hataMetni(res);
+        document.getElementById("atamaDurum").className = "hata";
+        return;
+      }
+      await dbcAtamalariniGetir();
+    }
+
+    async function dbcAtamaSil(atamaId) {
+      if (!confirm("Bu DBC atamasi silinsin mi? DBC dosyasi kutuphanede kalir.")) return;
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/cihaz_dbc_atamalari?id=eq.${atamaId}`, {
+        method: "DELETE",
+        headers: apiHeaders({ Prefer: "return=minimal" }),
+      });
+      if (!res.ok) {
+        document.getElementById("atamaDurum").textContent = "Atama silinemedi: " + await hataMetni(res);
+        document.getElementById("atamaDurum").className = "hata";
+        return;
+      }
+      await dbcAtamalariniGetir();
     }
 
     function tarihAraliginiSimdiyeTasi() {
@@ -277,6 +503,7 @@
       if (!baslangic || !bitis) {
         durumEl.textContent = "Baslangic ve bitis tarihini sec.";
         durumEl.className = "hata";
+        veriSorgusuCalisiyor = false;
         return;
       }
 
@@ -392,7 +619,7 @@
     document.getElementById("sinyalSecici").addEventListener("change", sinyaliCiz);
 
     varsayilanTarihleriAyarla();
-    dbcDurumGetir();
+    dbcYonetiminiYenile();
     manuelYenile();
     otomatikYenilemeyiAyarla();
   </script>
