@@ -23,6 +23,7 @@
   .grafik-kutu { border: 1px solid #ddd; border-radius: 12px; padding: 20px; }
   .ust-satir { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
   .ust-satir .alt { margin-bottom: 0; }
+  .surum-rozet { color: #555; background: #eef1f4; border-radius: 999px; padding: 4px 9px; font-size: 11px; font-weight: 600; }
   .saglik-paneli { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 20px; }
   .saglik-karti { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 11px 13px; border: 1px solid #ddd; border-radius: 12px; background: #fafafa; }
   .saglik-metin { display: flex; flex-direction: column; min-width: 0; }
@@ -95,6 +96,7 @@
   <h1>Titan Telemetri Dashboard</h1>
   <div class="ust-satir">
     <div class="alt">Gercek CAN sinyalleri - DBC ile cozulmus - Supabase uzerinden</div>
+    <div class="surum-rozet">Dashboard v1.3.1</div>
   </div>
 
   <div class="saglik-paneli">
@@ -420,6 +422,8 @@
     let aktifWidgetlar = [];
     let mevcutSinyalAdlari = [];
     let dbcSinyalAdlari = [];
+    let gecmisSinyalAdlari = [];
+    let aktifDbcDosyaAdlari = [];
     let dbcKatalogCihazId = null;
     let gecmisModu = false;
     let duzenlenenWidgetId = null;
@@ -431,7 +435,8 @@
     const RENKLER = ["#1565c0", "#e65100", "#c62828", "#2e7d32", "#6a1b9a", "#00838f", "#ad1457", "#455a64"];
     const ONLINE_ESIK_SN = 45;
     const GECIKMELI_ESIK_SN = 90;
-    const CAN_PAKET_ESIK_SN = 30;
+    const CAN_PAKET_ESIK_SN = 90;
+    const DASHBOARD_SURUM = "1.3.1";
 
     function varsayilanTarihleriAyarla() {
       const simdi = new Date();
@@ -474,59 +479,85 @@
     }
 
     function dbcIcerigindenSinyalleriCikar(icerik) {
-      const sinyaller = [];
-      const desen = /^\s*SG_\s+([^\s:]+)[^:]*:/gm;
-      let eslesme;
-      while ((eslesme = desen.exec(icerik || "")) !== null) {
-        sinyaller.push(eslesme[1]);
+      const sinyaller = new Set();
+      for (const satir of String(icerik || "").split(/\r?\n/)) {
+        const eslesme = satir.match(/^\s*SG_\s+([^\s:]+)/);
+        if (eslesme) sinyaller.add(eslesme[1]);
       }
-      return sinyaller;
+      return [...sinyaller];
     }
 
     async function dbcSinyalKatalogunuGetir(cihazId, zorla = false) {
       if (!cihazId) return;
       if (!zorla && dbcKatalogCihazId === cihazId) return;
-      const url = `${SUPABASE_URL}/rest/v1/cihaz_dbc_atamalari?select=dbc_dosyalari!inner(icerik)&cihaz_id=eq.${encodeURIComponent(cihazId)}&aktif=is.true`;
+      const url = `${SUPABASE_URL}/rest/v1/cihaz_dbc_atamalari?select=can_kanali,oncelik,dbc_dosyalari!inner(id,dosya_adi,icerik)&cihaz_id=eq.${encodeURIComponent(cihazId)}&can_kanali=eq.can0&aktif=is.true&order=oncelik.asc`;
       try {
         const res = await fetch(url, { headers: apiHeaders() });
         if (!res.ok) throw new Error(await hataMetni(res));
         const atamalar = await res.json();
         const sinyaller = new Set();
+        const dosyalar = new Set();
         for (const atama of atamalar) {
-          const dbc = atama.dbc_dosyalari || {};
-          for (const ad of dbcIcerigindenSinyalleriCikar(dbc.icerik)) sinyaller.add(ad);
+          const iliski = atama.dbc_dosyalari || {};
+          const dbcler = Array.isArray(iliski) ? iliski : [iliski];
+          for (const dbc of dbcler) {
+            if (dbc.dosya_adi) dosyalar.add(dbc.dosya_adi);
+            for (const ad of dbcIcerigindenSinyalleriCikar(dbc.icerik)) sinyaller.add(ad);
+          }
         }
         dbcSinyalAdlari = [...sinyaller].sort();
+        aktifDbcDosyaAdlari = [...dosyalar].sort();
         dbcKatalogCihazId = cihazId;
         sinyalListeleriniGuncelle([]);
       } catch (e) {
         console.warn("DBC sinyal katalogu okunamadi:", e);
         dbcSinyalAdlari = [];
+        aktifDbcDosyaAdlari = [];
         dbcKatalogCihazId = cihazId;
       }
     }
 
     function sinyalListeleriniGuncelle(telemetriSinyalleri) {
-      const birlesik = new Set(dbcSinyalAdlari);
-      for (const ad of telemetriSinyalleri || []) birlesik.add(ad);
-      mevcutSinyalAdlari = [...birlesik].sort();
+      const aktifSet = new Set(dbcSinyalAdlari);
+      mevcutSinyalAdlari = [...aktifSet].sort();
+      gecmisSinyalAdlari = [...new Set(telemetriSinyalleri || [])]
+        .filter((ad) => !aktifSet.has(ad))
+        .sort();
       widgetSinyalSecicisiniGuncelle();
       olaySinyalSecicileriniGuncelle();
 
       const secici = document.getElementById("sinyalSecici");
       const oncekiSecim = secici.value;
       secici.innerHTML = "";
-      if (!mevcutSinyalAdlari.length) {
+      if (!mevcutSinyalAdlari.length && !gecmisSinyalAdlari.length) {
         secici.innerHTML = '<option value="">- aktif DBC sinyali bulunamadi -</option>';
         return;
       }
-      for (const ad of mevcutSinyalAdlari) {
-        const opt = document.createElement("option");
-        opt.value = ad;
-        opt.textContent = ad;
-        secici.appendChild(opt);
+      if (mevcutSinyalAdlari.length) {
+        const aktifGrup = document.createElement("optgroup");
+        aktifGrup.label = `Aktif DBC sinyalleri (${mevcutSinyalAdlari.length})`;
+        for (const ad of mevcutSinyalAdlari) {
+          const opt = document.createElement("option");
+          opt.value = ad;
+          opt.textContent = ad;
+          aktifGrup.appendChild(opt);
+        }
+        secici.appendChild(aktifGrup);
       }
-      if (mevcutSinyalAdlari.includes(oncekiSecim)) secici.value = oncekiSecim;
+      if (gecmisSinyalAdlari.length) {
+        const gecmisGrup = document.createElement("optgroup");
+        gecmisGrup.label = `Eski DBC / gecmis kayit (${gecmisSinyalAdlari.length})`;
+        for (const ad of gecmisSinyalAdlari) {
+          const opt = document.createElement("option");
+          opt.value = ad;
+          opt.textContent = `${ad} [eski DBC]`;
+          gecmisGrup.appendChild(opt);
+        }
+        secici.appendChild(gecmisGrup);
+      }
+      if ([...mevcutSinyalAdlari, ...gecmisSinyalAdlari].includes(oncekiSecim)) {
+        secici.value = oncekiSecim;
+      }
     }
 
     function gecenSureMetni(saniye) {
@@ -1669,8 +1700,14 @@
           }
 
           const canState = String(health.can_state || "UNKNOWN").toUpperCase();
+          const raporlananCerceveYasi = Number(health.can_last_frame_age_sn);
           const sonCerceve = health.can_last_frame_zamani ? new Date(health.can_last_frame_zamani) : null;
-          const cerceveYasi = sonCerceve ? Math.max(0, (Date.now() - sonCerceve.getTime()) / 1000) : Infinity;
+          const zamanDamgasiYasi = sonCerceve
+            ? Math.max(0, (Date.now() - sonCerceve.getTime()) / 1000)
+            : Infinity;
+          const cerceveYasi = Number.isFinite(raporlananCerceveYasi)
+            ? Math.max(0, raporlananCerceveYasi)
+            : zamanDamgasiYasi;
           const canHata = !health.can_link_up || ["BUS-OFF", "STOPPED", "UNAVAILABLE"].includes(canState);
           if (heartbeatYasi > GECIKMELI_ESIK_SN) {
             lambaAyarla("canDurumLambasi", "offline", "canDurumMetni", "Cihaz offline - CAN bilinmiyor");
@@ -1811,9 +1848,12 @@
         sinyalListeleriniGuncelle([...sinyalAdlari]);
 
         sinyaliCiz();
-        durumEl.textContent = satirlar.length
-          ? `${satirlar.length} kayit bulundu; ${mevcutSinyalAdlari.length} DBC/veri sinyali hazir.`
-          : `Bu tarih araliginda kayit yok; ${dbcSinyalAdlari.length} DBC sinyali secime hazir.`;
+        const dbcMetni = aktifDbcDosyaAdlari.length
+          ? aktifDbcDosyaAdlari.join(", ")
+          : "aktif DBC yok";
+        durumEl.textContent = `${satirlar.length} kayit; `
+          + `${mevcutSinyalAdlari.length} aktif DBC sinyali; `
+          + `${gecmisSinyalAdlari.length} eski/gecmis sinyal. DBC: ${dbcMetni}.`;
         durumEl.className = "basari";
         sonYenilemeZamani = new Date();
         yenilemeBilgisiniGuncelle();
