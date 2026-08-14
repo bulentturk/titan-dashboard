@@ -23,7 +23,13 @@
   .grafik-kutu { border: 1px solid #ddd; border-radius: 12px; padding: 20px; }
   .ust-satir { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
   .ust-satir .alt { margin-bottom: 0; }
-  .cihaz-durum { display: flex; align-items: center; gap: 9px; padding: 9px 13px; border: 1px solid #ddd; border-radius: 999px; background: #fafafa; font-size: 13px; }
+  .saglik-paneli { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 20px; }
+  .saglik-karti { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 11px 13px; border: 1px solid #ddd; border-radius: 12px; background: #fafafa; }
+  .saglik-metin { display: flex; flex-direction: column; min-width: 0; }
+  .saglik-metin strong { font-size: 12px; }
+  .saglik-metin span { color: #666; font-size: 11px; line-height: 1.35; }
+  .volt-karti { align-items: center; }
+  .volt-deger { margin-left: auto; font-size: 22px; font-weight: 700; white-space: nowrap; }
   .durum-lambasi { width: 12px; height: 12px; border-radius: 50%; background: #999; box-shadow: 0 0 0 3px rgba(153,153,153,0.15); }
   .durum-lambasi.online { background: #22a447; box-shadow: 0 0 0 3px rgba(34,164,71,0.18); }
   .durum-lambasi.gecikmeli { background: #e0a400; box-shadow: 0 0 0 3px rgba(224,164,0,0.18); }
@@ -77,6 +83,7 @@
   .olay-acik { background: #fff8e7; }
   .olay-detay { max-width: 300px; white-space: normal; word-break: break-word; color: #555; }
   @media (max-width: 760px) {
+    .saglik-paneli { grid-template-columns: 1fr 1fr; }
     .widget-kart { grid-column: span 12 !important; }
     .widget-form select[multiple] { min-width: 220px; }
     .kosul-satiri { grid-template-columns: 1fr; }
@@ -88,9 +95,24 @@
   <h1>Titan Telemetri Dashboard</h1>
   <div class="ust-satir">
     <div class="alt">Gercek CAN sinyalleri - DBC ile cozulmus - Supabase uzerinden</div>
-    <div class="cihaz-durum" title="Son telemetri kaydina gore hesaplanir">
+  </div>
+
+  <div class="saglik-paneli">
+    <div class="saglik-karti" title="Edge Agent heartbeat kaydina gore hesaplanir">
       <span id="cihazDurumLambasi" class="durum-lambasi"></span>
-      <span id="cihazDurumMetni">Cihaz kontrol ediliyor...</span>
+      <div class="saglik-metin"><strong>Cihaz</strong><span id="cihazDurumMetni">Kontrol ediliyor...</span></div>
+    </div>
+    <div class="saglik-karti" title="can0 arayuzu ve son CAN cercevesine gore hesaplanir">
+      <span id="canDurumLambasi" class="durum-lambasi"></span>
+      <div class="saglik-metin"><strong>Makine / CAN</strong><span id="canDurumMetni">Kontrol ediliyor...</span></div>
+    </div>
+    <div class="saglik-karti" title="Veritabanina ulasan son telemetri kaydina gore hesaplanir">
+      <span id="veriDurumLambasi" class="durum-lambasi"></span>
+      <div class="saglik-metin"><strong>Veri akisi</strong><span id="veriDurumMetni">Kontrol ediliyor...</span></div>
+    </div>
+    <div class="saglik-karti volt-karti" title="DBC ile cozulmus SPN168 degeri otomatik okunur">
+      <div class="saglik-metin"><strong>Makine Besleme Gerilimi</strong><span id="beslemeVoltajAlt">SPN168 bekleniyor</span></div>
+      <div id="beslemeVoltajDegeri" class="volt-deger">--.- V</div>
     </div>
   </div>
 
@@ -362,8 +384,9 @@
         <label>Sinyal</label>
         <select id="sinyalSecici"><option value="">- once veri getir -</option></select>
       </div>
-      <button id="getirBtn" onclick="veriGetir()">Getir</button>
+      <button id="getirBtn" onclick="filtreliVeriGetir()">Getir</button>
       <button id="yenileBtn" class="ikincil-btn" onclick="manuelYenile()">Yenile</button>
+      <button id="sonKayitBtn" class="ikincil-btn" onclick="sonKayitliVeriyiGoster()">Son Kayitli Veriyi Goster</button>
       <div class="alan">
         <label>Otomatik yenileme</label>
         <select id="otomatikYenileme" onchange="otomatikYenilemeyiAyarla()">
@@ -396,6 +419,9 @@
     let aktifDashboard = null;
     let aktifWidgetlar = [];
     let mevcutSinyalAdlari = [];
+    let dbcSinyalAdlari = [];
+    let dbcKatalogCihazId = null;
+    let gecmisModu = false;
     let duzenlenenWidgetId = null;
     let suruklenenWidgetId = null;
     let olayKurallari = [];
@@ -403,8 +429,9 @@
     let olayKosulSayaci = 0;
     const widgetChartlari = new Map();
     const RENKLER = ["#1565c0", "#e65100", "#c62828", "#2e7d32", "#6a1b9a", "#00838f", "#ad1457", "#455a64"];
-    const ONLINE_ESIK_SN = 30;
+    const ONLINE_ESIK_SN = 45;
     const GECIKMELI_ESIK_SN = 90;
+    const CAN_PAKET_ESIK_SN = 30;
 
     function varsayilanTarihleriAyarla() {
       const simdi = new Date();
@@ -444,6 +471,103 @@
       } catch (_) {
         return `Sunucu hatasi: ${res.status}`;
       }
+    }
+
+    function dbcIcerigindenSinyalleriCikar(icerik) {
+      const sinyaller = [];
+      const desen = /^\s*SG_\s+([^\s:]+)[^:]*:/gm;
+      let eslesme;
+      while ((eslesme = desen.exec(icerik || "")) !== null) {
+        sinyaller.push(eslesme[1]);
+      }
+      return sinyaller;
+    }
+
+    async function dbcSinyalKatalogunuGetir(cihazId, zorla = false) {
+      if (!cihazId) return;
+      if (!zorla && dbcKatalogCihazId === cihazId) return;
+      const url = `${SUPABASE_URL}/rest/v1/cihaz_dbc_atamalari?select=dbc_dosyalari!inner(icerik)&cihaz_id=eq.${encodeURIComponent(cihazId)}&aktif=is.true`;
+      try {
+        const res = await fetch(url, { headers: apiHeaders() });
+        if (!res.ok) throw new Error(await hataMetni(res));
+        const atamalar = await res.json();
+        const sinyaller = new Set();
+        for (const atama of atamalar) {
+          const dbc = atama.dbc_dosyalari || {};
+          for (const ad of dbcIcerigindenSinyalleriCikar(dbc.icerik)) sinyaller.add(ad);
+        }
+        dbcSinyalAdlari = [...sinyaller].sort();
+        dbcKatalogCihazId = cihazId;
+        sinyalListeleriniGuncelle([]);
+      } catch (e) {
+        console.warn("DBC sinyal katalogu okunamadi:", e);
+        dbcSinyalAdlari = [];
+        dbcKatalogCihazId = cihazId;
+      }
+    }
+
+    function sinyalListeleriniGuncelle(telemetriSinyalleri) {
+      const birlesik = new Set(dbcSinyalAdlari);
+      for (const ad of telemetriSinyalleri || []) birlesik.add(ad);
+      mevcutSinyalAdlari = [...birlesik].sort();
+      widgetSinyalSecicisiniGuncelle();
+      olaySinyalSecicileriniGuncelle();
+
+      const secici = document.getElementById("sinyalSecici");
+      const oncekiSecim = secici.value;
+      secici.innerHTML = "";
+      if (!mevcutSinyalAdlari.length) {
+        secici.innerHTML = '<option value="">- aktif DBC sinyali bulunamadi -</option>';
+        return;
+      }
+      for (const ad of mevcutSinyalAdlari) {
+        const opt = document.createElement("option");
+        opt.value = ad;
+        opt.textContent = ad;
+        secici.appendChild(opt);
+      }
+      if (mevcutSinyalAdlari.includes(oncekiSecim)) secici.value = oncekiSecim;
+    }
+
+    function gecenSureMetni(saniye) {
+      if (!Number.isFinite(saniye)) return "bilinmiyor";
+      if (saniye < 60) return `${Math.floor(saniye)} sn once`;
+      if (saniye < 3600) return `${Math.floor(saniye / 60)} dk once`;
+      if (saniye < 86400) return `${Math.floor(saniye / 3600)} sa once`;
+      return `${Math.floor(saniye / 86400)} gun once`;
+    }
+
+    function lambaAyarla(id, sinif, metinId, metin) {
+      document.getElementById(id).className = `durum-lambasi ${sinif || ""}`.trim();
+      document.getElementById(metinId).textContent = metin;
+    }
+
+    function beslemeVoltajiniGuncelle(sonTelemetri) {
+      const degerEl = document.getElementById("beslemeVoltajDegeri");
+      const altEl = document.getElementById("beslemeVoltajAlt");
+      const veri = sonTelemetri?.veri || {};
+      const anahtarlar = Object.keys(veri);
+      const anahtar = [
+        "SPN168_BatteryPotentialPowerInput1",
+        "SPN168_BatteryPotential_PowerInput1",
+        "SPN168_BatteryPotential",
+        "SPN168",
+      ].find((ad) => ad in veri) || anahtarlar.find((ad) => /^SPN168(?:_|$)/i.test(ad));
+
+      const sayi = anahtar ? Number(veri[anahtar]) : NaN;
+      if (!Number.isFinite(sayi)) {
+        degerEl.textContent = "--.- V";
+        altEl.textContent = dbcSinyalAdlari.some((ad) => /^SPN168(?:_|$)/i.test(ad))
+          ? "SPN168 icin kayitli deger yok"
+          : "SPN168 aktif DBC'de bulunamadi";
+        return;
+      }
+      const kayitZamani = new Date(sonTelemetri.alindi_zaman);
+      const gecenSn = Math.max(0, (Date.now() - kayitZamani.getTime()) / 1000);
+      degerEl.textContent = `${sayi.toFixed(1)} V`;
+      altEl.textContent = gecenSn <= ONLINE_ESIK_SN
+        ? `Canli - ${anahtar}`
+        : `Son bilinen: ${kayitZamani.toLocaleString("tr-TR")}`;
     }
 
     async function dbcYonetiminiYenile() {
@@ -1058,6 +1182,8 @@
       document.getElementById("olayKuralCihazId").value = aktifDashboard.cihaz_id;
       document.getElementById("olayFiltreCihazId").value = aktifDashboard.cihaz_id;
       await widgetlariGetir();
+      await dbcSinyalKatalogunuGetir(aktifDashboard.cihaz_id, true);
+      gecmisModu = false;
       tarihAraliginiSimdiyeTasi();
       await Promise.all([veriGetir(), cihazDurumunuGetir()]);
     }
@@ -1508,51 +1634,115 @@
     }
 
     async function cihazDurumunuGetir() {
-      const lamba = document.getElementById("cihazDurumLambasi");
-      const metin = document.getElementById("cihazDurumMetni");
       const cihazId = document.getElementById("cihazId").value.trim();
+      lambaAyarla("cihazDurumLambasi", "", "cihazDurumMetni", "Kontrol ediliyor...");
+      lambaAyarla("canDurumLambasi", "", "canDurumMetni", "Kontrol ediliyor...");
+      lambaAyarla("veriDurumLambasi", "", "veriDurumMetni", "Kontrol ediliyor...");
 
-      lamba.className = "durum-lambasi";
-      metin.textContent = "Cihaz kontrol ediliyor...";
+      const healthUrl = `${SUPABASE_URL}/rest/v1/cihaz_durumlari?select=*&cihaz_id=eq.${encodeURIComponent(cihazId)}&limit=1`;
+      const telemetriUrl = `${SUPABASE_URL}/rest/v1/telemetri?select=alindi_zaman,veri&cihaz_id=eq.${encodeURIComponent(cihazId)}&order=alindi_zaman.desc&limit=1`;
 
+      let health = null;
+      let sonTelemetri = null;
       try {
-        const url = `${SUPABASE_URL}/rest/v1/telemetri?select=alindi_zaman&cihaz_id=eq.${encodeURIComponent(cihazId)}&order=alindi_zaman.desc&limit=1`;
-        const res = await fetch(url, {
-          headers: { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` },
-        });
-        if (!res.ok) throw new Error(`Sunucu hatasi: ${res.status}`);
-        const satirlar = await res.json();
+        const [healthRes, telemetriRes] = await Promise.all([
+          fetch(healthUrl, { headers: apiHeaders() }),
+          fetch(telemetriUrl, { headers: apiHeaders() }),
+        ]);
+        if (telemetriRes.ok) sonTelemetri = (await telemetriRes.json())[0] || null;
+        if (healthRes.ok) health = (await healthRes.json())[0] || null;
 
-        if (!satirlar.length) {
-          lamba.className = "durum-lambasi offline";
-          metin.textContent = "Cihaz verisi bulunamadi";
-          return;
+        beslemeVoltajiniGuncelle(sonTelemetri);
+
+        if (!health) {
+          lambaAyarla("cihazDurumLambasi", "offline", "cihazDurumMetni", "Heartbeat bulunamadi");
+          lambaAyarla("canDurumLambasi", "offline", "canDurumMetni", "CAN durumu bilinmiyor");
+        } else {
+          const heartbeatZamani = new Date(health.son_heartbeat);
+          const heartbeatYasi = Math.max(0, (Date.now() - heartbeatZamani.getTime()) / 1000);
+          if (heartbeatYasi <= ONLINE_ESIK_SN) {
+            lambaAyarla("cihazDurumLambasi", "online", "cihazDurumMetni", `Bagli - ${gecenSureMetni(heartbeatYasi)}`);
+          } else if (heartbeatYasi <= GECIKMELI_ESIK_SN) {
+            lambaAyarla("cihazDurumLambasi", "gecikmeli", "cihazDurumMetni", `Heartbeat gecikiyor - ${gecenSureMetni(heartbeatYasi)}`);
+          } else {
+            lambaAyarla("cihazDurumLambasi", "offline", "cihazDurumMetni", `Bagli degil - ${gecenSureMetni(heartbeatYasi)}`);
+          }
+
+          const canState = String(health.can_state || "UNKNOWN").toUpperCase();
+          const sonCerceve = health.can_last_frame_zamani ? new Date(health.can_last_frame_zamani) : null;
+          const cerceveYasi = sonCerceve ? Math.max(0, (Date.now() - sonCerceve.getTime()) / 1000) : Infinity;
+          const canHata = !health.can_link_up || ["BUS-OFF", "STOPPED", "UNAVAILABLE"].includes(canState);
+          if (heartbeatYasi > GECIKMELI_ESIK_SN) {
+            lambaAyarla("canDurumLambasi", "offline", "canDurumMetni", "Cihaz offline - CAN bilinmiyor");
+          } else if (canHata) {
+            lambaAyarla("canDurumLambasi", "offline", "canDurumMetni", `${health.can_interface || "can0"} ${canState}`);
+          } else if (cerceveYasi <= CAN_PAKET_ESIK_SN) {
+            lambaAyarla("canDurumLambasi", "online", "canDurumMetni", `Paket geliyor - ${gecenSureMetni(cerceveYasi)}`);
+          } else {
+            lambaAyarla("canDurumLambasi", "gecikmeli", "canDurumMetni", `${health.can_interface || "can0"} acik - CAN paketi yok`);
+          }
         }
 
-        const sonKayit = new Date(satirlar[0].alindi_zaman);
-        const gecenSn = Math.max(0, Math.floor((Date.now() - sonKayit.getTime()) / 1000));
-        const sonKayitMetni = sonKayit.toLocaleTimeString("tr-TR");
-
-        if (gecenSn <= ONLINE_ESIK_SN) {
-          lamba.className = "durum-lambasi online";
-          metin.textContent = `Cihaz bagli - son veri ${gecenSn} sn once`;
-        } else if (gecenSn <= GECIKMELI_ESIK_SN) {
-          lamba.className = "durum-lambasi gecikmeli";
-          metin.textContent = `Veri gecikiyor - son veri ${gecenSn} sn once`;
+        if (!sonTelemetri) {
+          lambaAyarla("veriDurumLambasi", "offline", "veriDurumMetni", "Kayitli telemetri yok");
         } else {
-          lamba.className = "durum-lambasi offline";
-          metin.textContent = `Cihaz bagli degil - son veri ${sonKayitMetni}`;
+          const veriZamani = new Date(sonTelemetri.alindi_zaman);
+          const veriYasi = Math.max(0, (Date.now() - veriZamani.getTime()) / 1000);
+          if (veriYasi <= ONLINE_ESIK_SN) {
+            lambaAyarla("veriDurumLambasi", "online", "veriDurumMetni", `Akis aktif - ${gecenSureMetni(veriYasi)}`);
+          } else if (veriYasi <= GECIKMELI_ESIK_SN) {
+            lambaAyarla("veriDurumLambasi", "gecikmeli", "veriDurumMetni", `Veri gecikiyor - ${gecenSureMetni(veriYasi)}`);
+          } else {
+            lambaAyarla("veriDurumLambasi", "offline", "veriDurumMetni", `Akis yok - son veri ${gecenSureMetni(veriYasi)}`);
+          }
         }
       } catch (e) {
-        lamba.className = "durum-lambasi offline";
-        metin.textContent = "Baglanti durumu okunamadi";
+        lambaAyarla("cihazDurumLambasi", "offline", "cihazDurumMetni", "Durum okunamadi");
+        lambaAyarla("canDurumLambasi", "offline", "canDurumMetni", "Durum okunamadi");
+        lambaAyarla("veriDurumLambasi", "offline", "veriDurumMetni", "Durum okunamadi");
+        beslemeVoltajiniGuncelle(sonTelemetri);
       }
     }
 
     async function manuelYenile() {
-      tarihAraliginiSimdiyeTasi();
-      olayTarihAraliginiSimdiyeTasi();
+      if (!gecmisModu) tarihAraliginiSimdiyeTasi();
+      if (!gecmisModu) olayTarihAraliginiSimdiyeTasi();
       await Promise.all([veriGetir(), cihazDurumunuGetir(), olaylariGetir()]);
+    }
+
+    async function filtreliVeriGetir() {
+      gecmisModu = true;
+      await Promise.all([veriGetir(), cihazDurumunuGetir()]);
+    }
+
+    async function sonKayitliVeriyiGoster() {
+      const cihazId = document.getElementById("cihazId").value.trim();
+      const durumEl = document.getElementById("durum");
+      try {
+        const url = `${SUPABASE_URL}/rest/v1/telemetri?select=alindi_zaman&cihaz_id=eq.${encodeURIComponent(cihazId)}&order=alindi_zaman.desc&limit=1`;
+        const res = await fetch(url, { headers: apiHeaders() });
+        if (!res.ok) throw new Error(await hataMetni(res));
+        const son = (await res.json())[0];
+        if (!son) throw new Error("Bu cihaz icin kayitli telemetri yok.");
+
+        const baslangicEl = document.getElementById("baslangic");
+        const bitisEl = document.getElementById("bitis");
+        const eskiBaslangic = new Date(baslangicEl.value);
+        const eskiBitis = new Date(bitisEl.value);
+        const pencereMs = (!isNaN(eskiBaslangic) && !isNaN(eskiBitis) && eskiBitis > eskiBaslangic)
+          ? eskiBitis - eskiBaslangic
+          : 60 * 60 * 1000;
+        const sonZaman = new Date(son.alindi_zaman);
+        bitisEl.value = toLocalInputValue(new Date(sonZaman.getTime() + 1000));
+        baslangicEl.value = toLocalInputValue(new Date(sonZaman.getTime() - pencereMs));
+        gecmisModu = true;
+        document.getElementById("otomatikYenileme").value = "0";
+        otomatikYenilemeyiAyarla();
+        await Promise.all([veriGetir(), cihazDurumunuGetir()]);
+      } catch (e) {
+        durumEl.textContent = "Son kayit acilamadi: " + e.message;
+        durumEl.className = "hata";
+      }
     }
 
     function otomatikYenilemeyiAyarla() {
@@ -1576,6 +1766,7 @@
       const durumEl = document.getElementById("durum");
       const btn = document.getElementById("getirBtn");
       const yenileBtn = document.getElementById("yenileBtn");
+      const sonKayitBtn = document.getElementById("sonKayitBtn");
       if (veriSorgusuCalisiyor) return;
       veriSorgusuCalisiyor = true;
       const cihazId = document.getElementById("cihazId").value.trim();
@@ -1594,12 +1785,14 @@
 
       btn.disabled = true;
       yenileBtn.disabled = true;
+      sonKayitBtn.disabled = true;
       durumEl.textContent = "Yukleniyor...";
       durumEl.className = "";
 
       const url = `${SUPABASE_URL}/rest/v1/telemetri?select=*&cihaz_id=eq.${encodeURIComponent(cihazId)}&alindi_zaman=gte.${baslangicISO}&alindi_zaman=lte.${bitisISO}&order=alindi_zaman.asc&limit=2000`;
 
       try {
+        await dbcSinyalKatalogunuGetir(cihazId);
         const res = await fetch(url, {
           headers: { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` },
         });
@@ -1615,28 +1808,12 @@
             if (k !== "id" && k !== "cihaz_id" && k !== "zaman") sinyalAdlari.add(k);
           }
         }
-        mevcutSinyalAdlari = [...sinyalAdlari].sort();
-        widgetSinyalSecicisiniGuncelle();
-        olaySinyalSecicileriniGuncelle();
-
-        const secici = document.getElementById("sinyalSecici");
-        const oncekiSecim = secici.value;
-        secici.innerHTML = "";
-        if (sinyalAdlari.size === 0) {
-          const opt = document.createElement("option");
-          opt.value = ""; opt.textContent = "- sinyal bulunamadi -";
-          secici.appendChild(opt);
-        } else {
-          [...sinyalAdlari].sort().forEach((ad) => {
-            const opt = document.createElement("option");
-            opt.value = ad; opt.textContent = ad;
-            secici.appendChild(opt);
-          });
-          if ([...sinyalAdlari].includes(oncekiSecim)) secici.value = oncekiSecim;
-        }
+        sinyalListeleriniGuncelle([...sinyalAdlari]);
 
         sinyaliCiz();
-        durumEl.textContent = `${satirlar.length} kayit bulundu, ${sinyalAdlari.size} farkli sinyal tespit edildi.`;
+        durumEl.textContent = satirlar.length
+          ? `${satirlar.length} kayit bulundu; ${mevcutSinyalAdlari.length} DBC/veri sinyali hazir.`
+          : `Bu tarih araliginda kayit yok; ${dbcSinyalAdlari.length} DBC sinyali secime hazir.`;
         durumEl.className = "basari";
         sonYenilemeZamani = new Date();
         yenilemeBilgisiniGuncelle();
@@ -1647,6 +1824,7 @@
       } finally {
         btn.disabled = false;
         yenileBtn.disabled = false;
+        sonKayitBtn.disabled = false;
         veriSorgusuCalisiyor = false;
       }
     }
