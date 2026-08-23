@@ -24,7 +24,7 @@
   .ust-satir { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
   .ust-satir .alt { margin-bottom: 0; }
   .surum-rozet { color: #555; background: #eef1f4; border-radius: 999px; padding: 4px 9px; font-size: 11px; font-weight: 600; }
-  .saglik-paneli { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 20px; }
+  .saglik-paneli { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 10px; }
   .saglik-karti { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 11px 13px; border: 1px solid #ddd; border-radius: 12px; background: #fafafa; }
   .saglik-metin { display: flex; flex-direction: column; min-width: 0; }
   .saglik-metin strong { font-size: 12px; }
@@ -35,6 +35,9 @@
   .durum-lambasi.online { background: #22a447; box-shadow: 0 0 0 3px rgba(34,164,71,0.18); }
   .durum-lambasi.gecikmeli { background: #e0a400; box-shadow: 0 0 0 3px rgba(224,164,0,0.18); }
   .durum-lambasi.offline { background: #d64040; box-shadow: 0 0 0 3px rgba(214,64,64,0.18); }
+  .aktarim-uyarisi { display: none; margin: 0 0 20px; padding: 10px 13px; border: 1px solid #e2bd52; border-radius: 10px; background: #fff8df; color: #765400; font-size: 12px; line-height: 1.45; }
+  .aktarim-uyarisi.goster { display: block; }
+  .aktarim-uyarisi.kritik { border-color: #d97b7b; background: #fff0f0; color: #8f2929; }
   .yenileme-bilgisi { font-size: 12px; color: #666; margin-top: 8px; }
   .ikincil-btn { background: #52606d; }
   .ikincil-btn:hover { background: #3e4a55; }
@@ -96,7 +99,7 @@
   <h1>Titan Telemetri Dashboard</h1>
   <div class="ust-satir">
     <div class="alt">Gercek CAN sinyalleri - DBC ile cozulmus - Supabase uzerinden</div>
-    <div class="surum-rozet">Dashboard v1.3.1</div>
+    <div class="surum-rozet">Dashboard v1.4.0</div>
   </div>
 
   <div class="saglik-paneli">
@@ -112,11 +115,16 @@
       <span id="veriDurumLambasi" class="durum-lambasi"></span>
       <div class="saglik-metin"><strong>Veri akisi</strong><span id="veriDurumMetni">Kontrol ediliyor...</span></div>
     </div>
+    <div class="saglik-karti" title="Cihazdaki yerel SQLite kuyrugunun heartbeat ile bildirilen durumudur">
+      <span id="kuyrukDurumLambasi" class="durum-lambasi"></span>
+      <div class="saglik-metin"><strong>Yerel kuyruk</strong><span id="kuyrukDurumMetni">Kontrol ediliyor...</span></div>
+    </div>
     <div class="saglik-karti volt-karti" title="DBC ile cozulmus SPN168 degeri otomatik okunur">
       <div class="saglik-metin"><strong>Makine Besleme Gerilimi</strong><span id="beslemeVoltajAlt">SPN168 bekleniyor</span></div>
       <div id="beslemeVoltajDegeri" class="volt-deger">--.- V</div>
     </div>
   </div>
+  <div id="aktarimUyarisi" class="aktarim-uyarisi" role="status"></div>
 
   <div class="kutu">
     <h2>Olay Kurali Olusturucu</h2>
@@ -393,7 +401,8 @@
         <label>Otomatik yenileme</label>
         <select id="otomatikYenileme" onchange="otomatikYenilemeyiAyarla()">
           <option value="0">Kapali</option>
-          <option value="10" selected>10 saniye</option>
+          <option value="5" selected>5 saniye</option>
+          <option value="10">10 saniye</option>
           <option value="30">30 saniye</option>
           <option value="60">60 saniye</option>
         </select>
@@ -436,7 +445,7 @@
     const ONLINE_ESIK_SN = 45;
     const GECIKMELI_ESIK_SN = 90;
     const CAN_PAKET_ESIK_SN = 90;
-    const DASHBOARD_SURUM = "1.3.1";
+    const DASHBOARD_SURUM = "1.4.0";
 
     function varsayilanTarihleriAyarla() {
       const simdi = new Date();
@@ -571,6 +580,69 @@
     function lambaAyarla(id, sinif, metinId, metin) {
       document.getElementById(id).className = `durum-lambasi ${sinif || ""}`.trim();
       document.getElementById(metinId).textContent = metin;
+    }
+
+    function sayisalAlan(...degerler) {
+      for (const deger of degerler) {
+        if (deger === null || deger === undefined || deger === "") continue;
+        const sayi = Number(deger);
+        if (Number.isFinite(sayi)) return Math.max(0, sayi);
+      }
+      return null;
+    }
+
+    function healthPayloadiniAl(health) {
+      if (!health?.payload) return {};
+      if (typeof health.payload === "object") return health.payload;
+      try { return JSON.parse(health.payload); } catch (_) { return {}; }
+    }
+
+    function kuyrukDurumunuGuncelle(health, heartbeatYasi) {
+      const uyariEl = document.getElementById("aktarimUyarisi");
+      uyariEl.className = "aktarim-uyarisi";
+      uyariEl.textContent = "";
+
+      if (!health || heartbeatYasi > GECIKMELI_ESIK_SN) {
+        lambaAyarla("kuyrukDurumLambasi", "offline", "kuyrukDurumMetni", "Cihaz offline - kuyruk bilinmiyor");
+        return { gecmisAktarimi: false };
+      }
+
+      const payload = healthPayloadiniAl(health);
+      const toplam = sayisalAlan(
+        payload.yerel_kuyruk_toplam,
+        health.yerel_kuyruk_boyutu,
+        payload.yerel_kuyruk_boyutu
+      );
+      const pending = sayisalAlan(payload.yerel_kuyruk_pending);
+      const sent = sayisalAlan(payload.yerel_kuyruk_sent);
+      const enEskiYas = sayisalAlan(payload.yerel_kuyruk_en_eski_yas_sn);
+
+      if (toplam === null) {
+        lambaAyarla("kuyrukDurumLambasi", "gecikmeli", "kuyrukDurumMetni", "Kuyruk bilgisi bekleniyor");
+        return { gecmisAktarimi: false };
+      }
+
+      const ayrinti = pending !== null && sent !== null
+        ? `${Math.round(pending)} bekleyen / ${Math.round(sent)} DB onayi`
+        : `${Math.round(toplam)} kayit`;
+      const gecmisAktarimi = toplam > 10 || (enEskiYas !== null && enEskiYas > 60);
+
+      if (gecmisAktarimi) {
+        const yasMetni = enEskiYas === null ? "" : ` - en eski ${gecenSureMetni(enEskiYas)}`;
+        lambaAyarla("kuyrukDurumLambasi", "gecikmeli", "kuyrukDurumMetni", `${ayrinti}${yasMetni}`);
+        uyariEl.textContent = `Gecmis veriler aktariliyor: cihazda ${Math.round(toplam)} kayit var${yasMetni}. Canli ekran ile kayit zamani birbirinden farkli olabilir.`;
+        uyariEl.className = `aktarim-uyarisi goster${toplam > 1000 ? " kritik" : ""}`;
+      } else {
+        const hareketli = toplam > 0 ? ` - ${ayrinti}` : " - kuyruk bos";
+        lambaAyarla("kuyrukDurumLambasi", "online", "kuyrukDurumMetni", `Normal${hareketli}`);
+      }
+      return { gecmisAktarimi };
+    }
+
+    function cihazVerisiYasiniAl(sonTelemetri) {
+      const epoch = Number(sonTelemetri?.veri?.zaman);
+      if (!Number.isFinite(epoch) || epoch <= 0) return null;
+      return Math.max(0, Date.now() / 1000 - epoch);
     }
 
     function beslemeVoltajiniGuncelle(sonTelemetri) {
@@ -1669,6 +1741,7 @@
       lambaAyarla("cihazDurumLambasi", "", "cihazDurumMetni", "Kontrol ediliyor...");
       lambaAyarla("canDurumLambasi", "", "canDurumMetni", "Kontrol ediliyor...");
       lambaAyarla("veriDurumLambasi", "", "veriDurumMetni", "Kontrol ediliyor...");
+      lambaAyarla("kuyrukDurumLambasi", "", "kuyrukDurumMetni", "Kontrol ediliyor...");
 
       const healthUrl = `${SUPABASE_URL}/rest/v1/cihaz_durumlari?select=*&cihaz_id=eq.${encodeURIComponent(cihazId)}&limit=1`;
       const telemetriUrl = `${SUPABASE_URL}/rest/v1/telemetri?select=alindi_zaman,veri&cihaz_id=eq.${encodeURIComponent(cihazId)}&order=alindi_zaman.desc&limit=1`;
@@ -1688,6 +1761,7 @@
         if (!health) {
           lambaAyarla("cihazDurumLambasi", "offline", "cihazDurumMetni", "Heartbeat bulunamadi");
           lambaAyarla("canDurumLambasi", "offline", "canDurumMetni", "CAN durumu bilinmiyor");
+          kuyrukDurumunuGuncelle(null, Infinity);
         } else {
           const heartbeatZamani = new Date(health.son_heartbeat);
           const heartbeatYasi = Math.max(0, (Date.now() - heartbeatZamani.getTime()) / 1000);
@@ -1718,6 +1792,7 @@
           } else {
             lambaAyarla("canDurumLambasi", "gecikmeli", "canDurumMetni", `${health.can_interface || "can0"} acik - CAN paketi yok`);
           }
+          kuyrukDurumunuGuncelle(health, heartbeatYasi);
         }
 
         if (!sonTelemetri) {
@@ -1725,8 +1800,19 @@
         } else {
           const veriZamani = new Date(sonTelemetri.alindi_zaman);
           const veriYasi = Math.max(0, (Date.now() - veriZamani.getTime()) / 1000);
-          if (veriYasi <= ONLINE_ESIK_SN) {
-            lambaAyarla("veriDurumLambasi", "online", "veriDurumMetni", `Akis aktif - ${gecenSureMetni(veriYasi)}`);
+          const cihazVerisiYasi = cihazVerisiYasiniAl(sonTelemetri);
+          const gecmisPaket = veriYasi <= ONLINE_ESIK_SN
+            && cihazVerisiYasi !== null
+            && cihazVerisiYasi > GECIKMELI_ESIK_SN;
+          if (gecmisPaket) {
+            lambaAyarla("veriDurumLambasi", "gecikmeli", "veriDurumMetni", `Gecmis veri aktariliyor - ${gecenSureMetni(cihazVerisiYasi)}`);
+            const uyariEl = document.getElementById("aktarimUyarisi");
+            if (!uyariEl.classList.contains("goster")) {
+              uyariEl.textContent = `Veritabani su anda gecmis tarihli cihaz verilerini aliyor. Son paket cihaza gore ${gecenSureMetni(cihazVerisiYasi)} olusturulmus.`;
+              uyariEl.className = "aktarim-uyarisi goster";
+            }
+          } else if (veriYasi <= ONLINE_ESIK_SN) {
+            lambaAyarla("veriDurumLambasi", "online", "veriDurumMetni", `Canli akis - ${gecenSureMetni(veriYasi)}`);
           } else if (veriYasi <= GECIKMELI_ESIK_SN) {
             lambaAyarla("veriDurumLambasi", "gecikmeli", "veriDurumMetni", `Veri gecikiyor - ${gecenSureMetni(veriYasi)}`);
           } else {
@@ -1737,6 +1823,7 @@
         lambaAyarla("cihazDurumLambasi", "offline", "cihazDurumMetni", "Durum okunamadi");
         lambaAyarla("canDurumLambasi", "offline", "canDurumMetni", "Durum okunamadi");
         lambaAyarla("veriDurumLambasi", "offline", "veriDurumMetni", "Durum okunamadi");
+        lambaAyarla("kuyrukDurumLambasi", "offline", "kuyrukDurumMetni", "Durum okunamadi");
         beslemeVoltajiniGuncelle(sonTelemetri);
       }
     }
