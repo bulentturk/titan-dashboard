@@ -99,7 +99,7 @@
   <h1>Titan Telemetri Dashboard</h1>
   <div class="ust-satir">
     <div class="alt">Gercek CAN sinyalleri - DBC ile cozulmus - Supabase uzerinden</div>
-    <div class="surum-rozet">Dashboard v1.4.0</div>
+    <div class="surum-rozet">Dashboard v1.4.1</div>
   </div>
 
   <div class="saglik-paneli">
@@ -432,6 +432,7 @@
     let mevcutSinyalAdlari = [];
     let dbcSinyalAdlari = [];
     let gecmisSinyalAdlari = [];
+    let kayitliSinyalAdlari = [];
     let aktifDbcDosyaAdlari = [];
     let dbcKatalogCihazId = null;
     let gecmisModu = false;
@@ -445,7 +446,7 @@
     const ONLINE_ESIK_SN = 45;
     const GECIKMELI_ESIK_SN = 90;
     const CAN_PAKET_ESIK_SN = 90;
-    const DASHBOARD_SURUM = "1.4.0";
+    const DASHBOARD_SURUM = "1.4.1";
 
     function varsayilanTarihleriAyarla() {
       const simdi = new Date();
@@ -529,7 +530,8 @@
     function sinyalListeleriniGuncelle(telemetriSinyalleri) {
       const aktifSet = new Set(dbcSinyalAdlari);
       mevcutSinyalAdlari = [...aktifSet].sort();
-      gecmisSinyalAdlari = [...new Set(telemetriSinyalleri || [])]
+      kayitliSinyalAdlari = [...new Set(telemetriSinyalleri || [])].sort();
+      gecmisSinyalAdlari = kayitliSinyalAdlari
         .filter((ad) => !aktifSet.has(ad))
         .sort();
       widgetSinyalSecicisiniGuncelle();
@@ -538,33 +540,20 @@
       const secici = document.getElementById("sinyalSecici");
       const oncekiSecim = secici.value;
       secici.innerHTML = "";
-      if (!mevcutSinyalAdlari.length && !gecmisSinyalAdlari.length) {
-        secici.innerHTML = '<option value="">- aktif DBC sinyali bulunamadi -</option>';
+      if (!kayitliSinyalAdlari.length) {
+        secici.innerHTML = '<option value="">- secilen zaman araliginda kayitli sinyal yok -</option>';
         return;
       }
-      if (mevcutSinyalAdlari.length) {
-        const aktifGrup = document.createElement("optgroup");
-        aktifGrup.label = `Aktif DBC sinyalleri (${mevcutSinyalAdlari.length})`;
-        for (const ad of mevcutSinyalAdlari) {
-          const opt = document.createElement("option");
-          opt.value = ad;
-          opt.textContent = ad;
-          aktifGrup.appendChild(opt);
-        }
-        secici.appendChild(aktifGrup);
+      const kayitliGrup = document.createElement("optgroup");
+      kayitliGrup.label = `Secilen zaman araliginda kayitli sinyaller (${kayitliSinyalAdlari.length})`;
+      for (const ad of kayitliSinyalAdlari) {
+        const opt = document.createElement("option");
+        opt.value = ad;
+        opt.textContent = aktifSet.has(ad) ? ad : `${ad} [eski DBC]`;
+        kayitliGrup.appendChild(opt);
       }
-      if (gecmisSinyalAdlari.length) {
-        const gecmisGrup = document.createElement("optgroup");
-        gecmisGrup.label = `Eski DBC / gecmis kayit (${gecmisSinyalAdlari.length})`;
-        for (const ad of gecmisSinyalAdlari) {
-          const opt = document.createElement("option");
-          opt.value = ad;
-          opt.textContent = `${ad} [eski DBC]`;
-          gecmisGrup.appendChild(opt);
-        }
-        secici.appendChild(gecmisGrup);
-      }
-      if ([...mevcutSinyalAdlari, ...gecmisSinyalAdlari].includes(oncekiSecim)) {
+      secici.appendChild(kayitliGrup);
+      if (kayitliSinyalAdlari.includes(oncekiSecim)) {
         secici.value = oncekiSecim;
       }
     }
@@ -1939,8 +1928,8 @@
           ? aktifDbcDosyaAdlari.join(", ")
           : "aktif DBC yok";
         durumEl.textContent = `${satirlar.length} kayit; `
-          + `${mevcutSinyalAdlari.length} aktif DBC sinyali; `
-          + `${gecmisSinyalAdlari.length} eski/gecmis sinyal. DBC: ${dbcMetni}.`;
+          + `${kayitliSinyalAdlari.length} secilen aralikta kayitli sinyal; `
+          + `${mevcutSinyalAdlari.length} aktif DBC sinyali. DBC: ${dbcMetni}.`;
         durumEl.className = "basari";
         sonYenilemeZamani = new Date();
         yenilemeBilgisiniGuncelle();
