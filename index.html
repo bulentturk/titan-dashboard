@@ -99,7 +99,7 @@
   <h1>Titan Telemetri Dashboard</h1>
   <div class="ust-satir">
     <div class="alt">Gercek CAN sinyalleri - DBC ile cozulmus - Supabase uzerinden</div>
-    <div class="surum-rozet">Dashboard v1.4.1</div>
+    <div class="surum-rozet">Dashboard v1.4.2</div>
   </div>
 
   <div class="saglik-paneli">
@@ -446,7 +446,9 @@
     const ONLINE_ESIK_SN = 45;
     const GECIKMELI_ESIK_SN = 90;
     const CAN_PAKET_ESIK_SN = 90;
-    const DASHBOARD_SURUM = "1.4.1";
+    const DASHBOARD_SURUM = "1.4.2";
+    const TELEMETRI_SAYFA_BOYUTU = 1000;
+    const TELEMETRI_MAKSIMUM_KAYIT = 20000;
 
     function varsayilanTarihleriAyarla() {
       const simdi = new Date();
@@ -1824,7 +1826,9 @@
     }
 
     async function filtreliVeriGetir() {
-      gecmisModu = true;
+      const bitis = new Date(document.getElementById("bitis").value);
+      const simdiyeFarkMs = Math.abs(Date.now() - bitis.getTime());
+      gecmisModu = isNaN(bitis.getTime()) || simdiyeFarkMs > 2 * 60 * 1000;
       await Promise.all([veriGetir(), cihazDurumunuGetir()]);
     }
 
@@ -1875,6 +1879,35 @@
         `Son yenileme: ${son} - Otomatik yenileme: ${saniye > 0 ? saniye + " saniye" : "kapali"}`;
     }
 
+    async function telemetriSayfaliGetir(cihazId, baslangicISO, bitisISO) {
+      const satirlar = [];
+      let offset = 0;
+
+      while (satirlar.length < TELEMETRI_MAKSIMUM_KAYIT) {
+        const kalan = TELEMETRI_MAKSIMUM_KAYIT - satirlar.length;
+        const limit = Math.min(TELEMETRI_SAYFA_BOYUTU, kalan);
+        const url = `${SUPABASE_URL}/rest/v1/telemetri?select=*`
+          + `&cihaz_id=eq.${encodeURIComponent(cihazId)}`
+          + `&alindi_zaman=gte.${encodeURIComponent(baslangicISO)}`
+          + `&alindi_zaman=lte.${encodeURIComponent(bitisISO)}`
+          + `&order=alindi_zaman.asc&limit=${limit}&offset=${offset}`;
+
+        const res = await fetch(url, { headers: apiHeaders() });
+        if (!res.ok) throw new Error(`Sunucu hatasi: ${res.status}`);
+
+        const sayfa = await res.json();
+        satirlar.push(...sayfa);
+
+        if (sayfa.length < limit) {
+          return { satirlar, siniraUlasti: false };
+        }
+
+        offset += sayfa.length;
+      }
+
+      return { satirlar, siniraUlasti: true };
+    }
+
     async function veriGetir() {
       const durumEl = document.getElementById("durum");
       const btn = document.getElementById("getirBtn");
@@ -1902,16 +1935,13 @@
       durumEl.textContent = "Yukleniyor...";
       durumEl.className = "";
 
-      const url = `${SUPABASE_URL}/rest/v1/telemetri?select=*&cihaz_id=eq.${encodeURIComponent(cihazId)}&alindi_zaman=gte.${baslangicISO}&alindi_zaman=lte.${bitisISO}&order=alindi_zaman.asc&limit=2000`;
-
       try {
         await dbcSinyalKatalogunuGetir(cihazId);
-        const res = await fetch(url, {
-          headers: { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` },
-        });
-        if (!res.ok) throw new Error(`Sunucu hatasi: ${res.status}`);
-
-        const satirlar = await res.json();
+        const { satirlar, siniraUlasti } = await telemetriSayfaliGetir(
+          cihazId,
+          baslangicISO,
+          bitisISO
+        );
         mevcutVeriSatirlari = satirlar;
 
         const sinyalAdlari = new Set();
@@ -1929,7 +1959,10 @@
           : "aktif DBC yok";
         durumEl.textContent = `${satirlar.length} kayit; `
           + `${kayitliSinyalAdlari.length} secilen aralikta kayitli sinyal; `
-          + `${mevcutSinyalAdlari.length} aktif DBC sinyali. DBC: ${dbcMetni}.`;
+          + `${mevcutSinyalAdlari.length} aktif DBC sinyali. DBC: ${dbcMetni}.`
+          + (siniraUlasti
+            ? ` Gösterim ilk ${TELEMETRI_MAKSIMUM_KAYIT} kayitla sinirlandi.`
+            : "");
         durumEl.className = "basari";
         sonYenilemeZamani = new Date();
         yenilemeBilgisiniGuncelle();
