@@ -99,7 +99,7 @@
   <h1>Titan Telemetri Dashboard</h1>
   <div class="ust-satir">
     <div class="alt">Gercek CAN sinyalleri - DBC ile cozulmus - Supabase uzerinden</div>
-    <div class="surum-rozet">Dashboard v1.4.2</div>
+    <div class="surum-rozet">Dashboard v1.4.3</div>
   </div>
 
   <div class="saglik-paneli">
@@ -446,7 +446,7 @@
     const ONLINE_ESIK_SN = 45;
     const GECIKMELI_ESIK_SN = 90;
     const CAN_PAKET_ESIK_SN = 90;
-    const DASHBOARD_SURUM = "1.4.2";
+    const DASHBOARD_SURUM = "1.4.3";
     const TELEMETRI_SAYFA_BOYUTU = 1000;
     const TELEMETRI_MAKSIMUM_KAYIT = 20000;
 
@@ -1765,20 +1765,21 @@
           }
 
           const canState = String(health.can_state || "UNKNOWN").toUpperCase();
-          const raporlananCerceveYasi = Number(health.can_last_frame_age_sn);
+          const raporlananCerceveYasi = sayisalAlan(health.can_last_frame_age_sn);
+          const canRxPackets = sayisalAlan(health.can_rx_packets) ?? 0;
           const sonCerceve = health.can_last_frame_zamani ? new Date(health.can_last_frame_zamani) : null;
           const zamanDamgasiYasi = sonCerceve
             ? Math.max(0, (Date.now() - sonCerceve.getTime()) / 1000)
             : Infinity;
-          const cerceveYasi = Number.isFinite(raporlananCerceveYasi)
-            ? Math.max(0, raporlananCerceveYasi)
+          const cerceveYasi = raporlananCerceveYasi !== null
+            ? raporlananCerceveYasi
             : zamanDamgasiYasi;
           const canHata = !health.can_link_up || ["BUS-OFF", "STOPPED", "UNAVAILABLE"].includes(canState);
           if (heartbeatYasi > GECIKMELI_ESIK_SN) {
             lambaAyarla("canDurumLambasi", "offline", "canDurumMetni", "Cihaz offline - CAN bilinmiyor");
           } else if (canHata) {
             lambaAyarla("canDurumLambasi", "offline", "canDurumMetni", `${health.can_interface || "can0"} ${canState}`);
-          } else if (cerceveYasi <= CAN_PAKET_ESIK_SN) {
+          } else if (canRxPackets > 0 && cerceveYasi <= CAN_PAKET_ESIK_SN) {
             lambaAyarla("canDurumLambasi", "online", "canDurumMetni", `Paket geliyor - ${gecenSureMetni(cerceveYasi)}`);
           } else {
             lambaAyarla("canDurumLambasi", "gecikmeli", "canDurumMetni", `${health.can_interface || "can0"} acik - CAN paketi yok`);
