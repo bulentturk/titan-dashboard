@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <title>Titan Fleet &amp; Telemetry</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0/dist/chartjs-plugin-zoom.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 <style>
@@ -54,6 +57,7 @@
   .rozet { display: inline-block; padding: 3px 7px; border-radius: 999px; font-size: 11px; font-weight: 600; }
   .rozet.aktif { color: #146c32; background: #dcf3e4; }
   .rozet.pasif { color: #8a3232; background: #f8dfdf; }
+  .rozet.uyari { color: #805400; background: #fff0c7; }
   .bos-mesaj { color: #777; font-size: 12px; padding: 10px 0; }
   .dashboard-toolbar { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; margin-bottom: 14px; }
   .dashboard-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
@@ -257,6 +261,7 @@
     color: #dbe9ef;
     background: linear-gradient(180deg, #091c26 0%, #0b2633 60%, #081a23 100%);
     border-right: 1px solid rgba(255,255,255,.06);
+    overflow-y: auto;
   }
   .yan-menu-marka { display: flex; align-items: center; gap: 13px; min-height: 82px; padding: 16px 22px; border-bottom: 1px solid rgba(255,255,255,.08); }
   .yan-menu-logo { display: grid; place-items: center; width: 86px; min-width: 86px; height: 42px; padding: 8px 9px 6px; border-radius: 8px; background: #fff; }
@@ -462,6 +467,110 @@
   .toast.goster { opacity: 1; transform: translateY(0); }
   .mobil-perde { display: none; }
 
+  /* v2.1 filo, trend, dashboard ve bakım bileşenleri */
+  .buton-grubu { display: flex; flex-wrap: wrap; gap: 8px; }
+  .grafik-araclari { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-bottom: 12px; padding: 10px 12px; border: 1px solid var(--titan-line); border-radius: 10px; background: #f8fbfc; }
+  .grafik-araclari button { min-width: 40px; min-height: 34px; padding: 6px 10px; }
+  .grafik-araclari .grafik-yardim { margin-left: auto; color: var(--titan-muted); font-size: 12px; }
+  .trend-filtre-paneli .kontroller { align-items: flex-end; }
+  .trend-sinyal-alani { flex: 1 1 360px; min-width: min(100%, 360px); }
+  .sinyal-secici-kabuk { min-width: min(100%, 360px); padding: 10px; border: 1px solid #ccd9df; border-radius: 9px; background: #fff; }
+  .sinyal-arama { width: 100%; min-height: 36px !important; min-width: 0 !important; margin-bottom: 8px; }
+  .sinyal-kontrol-listesi { max-height: 184px; display: grid; gap: 3px; overflow-y: auto; padding-right: 4px; }
+  .sinyal-kontrol { display: flex; align-items: center; gap: 9px; min-height: 34px; padding: 6px 8px; border-radius: 6px; color: #3f535e; font-size: 12px; cursor: pointer; }
+  .sinyal-kontrol:hover { background: #eff8fb; }
+  .sinyal-kontrol input { width: 16px !important; min-width: 16px !important; min-height: 16px !important; accent-color: var(--titan-blue); }
+  .sinyal-secim-alt { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; color: var(--titan-muted); font-size: 11px; }
+  .metin-link-buton { min-height: auto !important; padding: 2px 0 !important; color: var(--titan-blue-dark) !important; background: transparent !important; font-size: 11px; }
+  .secili-sinyal-etiketleri { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .sinyal-etiketi { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px; border: 1px solid #bce4f2; border-radius: 999px; color: #07516f; background: #e9f9fe; font-size: 11px; font-weight: 700; }
+  .sinyal-renk { width: 7px; height: 7px; border-radius: 50%; }
+  .grafik-veri-ozeti { display: flex; flex-wrap: wrap; gap: 16px; margin: 0 0 12px; color: var(--titan-muted); font-size: 12px; }
+  .grafik-veri-ozeti strong { color: var(--titan-ink); }
+
+  .dashboard-zaman-paneli { display: grid; grid-template-columns: auto minmax(165px, 220px) minmax(165px, 220px) auto; gap: 10px; align-items: end; margin: 14px 0 18px; padding: 14px; border: 1px solid var(--titan-line); border-radius: 10px; background: #f8fbfc; }
+  .dashboard-zaman-paneli .hizli-araliklar { grid-column: 1 / -1; margin: 0; }
+  .dashboard-zaman-paneli > .zaman-etiketi { align-self: center; display: flex; align-items: center; gap: 8px; color: #405762; font-size: 12px; font-weight: 750; }
+  .dashboard-zaman-paneli > .zaman-etiketi svg { width: 17px; color: var(--titan-blue-dark); }
+  .dashboard-sorgu-durum { grid-column: 1 / -1; color: var(--titan-muted); font-size: 11px; }
+
+  .widget-form { padding: 20px; border: 1px solid #cfe1e8; border-radius: 12px; background: linear-gradient(180deg, #fbfdfe, #f4f9fb); }
+  .widget-form > h2 { font-size: 18px; }
+  .widget-tip-kartlari { display: grid; grid-template-columns: repeat(7, minmax(110px, 1fr)); gap: 9px; margin-bottom: 18px; }
+  .widget-tip-karti { min-height: 96px; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 12px; color: #415762; background: #fff; border: 1px solid #d7e4e9; border-radius: 9px; text-align: left; }
+  .widget-tip-karti:hover { color: #073b51; background: #f3fbfe; border-color: #a9deef; }
+  .widget-tip-karti.aktif { color: #05384d; background: #e9f9fe; border-color: var(--titan-blue); box-shadow: inset 0 0 0 1px var(--titan-blue); }
+  .widget-tip-karti svg { width: 21px; height: 21px; color: var(--titan-blue-dark); }
+  .widget-tip-karti strong { font-size: 12px; }
+  .widget-tip-karti span { color: #84939b; font-size: 10px; font-weight: 500; line-height: 1.3; }
+  .widget-kart { min-height: 190px; padding: 18px; }
+  .widget-kart-baslik { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .widget-kart-baslik h3 { margin: 0; }
+  .widget-tip-rozet { padding: 3px 7px; border-radius: 999px; color: #08749e; background: #e8f8fe; font-size: 9px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+  .widget-progress { min-height: 115px; display: grid; align-content: center; gap: 12px; }
+  .widget-progress-deger { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .widget-progress-deger strong { font-size: 34px; }
+  .widget-progress-cizgi { height: 12px; overflow: hidden; border-radius: 999px; background: #e8eef1; }
+  .widget-progress-cizgi span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #008fc5, #00aeef); }
+
+  .makine-gorselli-kart { display: grid; grid-template-columns: 190px minmax(0, 1fr) auto; gap: 18px; align-items: stretch; padding: 0; overflow: hidden; }
+  .makine-gorsel { min-height: 150px; overflow: hidden; background: #eef4f6; }
+  .makine-gorsel img { width: 100%; height: 100%; display: block; object-fit: cover; }
+  .makine-gorsel-kucuk { width: 112px; height: 78px; overflow: hidden; border-radius: 8px; background: #eef4f6; }
+  .makine-gorsel-kucuk img { width: 100%; height: 100%; object-fit: cover; }
+  .makine-kart-icerik { align-self: center; padding: 18px 0; }
+  .makine-kart-metrikler { min-width: 250px; display: grid; grid-template-columns: 1fr 1fr; align-content: center; gap: 9px; padding: 18px 18px 18px 0; }
+  .makine-mini-metrik { padding: 10px 12px; border: 1px solid #e0e9ed; border-radius: 8px; background: rgba(255,255,255,.74); }
+  .makine-mini-metrik strong { display: block; color: #172c36; font-size: 16px; }
+  .makine-mini-metrik span { display: block; margin-top: 3px; color: var(--titan-muted); font-size: 10px; }
+  .makine-kod-rozet { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 6px; color: #435963; background: #eef3f5; font-size: 11px; font-weight: 700; }
+  .makine-liste-izgara { display: grid; gap: 14px; }
+  .makine-bekliyor { border-left-color: var(--titan-warning); background: linear-gradient(135deg, #fff, #fffaf0); }
+  .makine-bekliyor .makine-gorsel img { filter: saturate(.65); opacity: .82; }
+  .kart-aksiyonlari { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+  .kart-aksiyonlari button { min-height: 32px; padding: 6px 10px; font-size: 11px; }
+
+  .bakim-kpi-izgara { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+  .bakim-listesi { display: grid; gap: 10px; }
+  .bakim-satiri { display: grid; grid-template-columns: minmax(220px, 1.2fr) minmax(180px, 1fr) 120px 110px; gap: 16px; align-items: center; padding: 15px 0; border-bottom: 1px solid #e9eff2; }
+  .bakim-satiri:last-child { border-bottom: 0; }
+  .bakim-satiri h4 { margin: 0; font-size: 13px; }
+  .bakim-satiri p { margin: 4px 0 0; color: var(--titan-muted); font-size: 11px; }
+  .bakim-ilerleme { height: 8px; overflow: hidden; border-radius: 999px; background: #e8eef1; }
+  .bakim-ilerleme span { display: block; height: 100%; border-radius: inherit; background: var(--titan-blue); }
+  .bakim-kalan { color: #3b505a; font-size: 12px; font-weight: 750; text-align: right; }
+
+  .modal-perde { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 22px; background: rgba(5,24,33,.68); backdrop-filter: blur(4px); }
+  .modal-kart { width: min(1040px, 100%); max-height: min(860px, calc(100vh - 44px)); overflow-y: auto; border-radius: 14px; background: #fff; box-shadow: 0 28px 80px rgba(0,0,0,.3); }
+  .modal-ust { position: sticky; top: 0; z-index: 2; display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 20px 22px; border-bottom: 1px solid var(--titan-line); background: rgba(255,255,255,.96); }
+  .modal-ust h3 { margin: 0; font-size: 20px; }
+  .modal-ust p { margin: 5px 0 0; color: var(--titan-muted); font-size: 12px; }
+  .modal-icerik { padding: 22px; }
+  .urun-arama-satiri { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+  .urun-arama-satiri input, .urun-arama-satiri select { min-height: 40px; padding: 8px 11px; border: 1px solid #ccd9df; border-radius: 8px; }
+  .urun-arama-satiri input { flex: 1 1 260px; }
+  .urun-katalog { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .urun-karti { min-height: 195px; overflow: hidden; padding: 0; color: #243943; background: #fff; border: 1px solid #d7e4e9; text-align: left; }
+  .urun-karti:hover { color: #16303c; background: #fff; border-color: var(--titan-blue); box-shadow: 0 8px 22px rgba(0,143,197,.1); }
+  .urun-karti.aktif { color: #16303c; background: #f4fbfe; border-color: var(--titan-blue); box-shadow: inset 0 0 0 1px var(--titan-blue); }
+  .urun-karti img { width: 100%; height: 118px; display: block; object-fit: cover; background: #eef4f6; }
+  .urun-karti > span { display: block; padding: 12px; }
+  .urun-karti strong { display: block; font-size: 14px; }
+  .urun-karti small { display: block; margin-top: 4px; color: var(--titan-muted); font-size: 11px; }
+  .esleme-formu { margin-top: 20px; padding: 18px; border: 1px solid #cfe1e8; border-radius: 10px; background: #f7fbfc; }
+  .esleme-formu h4 { margin: 0 0 14px; }
+  .esleme-formu .kontroller { align-items: end; }
+  .modal-durum { margin-top: 12px; color: var(--titan-muted); font-size: 12px; }
+  .modal-durum.hata { color: var(--titan-danger); }
+
+  @media (max-width: 1180px) {
+    .widget-tip-kartlari { grid-template-columns: repeat(4, minmax(110px, 1fr)); }
+    .urun-katalog { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .makine-gorselli-kart { grid-template-columns: 150px minmax(0, 1fr); }
+    .makine-kart-metrikler { grid-column: 1 / -1; padding: 0 18px 18px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .bakim-kpi-izgara { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
   @media (max-width: 1180px) {
     :root { --sidebar-width: 244px; }
     .kpi-izgara { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -495,6 +604,19 @@
     .kontroller .alan, .kontroller .alan input, .kontroller .alan select { width: 100%; min-width: 0; }
     .grafik-kutu { min-height: 390px; padding: 12px; }
     .kullanici-karti { margin-left: auto; }
+    .grafik-araclari .grafik-yardim { width: 100%; margin-left: 0; }
+    .dashboard-zaman-paneli { grid-template-columns: 1fr; }
+    .dashboard-zaman-paneli .hizli-araliklar, .dashboard-sorgu-durum { grid-column: auto; }
+    .widget-tip-kartlari { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .makine-gorselli-kart { grid-template-columns: 1fr; }
+    .makine-gorsel { min-height: 180px; }
+    .makine-kart-icerik { padding: 0 16px; }
+    .makine-kart-metrikler { grid-column: auto; grid-template-columns: 1fr 1fr; padding: 0 16px 16px; }
+    .bakim-kpi-izgara { grid-template-columns: 1fr; }
+    .bakim-satiri { grid-template-columns: 1fr; gap: 8px; }
+    .bakim-kalan { text-align: left; }
+    .urun-katalog { grid-template-columns: 1fr; }
+    .modal-perde { padding: 8px; }
   }
 </style>
 </head>
@@ -502,7 +624,7 @@
   <h1>Titan Telemetri Dashboard</h1>
   <div class="ust-satir">
     <div class="alt">Gercek CAN sinyalleri - DBC ile cozulmus - Supabase uzerinden</div>
-    <div class="surum-rozet">Dashboard v2.0.0</div>
+    <div class="surum-rozet">Dashboard v2.1.0</div>
   </div>
 
   <div class="saglik-paneli">
@@ -655,16 +777,46 @@
     </div>
     <div id="dashboardDurum" class="yenileme-bilgisi">Dashboardlar kontrol ediliyor...</div>
 
+    <div class="dashboard-zaman-paneli">
+      <div class="zaman-etiketi"><i data-lucide="calendar-range"></i> Dashboard zaman aralığı</div>
+      <div class="alan"><label>Başlangıç</label><input type="datetime-local" id="dashboardBaslangic"></div>
+      <div class="alan"><label>Bitiş</label><input type="datetime-local" id="dashboardBitis"></div>
+      <div class="buton-grubu">
+        <button onclick="dashboardFiltreliGetir()"><i data-lucide="play"></i> Uygula</button>
+        <button class="ikincil-btn" onclick="dashboardGrafikleriniSifirla()"><i data-lucide="scan"></i> Grafikleri Sıfırla</button>
+      </div>
+      <div class="hizli-araliklar">
+        <button onclick="dashboardHizliZamanAraligi(15)">15 dk</button>
+        <button onclick="dashboardHizliZamanAraligi(60)">1 saat</button>
+        <button onclick="dashboardHizliZamanAraligi(360)">6 saat</button>
+        <button onclick="dashboardHizliZamanAraligi(1440)">24 saat</button>
+        <button onclick="dashboardHizliZamanAraligi(10080)">7 gün</button>
+      </div>
+      <div id="dashboardSorguDurum" class="dashboard-sorgu-durum">Dashboard verisi hazırlanıyor…</div>
+    </div>
+
     <div id="widgetForm" class="widget-form gizli">
-      <h2>Widget Ekle</h2>
+      <h2>Görselleştirme Ekle</h2>
+      <div id="widgetTipKartlari" class="widget-tip-kartlari">
+        <button class="widget-tip-karti aktif" data-widget-tip="number" onclick="widgetTipiSec('number')"><i data-lucide="badge-gauge"></i><strong>KPI Değeri</strong><span>Anlık sayısal değer</span></button>
+        <button class="widget-tip-karti" data-widget-tip="progress" onclick="widgetTipiSec('progress')"><i data-lucide="chart-no-axes-column-increasing"></i><strong>İlerleme Çubuğu</strong><span>Min–maks aralığı</span></button>
+        <button class="widget-tip-karti" data-widget-tip="gauge" onclick="widgetTipiSec('gauge')"><i data-lucide="gauge"></i><strong>İbreli Gösterge</strong><span>Operasyon göstergesi</span></button>
+        <button class="widget-tip-karti" data-widget-tip="status" onclick="widgetTipiSec('status')"><i data-lucide="toggle-right"></i><strong>Durum</strong><span>ON / OFF lambası</span></button>
+        <button class="widget-tip-karti" data-widget-tip="time_series_line" onclick="widgetTipiSec('time_series_line')"><i data-lucide="chart-no-axes-combined"></i><strong>Çizgi Grafik</strong><span>Çoklu sinyal trendi</span></button>
+        <button class="widget-tip-karti" data-widget-tip="time_series_area" onclick="widgetTipiSec('time_series_area')"><i data-lucide="chart-area"></i><strong>Alan Grafik</strong><span>Dolu trend görünümü</span></button>
+        <button class="widget-tip-karti" data-widget-tip="time_series_bar" onclick="widgetTipiSec('time_series_bar')"><i data-lucide="chart-column"></i><strong>Sütun Grafik</strong><span>Dönem karşılaştırması</span></button>
+      </div>
       <div class="kontroller">
-        <div class="alan">
+        <div class="alan gizli">
           <label>Widget tipi</label>
           <select id="widgetTipi" onchange="widgetFormunuGuncelle()">
-            <option value="number">Sayısal değer</option>
+            <option value="number">KPI değeri</option>
+            <option value="progress">İlerleme çubuğu</option>
             <option value="gauge">İbreli gösterge</option>
             <option value="status">Açık / Kapalı lambası</option>
-            <option value="time_series">Çok sinyalli grafik</option>
+            <option value="time_series_line">Çizgi grafik</option>
+            <option value="time_series_area">Alan grafik</option>
+            <option value="time_series_bar">Sütun grafik</option>
           </select>
         </div>
         <div class="alan">
@@ -703,7 +855,7 @@
         <button id="widgetEkleBtn" onclick="widgetKaydet()">Widget Ekle</button>
         <button id="widgetDuzenlemeIptalBtn" class="ikincil-btn gizli" onclick="widgetDuzenlemeIptal()">Düzenlemeyi İptal Et</button>
       </div>
-      <div class="yenileme-bilgisi">Birden çok sinyal seçmek için Ctrl (Windows) veya Command (Mac) tuşunu kullanın.</div>
+      <div class="yenileme-bilgisi">Grafiklerde birden fazla sinyal seçebilirsiniz. İlk sinyal sol, diğer sinyaller sağ eksende gösterilir.</div>
     </div>
 
     <div id="dashboardGrid" class="dashboard-grid">
@@ -793,10 +945,16 @@
         <label>Bitiş</label>
         <input type="datetime-local" id="bitis">
       </div>
-      <div class="alan">
-        <label>Sinyaller</label>
-        <select id="sinyalSecici" multiple size="4"><option value="">- önce veri getir -</option></select>
-      </div>
+        <div class="alan trend-sinyal-alani">
+          <label>Sinyaller <span id="trendSinyalSayaci">0 / 6 seçili</span></label>
+          <div class="sinyal-secici-kabuk">
+            <input id="sinyalArama" class="sinyal-arama" type="search" placeholder="Sinyal ara…" oninput="trendSinyalAra(this.value)">
+            <div id="trendSinyalListesi" class="sinyal-kontrol-listesi"><span class="bos-mesaj">Önce veri getirin.</span></div>
+            <div class="sinyal-secim-alt"><span>Birlikte en fazla 6 sinyal</span><button class="metin-link-buton" type="button" onclick="trendSinyalleriTemizle()">Seçimi temizle</button></div>
+          </div>
+          <select id="sinyalSecici" class="gizli" multiple><option value="">- önce veri getir -</option></select>
+          <div id="trendSeciliEtiketler" class="secili-sinyal-etiketleri"></div>
+        </div>
       <button id="getirBtn" onclick="filtreliVeriGetir()">Getir</button>
       <button id="yenileBtn" class="ikincil-btn" onclick="manuelYenile()">Yenile</button>
       <button id="sonKayitBtn" class="ikincil-btn" onclick="sonKayitliVeriyiGoster()">Son Kayıtlı Veriyi Göster</button>
@@ -804,8 +962,9 @@
         <label>Otomatik yenileme</label>
         <select id="otomatikYenileme" onchange="otomatikYenilemeyiAyarla()">
           <option value="0">Kapalı</option>
-          <option value="5" selected>5 saniye</option>
+          <option value="5">5 saniye</option>
           <option value="10">10 saniye</option>
+          <option value="15" selected>15 saniye</option>
           <option value="30">30 saniye</option>
           <option value="60">60 saniye</option>
         </select>
@@ -825,8 +984,10 @@
 
     let chart = null;
     let mevcutVeriSatirlari = [];
+    let dashboardVeriSatirlari = [];
     let otomatikYenilemeTimer = null;
     let veriSorgusuCalisiyor = false;
+    let dashboardSorgusuCalisiyor = false;
     let sonYenilemeZamani = null;
     let dbcKutuphane = [];
     let dashboardlar = [];
@@ -839,6 +1000,7 @@
     let aktifDbcDosyaAdlari = [];
     let dbcKatalogCihazId = null;
     let gecmisModu = false;
+    let dashboardGecmisModu = false;
     let duzenlenenWidgetId = null;
     let suruklenenWidgetId = null;
     let olayKurallari = [];
@@ -849,19 +1011,33 @@
     const ONLINE_ESIK_SN = 45;
     const GECIKMELI_ESIK_SN = 90;
     const CAN_PAKET_ESIK_SN = 90;
-    const DASHBOARD_SURUM = "2.0.0";
+    const DASHBOARD_SURUM = "2.1.0";
     const TELEMETRI_SAYFA_BOYUTU = 1000;
     const TELEMETRI_MAKSIMUM_KAYIT = 20000;
     const TITAN_LOGO_URL = "https://titanltd.com/wp-content/uploads/2022/02/Titan_Logo_Web_Header_B_Cut.png";
+    const BYM6_IMAGE_URL = "https://titanltd.com/wp-content/uploads/2018/09/BYM6-1-1.jpg";
+    const MAKINE_KATALOGU = [
+      { model: "BYM6", tur: "Beton Transmikseri", kategori: "Mafsallı Şasi", image: BYM6_IMAGE_URL },
+      { model: "BIS20", tur: "Beton Püskürtme Makinesi", kategori: "Mafsallı Şasi", image: "https://titanltd.com/wp-content/uploads/2018/07/BIS20-01.jpg" },
+      { model: "DK16", tur: "Dumper Kamyon", kategori: "Rijit Şasi", image: "https://titanltd.com/wp-content/uploads/2018/09/DK16-01.jpg" },
+      { model: "PT16", tur: "Personel Taşıyıcı", kategori: "Rijit Şasi", image: "https://titanltd.com/wp-content/uploads/2018/09/PT16-01.jpg" },
+      { model: "MP2x3", tur: "Makaslı Platform", kategori: "Rijit Şasi", image: "https://titanltd.com/wp-content/uploads/2018/09/MP2x3-01.jpg" },
+      { model: "BYM4.5", tur: "Yeraltı Beton Transmikseri", kategori: "Mafsallı Şasi", image: "https://titanltd.com/wp-content/uploads/2018/10/belden-k%C4%B1rmal%C4%B1-t%C3%BCnel-i%C3%A7i-beton-mikseri.jpg" },
+      { model: "TM05", tur: "Beton Transmikseri", kategori: "Rijit Şasi", image: "https://titanltd.com/wp-content/uploads/2018/10/beton-ta%C5%9F%C4%B1ma-mikseri.jpg" },
+      { model: "IS21", tur: "Beton Püskürtme Makinesi", kategori: "Rijit Şasi", image: "https://titanltd.com/wp-content/uploads/2022/03/IS21_MainPage.png" },
+      { model: "IS26", tur: "Beton Püskürtme Makinesi", kategori: "Rijit Şasi", image: "https://titanltd.com/wp-content/uploads/2022/03/IS26_MainPage.png" },
+    ];
     let authClient = null;
     let authSession = null;
     let uygulamaBaslatildi = false;
     let aktifSayfa = "genel";
     let toastTimer = null;
+    let seciliKatalogModeli = MAKINE_KATALOGU[0];
 
     const SAYFA_BILGILERI = {
       genel: ["Filo Genel Bakış", "Makine, bağlantı ve olay durumlarının özeti"],
       makineler: ["Makineler", "Filonuza bağlı makineler ve telemetri durumu"],
+      bakim: ["Bakım Yönetimi", "Motor saatine göre filo bakım planları"],
       dashboard: ["Dashboardlar", "Seçili makinenin operasyon ekranları"],
       studio: ["Dashboard Tasarımcısı", "Widget yerleşimini ve gösterimleri yönetin"],
       trend: ["Trend Analizi", "Birden fazla CAN sinyalini zaman ekseninde inceleyin"],
@@ -880,7 +1056,7 @@
             <button class="ikincil-btn" onclick="manuelYenile()"><i data-lucide="refresh-cw"></i> Verileri Yenile</button>
           </div>
           <div class="kpi-izgara">
-            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Toplam Makine</span><span class="kpi-ikon"><i data-lucide="truck"></i></span></div><strong class="kpi-deger">1</strong><span class="kpi-alt">Titan telemetri sistemine kayıtlı</span></article>
+            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Toplam Makine</span><span class="kpi-ikon"><i data-lucide="truck"></i></span></div><strong class="kpi-deger">2</strong><span class="kpi-alt">1 bağlı · 1 eşleme bekliyor</span></article>
             <article class="kpi-karti"><div class="kpi-karti-ust"><span>Bağlı Makine</span><span class="kpi-ikon"><i data-lucide="radio-tower"></i></span></div><strong id="kpiBagliMakine" class="kpi-deger">—</strong><span id="kpiBagliAlt" class="kpi-alt">Durum kontrol ediliyor</span></article>
             <article class="kpi-karti"><div class="kpi-karti-ust"><span>Aktif Olay</span><span class="kpi-ikon"><i data-lucide="triangle-alert"></i></span></div><strong id="kpiAktifOlay" class="kpi-deger">—</strong><span class="kpi-alt">Açık uyarı ve kritik olay</span></article>
             <article class="kpi-karti"><div class="kpi-karti-ust"><span>Son Veri</span><span class="kpi-ikon"><i data-lucide="activity"></i></span></div><strong id="kpiSonVeri" class="kpi-deger">—</strong><span class="kpi-alt">BYM6-001 telemetri akışı</span></article>
@@ -888,9 +1064,10 @@
           <div class="genel-izgara">
             <article class="panel">
               <div class="panel-baslik"><h3>Makine Durumu</h3><a href="#" onclick="sayfaAc('makineler'); return false;">Tüm makineler</a></div>
-              <div class="makine-ozet-karti" onclick="sayfaAc('dashboard')">
-                <div><div class="makine-baslik"><span id="genelMakineNokta" class="durum-noktasi"></span><h4>BYM6-001</h4><span id="genelMakineRozet" class="rozet pasif">Kontrol ediliyor</span></div><div class="makine-meta"><span>Model: BYM6 Transmikser</span><span>Seri No: Pilot Makine</span><span id="genelMakineSonVeri">Son veri bekleniyor</span></div></div>
-                <div class="makine-hizli-deger"><strong id="genelMakineVolt">— V</strong><span>Besleme gerilimi</span></div>
+              <div class="makine-ozet-karti makine-gorselli-kart">
+                <div class="makine-gorsel"><img src="${BYM6_IMAGE_URL}" alt="Titan BYM6 beton transmikseri" loading="lazy" decoding="async"></div>
+                <div class="makine-kart-icerik"><div class="makine-baslik"><span id="genelMakineNokta" class="durum-noktasi"></span><h4>BYM6-001</h4><span id="genelMakineRozet" class="rozet pasif">Kontrol ediliyor</span></div><div class="makine-meta"><span>OEM model: Titan BYM6</span><span>Müşteri etiketi: <strong data-makine-etiketi>UG-042</strong></span><span id="genelMakineSonVeri">Son veri bekleniyor</span></div><div class="kart-aksiyonlari"><button onclick="sayfaAc('dashboard')">Dashboardu Aç</button><button class="ikincil-btn" onclick="sayfaAc('bakim')">Bakım Planı</button></div></div>
+                <div class="makine-kart-metrikler"><div class="makine-mini-metrik"><strong id="genelMakineMotorSaati">— sa</strong><span>Motor saati</span></div><div class="makine-mini-metrik"><strong id="genelMakineVolt">— V</strong><span>Besleme gerilimi</span></div></div>
               </div>
             </article>
             <article class="panel">
@@ -902,11 +1079,36 @@
         </section>
 
         <section id="sayfa-makineler" class="sayfa" data-sayfa="makineler">
-          <div class="sayfa-ust"><div><h2>Makineler</h2><p>Müşteriye ait makineleri, son bağlantılarını ve açık olaylarını görüntüleyin.</p></div><button onclick="makineEslestirBilgisi()"><i data-lucide="plus"></i> Makine Eşleştir</button></div>
+          <div class="sayfa-ust"><div><h2>Makineler</h2><p>OEM modeli, müşteriye özel makine etiketi, telemetri durumu ve bakım bilgisini birlikte yönetin.</p></div><button onclick="makineEslestirBilgisi()"><i data-lucide="plus"></i> Makine Ekle</button></div>
+          <article class="panel makine-liste-izgara">
+            <div class="makine-ozet-karti makine-gorselli-kart">
+              <div class="makine-gorsel"><img src="${BYM6_IMAGE_URL}" alt="Titan BYM6 beton transmikseri" loading="lazy" decoding="async"></div>
+              <div class="makine-kart-icerik"><div class="makine-baslik"><span id="listeMakineNokta" class="durum-noktasi"></span><h4>BYM6-001</h4><span id="listeMakineRozet" class="rozet pasif">Kontrol ediliyor</span></div><div class="makine-meta"><span>OEM model: Titan BYM6</span><span>Müşteri etiketi: <strong data-makine-etiketi>UG-042</strong></span><span>Seri no: Pilot Makine</span><span>Cihaz: iotitan</span><span id="listeMakineSonVeri">Son veri bekleniyor</span></div><div class="kart-aksiyonlari"><button onclick="sayfaAc('dashboard')">Dashboard</button><button class="ikincil-btn" onclick="sayfaAc('trend')">Trend</button><button class="ikincil-btn" onclick="makineEtiketiDuzenle()">Etiketi Düzenle</button></div></div>
+              <div class="makine-kart-metrikler"><div class="makine-mini-metrik"><strong id="listeMakineMotorSaati">— sa</strong><span>Motor saati</span></div><div class="makine-mini-metrik"><strong id="listeMakineOlay">—</strong><span>Aktif olay</span></div></div>
+            </div>
+            <div class="makine-ozet-karti makine-gorselli-kart makine-bekliyor">
+              <div class="makine-gorsel"><img src="https://titanltd.com/wp-content/uploads/2018/09/MP2x3-01.jpg" alt="Titan MP2x3 makaslı platform" loading="lazy" decoding="async"></div>
+              <div class="makine-kart-icerik"><div class="makine-baslik"><span class="durum-noktasi gecikmeli"></span><h4>MP2X3-014</h4><span class="rozet pasif">Eşleme bekliyor</span></div><div class="makine-meta"><span>OEM model: Titan MP2x3</span><span>Müşteri etiketi: UG-LIFT-07</span><span>Seri no: Tanımlanacak</span><span>Telemetri cihazı atanmadı</span></div><div class="kart-aksiyonlari"><button onclick="makineEslestirBilgisi('MP2x3')">Eşlemeyi Başlat</button></div></div>
+              <div class="makine-kart-metrikler"><div class="makine-mini-metrik"><strong>—</strong><span>Motor saati</span></div><div class="makine-mini-metrik"><strong>Bekliyor</strong><span>Aktivasyon durumu</span></div></div>
+            </div>
+          </article>
+        </section>
+
+        <section id="sayfa-bakim" class="sayfa" data-sayfa="bakim">
+          <div class="sayfa-ust"><div><h2>Bakım Yönetimi</h2><p>Her makinenin motor saatini bakım periyotlarıyla karşılaştırın; yaklaşan ve geciken işleri filo ölçeğinde takip edin.</p></div><button onclick="bakimPlaniBilgisi()"><i data-lucide="calendar-plus"></i> Bakım Planı Tanımla</button></div>
+          <div class="modul-bildirimi">Gösterilen 500 / 1.000 / 2.000 saat periyotları örnek planlardır. Seri bazlı bakım geçmişi ve müşteri onaylı periyotlar bağlandığında gerçek bakım durumu hesaplanacaktır.</div>
+          <div class="bakim-kpi-izgara">
+            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Motor Saati</span><span class="kpi-ikon"><i data-lucide="timer"></i></span></div><strong id="bakimMotorSaati" class="kpi-deger">—</strong><span class="kpi-alt">BYM6-001 son telemetri değeri</span></article>
+            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Yaklaşan Bakım</span><span class="kpi-ikon"><i data-lucide="calendar-clock"></i></span></div><strong id="bakimYaklasan" class="kpi-deger">—</strong><span class="kpi-alt">En yakın periyodik bakım</span></article>
+            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Geciken</span><span class="kpi-ikon"><i data-lucide="circle-alert"></i></span></div><strong class="kpi-deger">—</strong><span class="kpi-alt">Bakım geçmişi bağlandığında hesaplanır</span></article>
+            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Bakım Kapsamı</span><span class="kpi-ikon"><i data-lucide="wrench"></i></span></div><strong class="kpi-deger">1 / 2</strong><span class="kpi-alt">Motor saati alınabilen makine</span></article>
+          </div>
           <article class="panel">
-            <div class="makine-ozet-karti" onclick="sayfaAc('dashboard')">
-              <div><div class="makine-baslik"><span id="listeMakineNokta" class="durum-noktasi"></span><h4>BYM6-001</h4><span id="listeMakineRozet" class="rozet pasif">Kontrol ediliyor</span></div><div class="makine-meta"><span>BYM6 Transmikser</span><span>Pilot Makine</span><span>Cihaz: iotitan</span><span id="listeMakineSonVeri">Son veri bekleniyor</span></div></div>
-              <div class="makine-hizli-deger"><strong id="listeMakineOlay">—</strong><span>aktif olay</span></div>
+            <div class="panel-baslik"><div><h3>BYM6-001 · <span data-makine-etiketi>UG-042</span></h3><span class="sayfa-alt-not">OEM model: Titan BYM6 · Motor saatine dayalı örnek bakım planı</span></div><span class="rozet aktif">Takipte</span></div>
+            <div id="bakimListesi" class="bakim-listesi">
+              <div class="bakim-satiri" data-bakim-araligi="500"><div><h4>Motor yağı ve filtreler</h4><p>Her 500 motor saatinde</p></div><div class="bakim-ilerleme"><span style="width:0%"></span></div><strong class="bakim-kalan">—</strong><span class="rozet pasif">Hesaplanıyor</span></div>
+              <div class="bakim-satiri" data-bakim-araligi="1000"><div><h4>Hidrolik filtre kontrolü</h4><p>Her 1.000 motor saatinde</p></div><div class="bakim-ilerleme"><span style="width:0%"></span></div><strong class="bakim-kalan">—</strong><span class="rozet pasif">Hesaplanıyor</span></div>
+              <div class="bakim-satiri" data-bakim-araligi="2000"><div><h4>Şanzıman ve aks genel kontrolü</h4><p>Her 2.000 motor saatinde</p></div><div class="bakim-ilerleme"><span style="width:0%"></span></div><strong class="bakim-kalan">—</strong><span class="rozet pasif">Hesaplanıyor</span></div>
             </div>
           </article>
         </section>
@@ -917,9 +1119,11 @@
         </section>
 
         <section id="sayfa-trend" class="sayfa" data-sayfa="trend">
-          <div class="sayfa-ust"><div><h2>Trend Analizi</h2><p>Sinyalleri aynı zaman ekseninde karşılaştırın ve veri kesintilerini inceleyin.</p></div><button class="ikincil-btn" onclick="grafikSifirla()"><i data-lucide="scan"></i> Görünümü Sıfırla</button></div>
+          <div class="sayfa-ust"><div><h2>Trend Analizi</h2><p>Sinyalleri aynı zaman ekseninde karşılaştırın; tam zamanı görün, yakınlaştırın ve dışa aktarın.</p></div><div class="buton-grubu"><button class="ikincil-btn" onclick="veriyiExceleAktar()"><i data-lucide="file-spreadsheet"></i> Excel'e Aktar</button><button class="ikincil-btn" onclick="grafikSifirla()"><i data-lucide="scan"></i> Görünümü Sıfırla</button></div></div>
           <div class="hizli-araliklar"><button onclick="hizliZamanAraligi(15)">15 dk</button><button onclick="hizliZamanAraligi(60)">1 saat</button><button onclick="hizliZamanAraligi(360)">6 saat</button><button onclick="hizliZamanAraligi(1440)">24 saat</button><button onclick="hizliZamanAraligi(10080)">7 gün</button></div>
-          <div id="veriFiltresiYeri"></div><div id="grafikYeri"></div>
+          <div id="veriFiltresiYeri" class="trend-filtre-paneli"></div>
+          <div class="grafik-araclari"><button class="ikincil-btn" title="Yakınlaştır" onclick="grafikYaklastir()"><i data-lucide="zoom-in"></i></button><button class="ikincil-btn" title="Uzaklaştır" onclick="grafikUzaklastir()"><i data-lucide="zoom-out"></i></button><button class="ikincil-btn" onclick="grafikSifirla()"><i data-lucide="maximize-2"></i> Tüm Aralık</button><span class="grafik-yardim">Fare tekeriyle yakınlaştırın · Shift + sürükleme ile zamanda gezinin</span></div>
+          <div id="grafikVeriOzeti" class="grafik-veri-ozeti"></div><div id="grafikYeri"></div>
         </section>
 
         <section id="sayfa-olaylar" class="sayfa" data-sayfa="olaylar"><div class="sayfa-ust"><div><h2>Olaylar ve Uyarılar</h2><p>Aktif uyarıları filtreleyin, kapanan olayları ve tetik değerlerini inceleyin.</p></div><button class="ikincil-btn" onclick="olaylariGetir()"><i data-lucide="refresh-cw"></i> Yenile</button></div><div id="olayListesiYeri"></div></section>
@@ -945,10 +1149,19 @@
           <div class="giris-form-alani"><div class="giris-karti"><h2>Hesabınıza giriş yapın</h2><p class="giris-aciklama">Yetkili olduğunuz müşteri hesabı ve makinelerle devam edin.</p><form id="girisFormu" class="giris-formu"><div class="form-grup"><label for="girisEposta">E-posta adresi</label><input id="girisEposta" type="email" autocomplete="username" placeholder="kullanici@firma.com" required></div><div class="form-grup"><label for="girisParola">Parola</label><input id="girisParola" type="password" autocomplete="current-password" placeholder="Parolanızı girin" required></div><div class="giris-yardim"><span>Güvenli kullanıcı oturumu</span><a href="#" onclick="parolaHatirlat(); return false;">Parolamı unuttum</a></div><button id="girisButon" class="giris-buton" type="submit"><i data-lucide="log-in"></i> Güvenli Giriş</button></form><div id="girisHata" class="giris-hata" role="alert"></div><div class="giris-guvenlik"><i data-lucide="shield-check"></i><span>Bu portal yalnızca yetkilendirilmiş kullanıcılar içindir. Oturum ve veri erişimi kullanıcı yetkilerine göre sınırlandırılır.</span></div></div></div>
         </section>
         <div id="uygulamaKabugu" class="uygulama-kabugu gizli">
-          <aside class="yan-menu"><div class="yan-menu-marka"><span class="yan-menu-logo"><img src="${TITAN_LOGO_URL}" alt="Titan Makina"></span><span class="yan-menu-urun"><strong>Fleet & Telemetry</strong><span>Operasyon Portalı</span></span></div><div class="yan-menu-baslik">Operasyon</div><nav class="menu-listesi" aria-label="Ana menü"><button class="menu-buton aktif" data-menu-sayfa="genel" onclick="sayfaAc('genel')"><i data-lucide="layout-dashboard"></i>Genel Bakış</button><button class="menu-buton" data-menu-sayfa="makineler" onclick="sayfaAc('makineler')"><i data-lucide="truck"></i>Makineler</button><button class="menu-buton" data-menu-sayfa="dashboard" onclick="sayfaAc('dashboard')"><i data-lucide="panels-top-left"></i>Dashboardlar</button><button class="menu-buton" data-menu-sayfa="trend" onclick="sayfaAc('trend')"><i data-lucide="chart-no-axes-combined"></i>Trend Analizi</button><button class="menu-buton" data-menu-sayfa="olaylar" onclick="sayfaAc('olaylar')"><i data-lucide="bell-ring"></i>Olaylar ve Uyarılar<span id="menuOlayRozet" class="menu-rozet">—</span></button></nav><div class="yan-menu-baslik">Yönetim</div><nav class="menu-listesi" aria-label="Yönetim menüsü"><button class="menu-buton" data-menu-sayfa="studio" onclick="sayfaAc('studio')"><i data-lucide="pencil-ruler"></i>Dashboard Tasarımı</button><button class="menu-buton" data-menu-sayfa="kurallar" onclick="sayfaAc('kurallar')"><i data-lucide="git-branch"></i>Olay Kuralları</button><button class="menu-buton" data-menu-sayfa="offline" onclick="sayfaAc('offline')"><i data-lucide="file-up"></i>Offline Aktarım</button><button class="menu-buton" data-menu-sayfa="kullanicilar" onclick="sayfaAc('kullanicilar')"><i data-lucide="users"></i>Kullanıcılar</button><button class="menu-buton" data-menu-sayfa="teknik" onclick="sayfaAc('teknik')"><i data-lucide="settings-2"></i>Teknik Ayarlar</button></nav><div class="yan-menu-makine"><div class="yan-menu-makine-ust"><strong>BYM6-001</strong><span id="yanMakineNokta" class="durum-noktasi"></span></div><p id="yanMakineDurum">Bağlantı kontrol ediliyor</p></div><div class="yan-menu-alt">Portal v${DASHBOARD_SURUM}</div></aside>
+          <aside class="yan-menu"><div class="yan-menu-marka"><span class="yan-menu-logo"><img src="${TITAN_LOGO_URL}" alt="Titan Makina"></span><span class="yan-menu-urun"><strong>Fleet & Telemetry</strong><span>Operasyon Portalı</span></span></div><div class="yan-menu-baslik">Operasyon</div><nav class="menu-listesi" aria-label="Ana menü"><button class="menu-buton aktif" data-menu-sayfa="genel" onclick="sayfaAc('genel')"><i data-lucide="layout-dashboard"></i>Genel Bakış</button><button class="menu-buton" data-menu-sayfa="makineler" onclick="sayfaAc('makineler')"><i data-lucide="truck"></i>Makineler</button><button class="menu-buton" data-menu-sayfa="bakim" onclick="sayfaAc('bakim')"><i data-lucide="wrench"></i>Bakım Yönetimi</button><button class="menu-buton" data-menu-sayfa="dashboard" onclick="sayfaAc('dashboard')"><i data-lucide="panels-top-left"></i>Dashboardlar</button><button class="menu-buton" data-menu-sayfa="trend" onclick="sayfaAc('trend')"><i data-lucide="chart-no-axes-combined"></i>Trend Analizi</button><button class="menu-buton" data-menu-sayfa="olaylar" onclick="sayfaAc('olaylar')"><i data-lucide="bell-ring"></i>Olaylar ve Uyarılar<span id="menuOlayRozet" class="menu-rozet">—</span></button></nav><div class="yan-menu-baslik">Yönetim</div><nav class="menu-listesi" aria-label="Yönetim menüsü"><button class="menu-buton" data-menu-sayfa="studio" onclick="sayfaAc('studio')"><i data-lucide="pencil-ruler"></i>Dashboard Tasarımı</button><button class="menu-buton" data-menu-sayfa="kurallar" onclick="sayfaAc('kurallar')"><i data-lucide="git-branch"></i>Olay Kuralları</button><button class="menu-buton" data-menu-sayfa="offline" onclick="sayfaAc('offline')"><i data-lucide="file-up"></i>Offline Aktarım</button><button class="menu-buton" data-menu-sayfa="kullanicilar" onclick="sayfaAc('kullanicilar')"><i data-lucide="users"></i>Kullanıcılar</button><button class="menu-buton" data-menu-sayfa="teknik" onclick="sayfaAc('teknik')"><i data-lucide="settings-2"></i>Teknik Ayarlar</button></nav><div class="yan-menu-makine"><div class="yan-menu-makine-ust"><strong>BYM6-001</strong><span id="yanMakineNokta" class="durum-noktasi"></span></div><p id="yanMakineDurum">Bağlantı kontrol ediliyor</p></div><div class="yan-menu-alt">Portal v${DASHBOARD_SURUM}</div></aside>
           <div class="mobil-perde" onclick="mobilMenuKapat()"></div>
-          <div class="uygulama-ana"><header class="ust-bar"><button class="mobil-menu-buton" onclick="mobilMenuAc()" aria-label="Menüyü aç"><i data-lucide="menu"></i></button><div class="sayfa-kimlik"><h1 id="sayfaBaslik">Filo Genel Bakış</h1><p id="sayfaAltBaslik">Makine, bağlantı ve olay durumlarının özeti</p></div><div class="ust-bar-sag"><select class="makine-secici" aria-label="Makine seç" onchange="makineSecildi(this.value)"><option value="iotitan">BYM6-001 · Pilot Makine</option></select><button class="ikon-buton" title="Bildirimler" onclick="sayfaAc('olaylar')"><i data-lucide="bell"></i></button><div class="kullanici-karti"><span id="kullaniciAvatar" class="kullanici-avatar">—</span><span class="kullanici-metin"><strong id="kullaniciEposta">—</strong><span>Yetkili kullanıcı</span></span></div><button class="ikon-buton" title="Oturumu kapat" onclick="cikisYap()"><i data-lucide="log-out"></i></button></div></header><main class="icerik">${sayfaGovdeleri}</main></div>
-        </div><div id="toast" class="toast" role="status"></div>`);
+          <div class="uygulama-ana"><header class="ust-bar"><button class="mobil-menu-buton" onclick="mobilMenuAc()" aria-label="Menüyü aç"><i data-lucide="menu"></i></button><div class="sayfa-kimlik"><h1 id="sayfaBaslik">Filo Genel Bakış</h1><p id="sayfaAltBaslik">Makine, bağlantı ve olay durumlarının özeti</p></div><div class="ust-bar-sag"><select id="ustMakineSecici" class="makine-secici" aria-label="Makine seç" onchange="makineSecildi(this.value)"><option value="iotitan">BYM6-001 · UG-042</option><option value="" disabled>MP2X3-014 · eşleme bekliyor</option></select><button class="ikon-buton" title="Bildirimler" onclick="sayfaAc('olaylar')"><i data-lucide="bell"></i></button><div class="kullanici-karti"><span id="kullaniciAvatar" class="kullanici-avatar">—</span><span class="kullanici-metin"><strong id="kullaniciEposta">—</strong><span>Yetkili kullanıcı</span></span></div><button class="ikon-buton" title="Oturumu kapat" onclick="cikisYap()"><i data-lucide="log-out"></i></button></div></header><main class="icerik">${sayfaGovdeleri}</main></div>
+        </div>
+        <div id="makineModal" class="modal-perde gizli" role="dialog" aria-modal="true" aria-labelledby="makineModalBaslik" onclick="modalDisinaTiklandi(event)">
+          <div class="modal-kart"><div class="modal-ust"><div><h3 id="makineModalBaslik">Makineyi filoya ekle</h3><p>Titan modelini seçin, müşteri etiketini girin ve telemetri cihazını eşleyin.</p></div><button class="ikon-buton" onclick="makineModaliniKapat()" aria-label="Pencereyi kapat"><i data-lucide="x"></i></button></div><div class="modal-icerik">
+            <div class="urun-arama-satiri"><input id="urunArama" type="search" placeholder="Model veya makine türü ara…" oninput="makineKatalogunuCiz()"><select id="urunKategori" onchange="makineKatalogunuCiz()"><option value="">Tüm kategoriler</option><option value="Mafsallı Şasi">Mafsallı Şasi</option><option value="Rijit Şasi">Rijit Şasi</option></select></div>
+            <div id="urunKatalog" class="urun-katalog"></div>
+            <div class="esleme-formu"><h4 id="seciliMakineBaslik">Seçili model: Titan BYM6</h4><div class="kontroller"><div class="alan"><label>Müşteri makine etiketi</label><input id="yeniMakineEtiketi" type="text" placeholder="Örn. UG-042"></div><div class="alan"><label>Makine seri numarası</label><input id="yeniMakineSeri" type="text" placeholder="Titan seri numarası"></div><div class="alan"><label>Telemetri aktivasyon kodu</label><input id="yeniMakineAktivasyon" type="text" placeholder="Cihaz üzerindeki kod"></div><button onclick="makineEslestirmeyiDogrula()"><i data-lucide="link"></i> Eşlemeyi Doğrula</button></div><div id="makineModalDurum" class="modal-durum">Model seçerek başlayın. Aktivasyon kodu doğrulandıktan sonra makine filoya bağlanır.</div></div>
+          </div></div>
+        </div>
+        <div id="etiketModal" class="modal-perde gizli" role="dialog" aria-modal="true" aria-labelledby="etiketModalBaslik" onclick="etiketModalDisinaTiklandi(event)"><div class="modal-kart" style="width:min(520px,100%)"><div class="modal-ust"><div><h3 id="etiketModalBaslik">Müşteri makine etiketini düzenle</h3><p>OEM modeli değişmez; bu kod müşterinin kendi makine parkı tanımıdır.</p></div><button class="ikon-buton" onclick="etiketModaliniKapat()" aria-label="Pencereyi kapat"><i data-lucide="x"></i></button></div><div class="modal-icerik"><div class="alan"><label>Makine etiketi / müşteri kodu</label><input id="makineEtiketiInput" type="text" maxlength="40" placeholder="Örn. UG-042"></div><div class="kart-aksiyonlari"><button onclick="makineEtiketiniKaydet()">Kaydet</button><button class="ikincil-btn" onclick="etiketModaliniKapat()">İptal</button></div></div></div></div>
+        <div id="toast" class="toast" role="status"></div>`);
 
       const olayKuralKutusu = document.getElementById("olayKuralAdi")?.closest(".kutu");
       const olayListeKutusu = document.getElementById("olayListeGovde")?.closest(".kutu");
@@ -973,7 +1186,160 @@
       document.body.classList.remove("ui-loading");
       document.body.classList.add("ui-hazir");
       document.getElementById("girisFormu").addEventListener("submit", girisYap);
+      makineEtiketiniYukle();
+      makineKatalogunuCiz();
+      widgetTipiSec("number");
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") { makineModaliniKapat(); etiketModaliniKapat(); }
+      });
       if (window.lucide) window.lucide.createIcons();
+    }
+
+    function makineEtiketiniAl() {
+      try { return localStorage.getItem("titan-makine-etiketi-iotitan") || "UG-042"; }
+      catch (_) { return "UG-042"; }
+    }
+
+    function makineEtiketiniYukle() {
+      const etiket = makineEtiketiniAl();
+      document.querySelectorAll("[data-makine-etiketi]").forEach((el) => { el.textContent = etiket; });
+      const ustSecenek = document.querySelector("#ustMakineSecici option[value='iotitan']");
+      if (ustSecenek) ustSecenek.textContent = `BYM6-001 · ${etiket}`;
+      const input = document.getElementById("makineEtiketiInput");
+      if (input) input.value = etiket;
+    }
+
+    function makineEtiketiDuzenle() {
+      document.getElementById("makineEtiketiInput").value = makineEtiketiniAl();
+      document.getElementById("etiketModal").classList.remove("gizli");
+      setTimeout(() => document.getElementById("makineEtiketiInput").focus(), 20);
+    }
+
+    function makineEtiketiniKaydet() {
+      const deger = document.getElementById("makineEtiketiInput").value.trim();
+      if (!deger) { toastGoster("Makine etiketi boş bırakılamaz."); return; }
+      try { localStorage.setItem("titan-makine-etiketi-iotitan", deger); } catch (_) {}
+      makineEtiketiniYukle();
+      etiketModaliniKapat();
+      toastGoster("Müşteri makine etiketi güncellendi.");
+    }
+
+    function etiketModaliniKapat() { document.getElementById("etiketModal")?.classList.add("gizli"); }
+    function etiketModalDisinaTiklandi(event) { if (event.target.id === "etiketModal") etiketModaliniKapat(); }
+
+    function makineKatalogunuCiz() {
+      const hedef = document.getElementById("urunKatalog");
+      if (!hedef) return;
+      const arama = (document.getElementById("urunArama")?.value || "").trim().toLocaleLowerCase("tr-TR");
+      const kategori = document.getElementById("urunKategori")?.value || "";
+      const liste = MAKINE_KATALOGU.filter((urun) => {
+        const aramaUyuyor = !arama || `${urun.model} ${urun.tur} ${urun.kategori}`.toLocaleLowerCase("tr-TR").includes(arama);
+        return aramaUyuyor && (!kategori || urun.kategori === kategori);
+      });
+      hedef.innerHTML = "";
+      for (const urun of liste) {
+        const buton = document.createElement("button");
+        buton.className = `urun-karti${seciliKatalogModeli?.model === urun.model ? " aktif" : ""}`;
+        buton.type = "button";
+        buton.innerHTML = `<img src="${htmlKacir(urun.image)}" alt="Titan ${htmlKacir(urun.model)}" loading="lazy" decoding="async"><span><strong>Titan ${htmlKacir(urun.model)}</strong><small>${htmlKacir(urun.tur)} · ${htmlKacir(urun.kategori)}</small></span>`;
+        buton.addEventListener("click", () => makineModeliSec(urun.model));
+        hedef.appendChild(buton);
+      }
+      if (!liste.length) hedef.innerHTML = '<div class="bos-panel">Aramayla eşleşen Titan modeli bulunamadı.</div>';
+    }
+
+    function makineModeliSec(model) {
+      seciliKatalogModeli = MAKINE_KATALOGU.find((urun) => urun.model === model) || MAKINE_KATALOGU[0];
+      document.getElementById("seciliMakineBaslik").textContent = `Seçili model: Titan ${seciliKatalogModeli.model} · ${seciliKatalogModeli.tur}`;
+      makineKatalogunuCiz();
+    }
+
+    function makineEslestirBilgisi(model = "BYM6") {
+      makineModeliSec(model);
+      document.getElementById("makineModalDurum").textContent = "Müşteri etiketi, seri numarası ve cihaz aktivasyon kodunu girin.";
+      document.getElementById("makineModalDurum").className = "modal-durum";
+      document.getElementById("makineModal").classList.remove("gizli");
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function makineModaliniKapat() { document.getElementById("makineModal")?.classList.add("gizli"); }
+    function modalDisinaTiklandi(event) { if (event.target.id === "makineModal") makineModaliniKapat(); }
+
+    function makineEslestirmeyiDogrula() {
+      const etiket = document.getElementById("yeniMakineEtiketi").value.trim();
+      const seri = document.getElementById("yeniMakineSeri").value.trim();
+      const aktivasyon = document.getElementById("yeniMakineAktivasyon").value.trim();
+      const durum = document.getElementById("makineModalDurum");
+      if (!etiket || !seri || !aktivasyon) {
+        durum.textContent = "Eşleme için müşteri etiketi, seri numarası ve aktivasyon kodu zorunludur.";
+        durum.className = "modal-durum hata";
+        return;
+      }
+      durum.textContent = `Titan ${seciliKatalogModeli.model} bilgileri hazır. Aktivasyon kodu sunucu doğrulamasından sonra makine filoya bağlanacaktır.`;
+      durum.className = "modal-durum";
+      toastGoster("Makine eşleme isteği doğrulama için hazırlandı.");
+    }
+
+    function bakimPlaniBilgisi() { toastGoster("Bakım planı şablonları ve müşteri onay akışı sonraki veri tabanı aşamasında bağlanacaktır."); }
+
+    function trendSinyalPaneliniGuncelle() {
+      const secici = document.getElementById("sinyalSecici");
+      const liste = document.getElementById("trendSinyalListesi");
+      if (!secici || !liste) return;
+      const arama = (document.getElementById("sinyalArama")?.value || "").trim().toLocaleLowerCase("tr-TR");
+      const secilenler = [...secici.selectedOptions].map((opt) => opt.value).filter(Boolean);
+      liste.innerHTML = "";
+      const secenekler = [...secici.options].filter((opt) => opt.value && (!arama || opt.textContent.toLocaleLowerCase("tr-TR").includes(arama)));
+      for (const opt of secenekler) {
+        const satir = document.createElement("label");
+        satir.className = "sinyal-kontrol";
+        const kutu = document.createElement("input");
+        kutu.type = "checkbox";
+        kutu.checked = opt.selected;
+        kutu.addEventListener("change", () => trendSinyalSecimiDegisti(opt.value, kutu.checked));
+        const metin = document.createElement("span");
+        metin.textContent = opt.textContent;
+        satir.append(kutu, metin);
+        liste.appendChild(satir);
+      }
+      if (!secenekler.length) liste.innerHTML = '<span class="bos-mesaj">Sinyal bulunamadı.</span>';
+      document.getElementById("trendSinyalSayaci").textContent = `${secilenler.length} / 6 seçili`;
+      document.getElementById("trendSeciliEtiketler").innerHTML = secilenler.map((ad, i) => `<span class="sinyal-etiketi"><span class="sinyal-renk" style="background:${RENKLER[i % RENKLER.length]}"></span>${htmlKacir(ad)}</span>`).join("");
+    }
+
+    function trendSinyalSecimiDegisti(sinyal, secili) {
+      const secici = document.getElementById("sinyalSecici");
+      const opt = [...secici.options].find((x) => x.value === sinyal);
+      if (!opt) return;
+      const mevcut = [...secici.selectedOptions].filter((x) => x.value).length;
+      if (secili && !opt.selected && mevcut >= 6) { toastGoster("Aynı grafikte en fazla 6 sinyal seçebilirsiniz."); trendSinyalPaneliniGuncelle(); return; }
+      opt.selected = secili;
+      trendSinyalPaneliniGuncelle();
+      sinyaliCiz();
+    }
+
+    function trendSinyalAra() { trendSinyalPaneliniGuncelle(); }
+    function trendSinyalleriTemizle() { for (const opt of document.getElementById("sinyalSecici").options) opt.selected = false; trendSinyalPaneliniGuncelle(); sinyaliCiz(); }
+    function grafikYaklastir() { if (chart?.zoom) chart.zoom(1.25); }
+    function grafikUzaklastir() { if (chart?.zoom) chart.zoom(0.8); }
+    function dashboardGrafikleriniSifirla() { for (const grafik of widgetChartlari.values()) if (grafik?.resetZoom) grafik.resetZoom(); }
+
+    function veriyiExceleAktar() {
+      if (!window.XLSX) { toastGoster("Excel dışa aktarma bileşeni yüklenemedi."); return; }
+      if (!mevcutVeriSatirlari.length) { toastGoster("Dışa aktarmadan önce bir tarih aralığında veri getirin."); return; }
+      const secilenler = [...document.getElementById("sinyalSecici").selectedOptions].map((opt) => opt.value).filter(Boolean);
+      if (!secilenler.length) { toastGoster("Excel dosyası için en az bir sinyal seçin."); return; }
+      const cihazId = document.getElementById("cihazId").value.trim();
+      const satirlar = mevcutVeriSatirlari.map((satir) => {
+        const sonuc = { "Zaman": satirZamani(satir).toLocaleString("tr-TR"), "Makine": "BYM6-001", "Cihaz ID": cihazId };
+        for (const sinyal of secilenler) sonuc[sinyal] = (satir.veri || {})[sinyal] ?? null;
+        return sonuc;
+      });
+      const meta = [{ "Makine": "BYM6-001", "Müşteri etiketi": makineEtiketiniAl(), "Başlangıç": document.getElementById("baslangic").value, "Bitiş": document.getElementById("bitis").value, "Kayıt sayısı": satirlar.length, "Sinyal sayısı": secilenler.length }];
+      const kitap = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(kitap, XLSX.utils.json_to_sheet(satirlar), "Telemetri");
+      XLSX.utils.book_append_sheet(kitap, XLSX.utils.json_to_sheet(meta), "Rapor Bilgisi");
+      XLSX.writeFile(kitap, `Titan_BYM6-001_${new Date().toISOString().slice(0, 10)}.xlsx`);
     }
 
     function sayfaAc(sayfa) {
@@ -991,7 +1357,8 @@
       document.getElementById("dashboardSayfaBaslik").textContent = studio ? "Dashboard Tasarımcısı" : "Makine Dashboardu";
       document.getElementById("dashboardSayfaAciklama").textContent = studio ? "Widget ekleyin, sıralayın ve kayıtlı tasarımı yönetin." : "BYM6-001 için kayıtlı dashboardu görüntüleyin.";
       if (sayfa === "olaylar") olaylariGetir();
-      if (sayfa === "trend") veriGetir();
+      if (sayfa === "trend") mevcutVeriSatirlari.length ? sinyaliCiz() : veriGetir();
+      if ((sayfa === "dashboard" || sayfa === "studio") && aktifDashboard) dashboardVeriSatirlari.length ? dashboardCiz() : dashboardVerisiGetir();
       mobilMenuKapat();
       if (window.lucide) window.lucide.createIcons();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1001,7 +1368,6 @@
     function mobilMenuAc() { document.body.classList.add("menu-acik"); }
     function mobilMenuKapat() { document.body.classList.remove("menu-acik"); }
     function toastGoster(metin) { const el = document.getElementById("toast"); if (!el) return; el.textContent = metin; el.classList.add("goster"); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove("goster"), 4200); }
-    function makineEslestirBilgisi() { toastGoster("Makine eşleştirme, müşteri yöneticisi yetkisi ve cihaz aktivasyon koduyla açılacaktır."); }
     function kullaniciModuluBilgisi() { toastGoster("Kullanıcı daveti, müşteri ve rol tabloları tamamlandıktan sonra etkinleştirilecektir."); }
     function parolaHatirlat() {
       const hata = document.getElementById("girisHata");
@@ -1079,6 +1445,8 @@
       const birGunOnce = new Date(simdi.getTime() - 24 * 60 * 60 * 1000);
       document.getElementById("bitis").value = toLocalInputValue(simdi);
       document.getElementById("baslangic").value = toLocalInputValue(birSaatOnce);
+      document.getElementById("dashboardBitis").value = toLocalInputValue(simdi);
+      document.getElementById("dashboardBaslangic").value = toLocalInputValue(birSaatOnce);
       document.getElementById("olayFiltreBitis").value = toLocalInputValue(simdi);
       document.getElementById("olayFiltreBaslangic").value = toLocalInputValue(birGunOnce);
     }
@@ -1167,6 +1535,7 @@
       secici.innerHTML = "";
       if (!kayitliSinyalAdlari.length) {
         secici.innerHTML = '<option value="">- secilen zaman araliginda kayitli sinyal yok -</option>';
+        trendSinyalPaneliniGuncelle();
         return;
       }
       const kayitliGrup = document.createElement("optgroup");
@@ -1182,6 +1551,7 @@
       if (!oncekiSecimler.some((ad) => kayitliSinyalAdlari.includes(ad)) && kayitliSinyalAdlari.length) {
         secici.options[0].selected = true;
       }
+      trendSinyalPaneliniGuncelle();
     }
 
     function gecenSureMetni(saniye) {
@@ -1233,6 +1603,7 @@
       if (kpiSon) kpiSon.textContent = veriYasi < 60 ? `${Math.floor(veriYasi)} sn` : veriYasi < 3600 ? `${Math.floor(veriYasi / 60)} dk` : Number.isFinite(veriYasi) ? `${Math.floor(veriYasi / 3600)} sa` : "—";
       const volt = document.getElementById("beslemeVoltajDegeri")?.textContent || "— V";
       ["genelMakineVolt"].forEach((id) => { const el = document.getElementById(id); if (el) el.textContent = volt; });
+      motorSaatiniGuncelle(sonTelemetri);
     }
 
     function sayisalAlan(...degerler) {
@@ -1324,6 +1695,67 @@
       altEl.textContent = gecenSn <= ONLINE_ESIK_SN
         ? `Canli - ${anahtar}`
         : `Son bilinen: ${kayitZamani.toLocaleString("tr-TR")}`;
+    }
+
+    function motorSaatiniAl(sonTelemetri) {
+      const veri = sonTelemetri?.veri || {};
+      const adaylar = [
+        "SPN247_EngineTotalHoursOfOperation",
+        "SPN247_Engine_Total_Hours_of_Operation",
+        "SPN247_EngineTotalHours",
+        "Engine_Total_Hours_of_Operation",
+        "TotalEngineHours",
+        "EngineHours",
+        "MotorSaati",
+        "SPN247",
+      ];
+      const anahtarlar = Object.keys(veri);
+      const anahtar = adaylar.find((ad) => ad in veri)
+        || anahtarlar.find((ad) => /^SPN247(?:_|$)/i.test(ad))
+        || anahtarlar.find((ad) => /(engine.*hours|motor.*saat)/i.test(ad));
+      const deger = anahtar ? sayiyaCevir(veri[anahtar]) : null;
+      return { deger, anahtar };
+    }
+
+    function motorSaatiniGuncelle(sonTelemetri) {
+      const { deger } = motorSaatiniAl(sonTelemetri);
+      const metin = deger === null ? "— sa" : `${deger.toLocaleString("tr-TR", { maximumFractionDigits: 1 })} sa`;
+      ["genelMakineMotorSaati", "listeMakineMotorSaati", "bakimMotorSaati"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = metin;
+      });
+      bakimPaneliniGuncelle(deger);
+    }
+
+    function bakimPaneliniGuncelle(motorSaati) {
+      const satirlar = [...document.querySelectorAll("[data-bakim-araligi]")];
+      if (motorSaati === null || !Number.isFinite(motorSaati)) {
+        document.getElementById("bakimYaklasan").textContent = "—";
+        for (const satir of satirlar) {
+          satir.querySelector(".bakim-ilerleme span").style.width = "0%";
+          satir.querySelector(".bakim-kalan").textContent = "Motor saati bekleniyor";
+          const rozet = satir.querySelector(".rozet");
+          rozet.className = "rozet pasif";
+          rozet.textContent = "Veri yok";
+        }
+        return;
+      }
+      let enYakin = Infinity;
+      for (const satir of satirlar) {
+        const aralik = Number(satir.dataset.bakimAraligi);
+        const sonraki = Math.ceil((motorSaati + .001) / aralik) * aralik;
+        const kalan = Math.max(0, sonraki - motorSaati);
+        const donguIci = motorSaati % aralik;
+        const yuzde = Math.max(0, Math.min(100, (donguIci / aralik) * 100));
+        enYakin = Math.min(enYakin, kalan);
+        satir.querySelector(".bakim-ilerleme span").style.width = `${yuzde.toFixed(1)}%`;
+        satir.querySelector(".bakim-kalan").textContent = `${kalan.toLocaleString("tr-TR", { maximumFractionDigits: 1 })} sa kaldı`;
+        const rozet = satir.querySelector(".rozet");
+        const yaklasiyor = kalan <= Math.max(50, aralik * .1);
+        rozet.className = `rozet ${yaklasiyor ? "uyari" : "aktif"}`;
+        rozet.textContent = yaklasiyor ? "Yaklaşıyor" : "Planlı";
+      }
+      document.getElementById("bakimYaklasan").textContent = `${enYakin.toLocaleString("tr-TR", { maximumFractionDigits: 1 })} sa`;
     }
 
     async function dbcYonetiminiYenile() {
@@ -1874,7 +2306,7 @@
       }
     }
 
-    async function dashboardlariGetir() {
+    async function dashboardlariGetir(veriYukle = aktifSayfa === "dashboard" || aktifSayfa === "studio") {
       const durumEl = document.getElementById("dashboardDurum");
       const secici = document.getElementById("dashboardSec");
       const oncekiId = secici.value;
@@ -1897,7 +2329,7 @@
         }
         durumEl.textContent = dashboardlar.length ? `${dashboardlar.length} dashboard bulundu.` : "Henuz dashboard yok.";
         durumEl.className = dashboardlar.length ? "basari" : "";
-        await dashboardSecildi();
+        await dashboardSecildi(veriYukle);
       } catch (e) {
         durumEl.textContent = "Dashboardlar okunamadi: " + e.message;
         durumEl.className = "hata";
@@ -1924,7 +2356,7 @@
         if (!res.ok) throw new Error(await hataMetni(res));
         const [yeni] = await res.json();
         document.getElementById("dashboardAdi").value = "";
-        await dashboardlariGetir();
+        await dashboardlariGetir(false);
         document.getElementById("dashboardSec").value = yeni.id;
         await dashboardSecildi();
         durumEl.textContent = `${ad} dashboard'u olusturuldu.`;
@@ -1937,10 +2369,12 @@
       }
     }
 
-    async function dashboardSecildi() {
+    async function dashboardSecildi(veriYukle = true) {
       const id = document.getElementById("dashboardSec").value;
+      const oncekiDashboardId = aktifDashboard?.id;
       widgetDuzenlemeIptal();
       aktifDashboard = dashboardlar.find((d) => d.id === id) || null;
+      if (aktifDashboard?.id !== oncekiDashboardId) dashboardVeriSatirlari = [];
       document.getElementById("dashboardSilBtn").disabled = !aktifDashboard;
       document.getElementById("widgetForm").classList.toggle("gizli", !aktifDashboard);
       if (!aktifDashboard) {
@@ -1948,15 +2382,64 @@
         dashboardCiz();
         return;
       }
-      document.getElementById("cihazId").value = aktifDashboard.cihaz_id;
       document.getElementById("dashboardCihazId").value = aktifDashboard.cihaz_id;
       document.getElementById("olayKuralCihazId").value = aktifDashboard.cihaz_id;
       document.getElementById("olayFiltreCihazId").value = aktifDashboard.cihaz_id;
       await widgetlariGetir();
       await dbcSinyalKatalogunuGetir(aktifDashboard.cihaz_id, true);
-      gecmisModu = false;
-      tarihAraliginiSimdiyeTasi();
-      await Promise.all([veriGetir(), cihazDurumunuGetir()]);
+      dashboardGecmisModu = false;
+      dashboardTarihAraliginiSimdiyeTasi();
+      if (veriYukle) await Promise.all([dashboardVerisiGetir(), cihazDurumunuGetir()]);
+      else document.getElementById("dashboardSorguDurum").textContent = "Dashboard açıldığında seçili zaman aralığındaki veri yüklenecek.";
+    }
+
+    function dashboardTarihAraliginiSimdiyeTasi() {
+      const baslangicEl = document.getElementById("dashboardBaslangic");
+      const bitisEl = document.getElementById("dashboardBitis");
+      if (!baslangicEl || !bitisEl) return;
+      const eskiBaslangic = new Date(baslangicEl.value);
+      const eskiBitis = new Date(bitisEl.value);
+      const pencereMs = (!isNaN(eskiBaslangic) && !isNaN(eskiBitis) && eskiBitis > eskiBaslangic) ? eskiBitis - eskiBaslangic : 60 * 60 * 1000;
+      const simdi = new Date();
+      bitisEl.value = toLocalInputValue(simdi);
+      baslangicEl.value = toLocalInputValue(new Date(simdi.getTime() - pencereMs));
+    }
+
+    function dashboardHizliZamanAraligi(dakika) {
+      const bitis = new Date();
+      document.getElementById("dashboardBitis").value = toLocalInputValue(bitis);
+      document.getElementById("dashboardBaslangic").value = toLocalInputValue(new Date(bitis.getTime() - dakika * 60000));
+      dashboardGecmisModu = false;
+      dashboardVerisiGetir();
+    }
+
+    function dashboardFiltreliGetir() {
+      const bitis = new Date(document.getElementById("dashboardBitis").value);
+      dashboardGecmisModu = isNaN(bitis.getTime()) || Math.abs(Date.now() - bitis.getTime()) > 2 * 60 * 1000;
+      dashboardVerisiGetir();
+    }
+
+    async function dashboardVerisiGetir() {
+      const durumEl = document.getElementById("dashboardSorguDurum");
+      if (!aktifDashboard || dashboardSorgusuCalisiyor) return;
+      const baslangic = document.getElementById("dashboardBaslangic").value;
+      const bitis = document.getElementById("dashboardBitis").value;
+      if (!baslangic || !bitis || new Date(bitis) <= new Date(baslangic)) {
+        durumEl.textContent = "Geçerli bir dashboard başlangıç ve bitiş zamanı seçin.";
+        return;
+      }
+      dashboardSorgusuCalisiyor = true;
+      durumEl.textContent = "Dashboard verisi yükleniyor…";
+      try {
+        const { satirlar, siniraUlasti } = await telemetriSayfaliGetir(aktifDashboard.cihaz_id, new Date(baslangic).toISOString(), new Date(bitis).toISOString());
+        dashboardVeriSatirlari = satirlar;
+        dashboardCiz();
+        durumEl.textContent = `${satirlar.length.toLocaleString("tr-TR")} kayıt yüklendi${siniraUlasti ? ` · ilk ${TELEMETRI_MAKSIMUM_KAYIT.toLocaleString("tr-TR")} kayıtla sınırlandı` : ""}. Grafikler en fazla 2.500 noktayla akıcı çizilir.`;
+      } catch (e) {
+        durumEl.textContent = "Dashboard verisi alınamadı: " + e.message;
+      } finally {
+        dashboardSorgusuCalisiyor = false;
+      }
     }
 
     async function dashboardSil() {
@@ -1984,9 +2467,25 @@
 
     function widgetFormunuGuncelle() {
       const tip = document.getElementById("widgetTipi").value;
-      document.getElementById("widgetMinAlan").classList.toggle("gizli", tip !== "gauge");
-      document.getElementById("widgetMaxAlan").classList.toggle("gizli", tip !== "gauge");
+      const aralikGerekli = tip === "gauge" || tip === "progress";
+      document.getElementById("widgetMinAlan").classList.toggle("gizli", !aralikGerekli);
+      document.getElementById("widgetMaxAlan").classList.toggle("gizli", !aralikGerekli);
       document.getElementById("widgetOnDegeriAlan").classList.toggle("gizli", tip !== "status");
+      document.querySelectorAll(".widget-tip-karti").forEach((kart) => kart.classList.toggle("aktif", kart.dataset.widgetTip === tip));
+    }
+
+    function widgetTipiSec(tip) {
+      const secici = document.getElementById("widgetTipi");
+      if (!secici || ![...secici.options].some((opt) => opt.value === tip)) return;
+      secici.value = tip;
+      widgetFormunuGuncelle();
+    }
+
+    function widgetGorselTipiniAl(widget) {
+      const ayar = widget?.ayarlar || {};
+      if (widget?.widget_tipi === "time_series") return `time_series_${ayar.chart_style || "line"}`;
+      if (widget?.widget_tipi === "number" && ayar.visual_style === "progress") return "progress";
+      return widget?.widget_tipi || "number";
     }
 
     function widgetSinyalSecicisiniGuncelle() {
@@ -2010,14 +2509,16 @@
       const durumEl = document.getElementById("dashboardDurum");
       const btn = document.getElementById("widgetEkleBtn");
       if (!aktifDashboard) return;
-      const tip = document.getElementById("widgetTipi").value;
+      const gorselTip = document.getElementById("widgetTipi").value;
+      const grafikTipi = gorselTip.startsWith("time_series_");
+      const tip = grafikTipi ? "time_series" : gorselTip === "progress" ? "number" : gorselTip;
       const secilenler = [...document.getElementById("widgetSinyaller").selectedOptions].map((x) => x.value).filter(Boolean);
       if (!secilenler.length) {
         durumEl.textContent = "Widget icin en az bir sinyal secin.";
         durumEl.className = "hata";
         return;
       }
-      if (tip !== "time_series" && secilenler.length > 1) {
+      if (!grafikTipi && secilenler.length > 1) {
         durumEl.textContent = "Bu widget tipi icin yalniz bir sinyal secin.";
         durumEl.className = "hata";
         return;
@@ -2027,10 +2528,11 @@
       const baslik = document.getElementById("widgetBaslik").value.trim() || secilenler.join(" / ");
       const eskiWidget = aktifWidgetlar.find((w) => w.id === duzenlenenWidgetId);
       let ayarlar;
-      if (tip === "time_series") {
+      if (grafikTipi) {
         const eskiSinyaller = Array.isArray(eskiWidget?.ayarlar?.signals) ? eskiWidget.ayarlar.signals : [];
         ayarlar = {
           time_window_minutes: 60,
+          chart_style: gorselTip.replace("time_series_", ""),
           signals: secilenler.map((name, i) => ({
             name,
             label: eskiSinyaller.find((x) => x.name === name)?.label || name,
@@ -2038,15 +2540,15 @@
             axis: eskiSinyaller.find((x) => x.name === name)?.axis || (i === 0 ? "left" : "right"),
           })),
         };
-      } else if (tip === "gauge") {
+      } else if (tip === "gauge" || gorselTip === "progress") {
         const min = Number(document.getElementById("widgetMin").value);
         const max = Number(document.getElementById("widgetMax").value);
         if (!Number.isFinite(min) || !Number.isFinite(max) || max <= min) {
-          durumEl.textContent = "Ibre icin maksimum, minimumdan buyuk olmalidir.";
+          durumEl.textContent = "Gösterge için maksimum değer minimumdan büyük olmalıdır.";
           durumEl.className = "hata";
           return;
         }
-        ayarlar = { signal: secilenler[0], unit: birim, min, max, decimals: 1 };
+        ayarlar = { signal: secilenler[0], unit: birim, min, max, decimals: 1, ...(gorselTip === "progress" ? { visual_style: "progress" } : {}) };
       } else if (tip === "status") {
         ayarlar = { signal: secilenler[0], on_value: document.getElementById("widgetOnDegeri").value, unit: birim };
       } else {
@@ -2092,7 +2594,7 @@
       if (!widget) return;
       duzenlenenWidgetId = widget.id;
       const ayar = widget.ayarlar || {};
-      document.getElementById("widgetTipi").value = widget.widget_tipi;
+      widgetTipiSec(widgetGorselTipiniAl(widget));
       document.getElementById("widgetBaslik").value = widget.baslik;
       document.getElementById("widgetBirim").value = ayar.unit || "";
       document.getElementById("widgetMin").value = ayar.min ?? 0;
@@ -2114,7 +2616,6 @@
       }
       for (const opt of secici.options) opt.selected = secilecekler.includes(opt.value);
 
-      widgetFormunuGuncelle();
       document.getElementById("widgetEkleBtn").textContent = "Degisiklikleri Kaydet";
       document.getElementById("widgetDuzenlemeIptalBtn").classList.remove("gizli");
       document.getElementById("widgetForm").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -2124,6 +2625,7 @@
       duzenlenenWidgetId = null;
       document.getElementById("widgetBaslik").value = "";
       document.getElementById("widgetBirim").value = "";
+      widgetTipiSec("number");
       for (const opt of document.getElementById("widgetSinyaller").options) opt.selected = false;
       document.getElementById("widgetEkleBtn").textContent = "Widget Ekle";
       document.getElementById("widgetDuzenlemeIptalBtn").classList.add("gizli");
@@ -2235,12 +2737,25 @@
       return Number.isFinite(sayi) ? sayi : null;
     }
 
-    function sonSinyalDegeri(sinyal) {
-      for (let i = mevcutVeriSatirlari.length - 1; i >= 0; i--) {
-        const veri = mevcutVeriSatirlari[i].veri || {};
+    function sonSinyalDegeri(sinyal, satirlar = mevcutVeriSatirlari) {
+      for (let i = satirlar.length - 1; i >= 0; i--) {
+        const veri = satirlar[i].veri || {};
         if (sinyal in veri) return veri[sinyal];
       }
       return null;
+    }
+
+    function orneklenmisSatirlar(satirlar, maksimum = 2500) {
+      if (satirlar.length <= maksimum) return satirlar;
+      const sonuc = [];
+      const adim = (satirlar.length - 1) / (maksimum - 1);
+      for (let i = 0; i < maksimum; i++) sonuc.push(satirlar[Math.round(i * adim)]);
+      return sonuc;
+    }
+
+    function widgetTipEtiketi(widget) {
+      const tip = widgetGorselTipiniAl(widget);
+      return ({ number: "KPI", progress: "İlerleme", gauge: "Gösterge", status: "Durum", time_series_line: "Çizgi", time_series_area: "Alan", time_series_bar: "Sütun" })[tip] || "Widget";
     }
 
     function satirZamani(satir) {
@@ -2282,7 +2797,7 @@
       for (const widget of aktifWidgetlar) {
         const kart = document.createElement("section");
         kart.className = "widget-kart";
-        kart.draggable = true;
+        kart.draggable = aktifSayfa === "studio";
         kart.dataset.widgetId = widget.id;
         kart.style.gridColumn = `span ${widget.genislik || 6}`;
         kart.addEventListener("dragstart", (event) => widgetSurukleBaslat(event, widget.id));
@@ -2291,7 +2806,7 @@
         kart.addEventListener("dragleave", (event) => event.currentTarget.classList.remove("hedef"));
         kart.addEventListener("drop", (event) => widgetBirak(event, widget.id));
         const govdeId = `widget-govde-${widget.id.replaceAll("-", "")}`;
-        kart.innerHTML = `<h3>${htmlKacir(widget.baslik)}</h3>
+        kart.innerHTML = `<div class="widget-kart-baslik"><h3>${htmlKacir(widget.baslik)}</h3><span class="widget-tip-rozet">${widgetTipEtiketi(widget)}</span></div>
           <div class="widget-islemler">
             <button class="ikincil-btn" data-widget-id="${htmlKacir(widget.id)}" onclick="widgetDuzenleButonu(this)">Duzenle</button>
             <button class="ikincil-btn" onclick="widgetSirala('${htmlKacir(widget.id)}', -1)" title="Sola veya yukari tasi">&#8592;</button>
@@ -2307,15 +2822,22 @@
     function widgetGovdesiniCiz(widget, govde) {
       const ayar = widget.ayarlar || {};
       if (widget.widget_tipi === "number") {
-        const ham = sonSinyalDegeri(ayar.signal);
+        const ham = sonSinyalDegeri(ayar.signal, dashboardVeriSatirlari);
         const sayi = sayiyaCevir(ham);
+        if (ayar.visual_style === "progress") {
+          const min = Number(ayar.min ?? 0);
+          const max = Number(ayar.max ?? 100);
+          const yuzde = sayi === null || max <= min ? 0 : Math.max(0, Math.min(100, ((sayi - min) / (max - min)) * 100));
+          govde.innerHTML = `<div class="widget-progress"><div class="widget-progress-deger"><strong>${sayi === null ? "—" : sayi.toFixed(ayar.decimals ?? 1)} ${htmlKacir(ayar.unit || "")}</strong><span>${min}–${max}</span></div><div class="widget-progress-cizgi"><span style="width:${yuzde.toFixed(1)}%"></span></div></div><div class="widget-alt">${htmlKacir(ayar.signal)} · %${yuzde.toFixed(0)}</div>`;
+          return;
+        }
         govde.innerHTML = `<div class="widget-deger"><strong>${sayi === null ? "-" : sayi.toFixed(ayar.decimals ?? 1)}</strong><span>${htmlKacir(ayar.unit || "")}</span></div>
           <div class="widget-alt">${htmlKacir(ayar.signal)}</div>`;
         return;
       }
 
       if (widget.widget_tipi === "status") {
-        const ham = sonSinyalDegeri(ayar.signal);
+        const ham = sonSinyalDegeri(ayar.signal, dashboardVeriSatirlari);
         const acik = durumAcikMi(ham, ayar.on_value);
         govde.innerHTML = `<div class="widget-durum"><div class="widget-durum-lamba ${ham === null ? "" : acik ? "acik" : "kapali"}"></div><strong>${ham === null ? "Veri yok" : acik ? "ON" : "OFF"}</strong></div>
           <div class="widget-alt">${htmlKacir(ayar.signal)} - son deger: ${htmlKacir(ham ?? "-")}</div>`;
@@ -2323,7 +2845,7 @@
       }
 
       if (widget.widget_tipi === "gauge") {
-        const ham = sonSinyalDegeri(ayar.signal);
+        const ham = sonSinyalDegeri(ayar.signal, dashboardVeriSatirlari);
         const sayi = sayiyaCevir(ham);
         const min = Number(ayar.min ?? 0);
         const max = Number(ayar.max ?? 100);
@@ -2343,24 +2865,31 @@
 
       if (widget.widget_tipi === "time_series") {
         const sinyaller = Array.isArray(ayar.signals) ? ayar.signals : [];
-        const zamanlar = zamanEkseniHazirla(mevcutVeriSatirlari);
+        const grafikSatirlari = orneklenmisSatirlar(dashboardVeriSatirlari);
+        const zamanlar = grafikSatirlari.map((satir) => {
+          const tarih = satirZamani(satir);
+          return { tarih, etiket: tarih.toLocaleString("tr-TR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" }) };
+        });
+        const grafikStili = ayar.chart_style || "line";
         const canvasId = `chart-${widget.id.replaceAll("-", "")}`;
         govde.innerHTML = `<div class="widget-chart-wrap"><canvas id="${canvasId}"></canvas></div>`;
         const datasets = sinyaller.map((s, i) => ({
           label: s.label || s.name,
-          data: mevcutVeriSatirlari.map((satir) => sayiyaCevir((satir.veri || {})[s.name])),
+          data: grafikSatirlari.map((satir) => sayiyaCevir((satir.veri || {})[s.name])),
           borderColor: s.color || RENKLER[i % RENKLER.length],
-          backgroundColor: s.color || RENKLER[i % RENKLER.length],
+          backgroundColor: grafikStili === "area" ? `${s.color || RENKLER[i % RENKLER.length]}26` : s.color || RENKLER[i % RENKLER.length],
           yAxisID: s.axis === "right" ? "y1" : "y",
           spanGaps: false,
           tension: 0.18,
           borderWidth: 2,
-          pointRadius: zamanlar.map((z) => z.gunDegisti ? 4 : 0),
+          pointRadius: 0,
           pointHoverRadius: 4,
+          fill: grafikStili === "area",
+          borderRadius: grafikStili === "bar" ? 3 : 0,
         }));
         const sagEksenVar = datasets.some((d) => d.yAxisID === "y1");
         const grafik = new Chart(document.getElementById(canvasId), {
-          type: "line",
+          type: grafikStili === "bar" ? "bar" : "line",
           data: { labels: zamanlar.map((z) => z.etiket), datasets },
           options: {
             responsive: true,
@@ -2371,7 +2900,15 @@
               y: { type: "linear", position: "left" },
               y1: { type: "linear", position: "right", display: sagEksenVar, grid: { drawOnChartArea: false } },
             },
-            plugins: { legend: { display: true, position: "bottom" } },
+            plugins: {
+              legend: { display: true, position: "bottom", labels: { usePointStyle: true, boxWidth: 8 } },
+              tooltip: { mode: "index", intersect: false, callbacks: { title: (items) => items[0]?.label || "" } },
+              zoom: {
+                limits: { x: { min: "original", max: "original", minRange: 10 } },
+                pan: { enabled: true, mode: "x", modifierKey: "shift" },
+                zoom: { wheel: { enabled: true, speed: .08 }, pinch: { enabled: true }, mode: "x" },
+              },
+            },
           },
         });
         widgetChartlari.set(widget.id, grafik);
@@ -2500,9 +3037,20 @@
     }
 
     async function manuelYenile() {
-      if (!gecmisModu) tarihAraliginiSimdiyeTasi();
-      if (!gecmisModu) olayTarihAraliginiSimdiyeTasi();
-      await Promise.all([veriGetir(), cihazDurumunuGetir(), olaylariGetir()]);
+      const isler = [cihazDurumunuGetir()];
+      if (aktifSayfa === "trend") {
+        if (!gecmisModu) tarihAraliginiSimdiyeTasi();
+        isler.push(veriGetir());
+      }
+      if (aktifSayfa === "dashboard" || aktifSayfa === "studio") {
+        if (!dashboardGecmisModu) dashboardTarihAraliginiSimdiyeTasi();
+        isler.push(dashboardVerisiGetir());
+      }
+      if (aktifSayfa === "genel" || aktifSayfa === "olaylar") {
+        if (!gecmisModu) olayTarihAraliginiSimdiyeTasi();
+        isler.push(olaylariGetir());
+      }
+      await Promise.all(isler);
     }
 
     async function filtreliVeriGetir() {
@@ -2566,7 +3114,7 @@
       while (satirlar.length < TELEMETRI_MAKSIMUM_KAYIT) {
         const kalan = TELEMETRI_MAKSIMUM_KAYIT - satirlar.length;
         const limit = Math.min(TELEMETRI_SAYFA_BOYUTU, kalan);
-        const url = `${SUPABASE_URL}/rest/v1/telemetri?select=*`
+        const url = `${SUPABASE_URL}/rest/v1/telemetri?select=alindi_zaman,veri`
           + `&cihaz_id=eq.${encodeURIComponent(cihazId)}`
           + `&alindi_zaman=gte.${encodeURIComponent(baslangicISO)}`
           + `&alindi_zaman=lte.${encodeURIComponent(bitisISO)}`
@@ -2646,7 +3194,6 @@
         durumEl.className = "basari";
         sonYenilemeZamani = new Date();
         yenilemeBilgisiniGuncelle();
-        dashboardCiz();
       } catch (e) {
         durumEl.textContent = "Hata: " + e.message;
         durumEl.className = "hata";
@@ -2665,6 +3212,8 @@
         .slice(0, 6);
       if (!secilenSinyaller.length) {
         if (chart) { chart.destroy(); chart = null; }
+        const ozet = document.getElementById("grafikVeriOzeti");
+        if (ozet) ozet.innerHTML = '<span>Grafiğe eklemek için sinyal listesinden seçim yapın.</span>';
         return;
       }
       if ([...document.getElementById("sinyalSecici").selectedOptions].filter((x) => x.value).length > 6) {
@@ -2676,14 +3225,15 @@
     function grafigiCiz(satirlar, sinyaller) {
       const ctx = document.getElementById("grafik").getContext("2d");
       if (chart) chart.destroy();
-      const zamanlar = satirlar.map((satir) => satirZamani(satir));
+      const grafikSatirlari = orneklenmisSatirlar(satirlar);
+      const zamanlar = grafikSatirlari.map((satir) => satirZamani(satir));
       const etiketler = zamanlar.map((tarih) => tarih.toLocaleString("tr-TR", {
         day: "2-digit", month: "2-digit", year: "numeric",
         hour: "2-digit", minute: "2-digit", second: "2-digit",
       }));
       const datasets = sinyaller.map((sinyal, index) => ({
         label: sinyal,
-        data: satirlar.map((satir) => {
+        data: grafikSatirlari.map((satir) => {
           const ham = (satir.veri || {})[sinyal];
           if (ham === null || ham === undefined || ham === "") return null;
           const sayi = typeof ham === "number" ? ham : parseFloat(String(ham).replace(",", "."));
@@ -2716,9 +3266,16 @@
           plugins: {
             legend: { display: true, position: "bottom", labels: { usePointStyle: true, boxWidth: 8, padding: 18 } },
             tooltip: { mode: "index", intersect: false, callbacks: { title: (items) => items[0]?.label || "" } },
+            zoom: {
+              limits: { x: { min: "original", max: "original", minRange: 10 } },
+              pan: { enabled: true, mode: "x", modifierKey: "shift" },
+              zoom: { wheel: { enabled: true, speed: .08 }, pinch: { enabled: true }, mode: "x" },
+            },
           },
         },
       });
+      const ozet = document.getElementById("grafikVeriOzeti");
+      if (ozet) ozet.innerHTML = `<span><strong>${satirlar.length.toLocaleString("tr-TR")}</strong> kayıt</span><span><strong>${grafikSatirlari.length.toLocaleString("tr-TR")}</strong> çizim noktası</span><span><strong>${sinyaller.length}</strong> sinyal</span><span>${etiketler[0] || "—"} → ${etiketler.at(-1) || "—"}</span>`;
     }
 
     arayuzuKur();
