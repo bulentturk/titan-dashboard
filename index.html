@@ -2,8 +2,10 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Titan Telemetri - Dashboard</title>
+<title>Titan Fleet &amp; Telemetry</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 <style>
   body { font-family: -apple-system, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #1a1a1a; }
   h1 { font-size: 22px; margin-bottom: 4px; }
@@ -93,13 +95,414 @@
     .kosul-satiri { grid-template-columns: 1fr; }
   }
   canvas { max-height: 380px; }
+
+  /* Titan Fleet & Telemetry v2 uygulama kabugu */
+  :root {
+    --titan-blue: #00aeef;
+    --titan-blue-dark: #008fc5;
+    --titan-navy: #0b1f2a;
+    --titan-navy-2: #102d3b;
+    --titan-ink: #18242c;
+    --titan-muted: #647480;
+    --titan-line: #dbe4e9;
+    --titan-bg: #f3f7f9;
+    --titan-card: #ffffff;
+    --titan-success: #169c5b;
+    --titan-warning: #e7a321;
+    --titan-danger: #d64545;
+    --sidebar-width: 278px;
+  }
+
+  * { box-sizing: border-box; }
+  html { min-height: 100%; background: var(--titan-bg); }
+  body {
+    max-width: none;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    background: var(--titan-bg);
+    color: var(--titan-ink);
+    font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  body.ui-loading > :not(script) { visibility: hidden; }
+  body.ui-hazir > :not(.giris-ekrani):not(.uygulama-kabugu):not(script) { display: none !important; }
+  button, input, select { font: inherit; }
+  button:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 3px solid rgba(0,174,239,.22);
+    outline-offset: 2px;
+  }
+
+  .giris-ekrani {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: minmax(360px, .95fr) minmax(430px, 1.05fr);
+    background: #fff;
+  }
+  .giris-marka {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 100vh;
+    padding: clamp(36px, 6vw, 84px);
+    overflow: hidden;
+    color: #fff;
+    background:
+      radial-gradient(circle at 82% 16%, rgba(0,174,239,.35), transparent 32%),
+      linear-gradient(145deg, #071820 0%, #0b2735 55%, #0d3547 100%);
+  }
+  .giris-marka::after {
+    content: "";
+    position: absolute;
+    right: -14vw;
+    bottom: -18vw;
+    width: 46vw;
+    height: 46vw;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 50%;
+    box-shadow: 0 0 0 70px rgba(255,255,255,.025), 0 0 0 140px rgba(255,255,255,.02);
+  }
+  .giris-marka-ust, .giris-marka-icerik, .giris-marka-alt { position: relative; z-index: 1; }
+  .giris-logo-zemin {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 14px 18px 11px;
+    border-radius: 12px;
+    background: #fff;
+  }
+  .giris-logo-zemin img { display: block; width: 158px; height: auto; }
+  .giris-marka-icerik { max-width: 590px; }
+  .giris-marka-icerik .urun-etiket {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    color: #85dcfb;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+  .giris-marka-icerik h1 {
+    max-width: 640px;
+    margin: 0 0 20px;
+    color: #fff;
+    font-size: clamp(36px, 4.8vw, 66px);
+    line-height: 1.02;
+    letter-spacing: -.045em;
+  }
+  .giris-marka-icerik p {
+    max-width: 540px;
+    margin: 0;
+    color: #bed2dd;
+    font-size: 17px;
+    line-height: 1.65;
+  }
+  .giris-marka-alt { color: #87a1af; font-size: 13px; }
+  .giris-form-alani {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 48px;
+    background: linear-gradient(180deg, #fff 0%, #f8fbfc 100%);
+  }
+  .giris-karti { width: min(440px, 100%); }
+  .giris-karti h2 { margin: 0 0 10px; font-size: 30px; letter-spacing: -.025em; }
+  .giris-aciklama { margin: 0 0 32px; color: var(--titan-muted); font-size: 15px; line-height: 1.55; }
+  .giris-formu { display: grid; gap: 18px; }
+  .form-grup { display: grid; gap: 8px; }
+  .form-grup label { color: #344650; font-size: 14px; font-weight: 650; }
+  .form-grup input {
+    width: 100%;
+    min-height: 50px;
+    padding: 12px 14px;
+    border: 1px solid #cad7de;
+    border-radius: 9px;
+    background: #fff;
+    color: var(--titan-ink);
+    font-size: 15px;
+    transition: border-color .18s, box-shadow .18s;
+  }
+  .form-grup input:focus { border-color: var(--titan-blue); box-shadow: 0 0 0 4px rgba(0,174,239,.1); outline: none; }
+  .giris-yardim { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--titan-muted); font-size: 13px; }
+  .giris-yardim label { display: inline-flex; align-items: center; gap: 8px; }
+  .giris-yardim a { color: var(--titan-blue-dark); font-weight: 650; text-decoration: none; }
+  .giris-buton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 52px;
+    padding: 12px 18px;
+    border-radius: 9px;
+    background: var(--titan-blue);
+    color: #052330;
+    font-size: 15px;
+    font-weight: 750;
+  }
+  .giris-buton:hover { background: #18b8f2; }
+  .giris-hata { min-height: 20px; margin-top: 14px; color: var(--titan-danger); font-size: 13px; line-height: 1.45; }
+  .giris-guvenlik { display: flex; align-items: flex-start; gap: 10px; margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--titan-line); color: #74848e; font-size: 12px; line-height: 1.5; }
+
+  .uygulama-kabugu { min-height: 100vh; display: grid; grid-template-columns: var(--sidebar-width) 1fr; }
+  .yan-menu {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 30;
+    width: var(--sidebar-width);
+    display: flex;
+    flex-direction: column;
+    color: #dbe9ef;
+    background: linear-gradient(180deg, #091c26 0%, #0b2633 60%, #081a23 100%);
+    border-right: 1px solid rgba(255,255,255,.06);
+  }
+  .yan-menu-marka { display: flex; align-items: center; gap: 13px; min-height: 82px; padding: 16px 22px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .yan-menu-logo { display: grid; place-items: center; width: 86px; min-width: 86px; height: 42px; padding: 8px 9px 6px; border-radius: 8px; background: #fff; }
+  .yan-menu-logo img { width: 100%; height: auto; display: block; }
+  .yan-menu-urun { display: flex; flex-direction: column; min-width: 0; }
+  .yan-menu-urun strong { color: #fff; font-size: 14px; line-height: 1.2; }
+  .yan-menu-urun span { margin-top: 4px; color: #7da1b1; font-size: 11px; }
+  .yan-menu-baslik { padding: 22px 22px 8px; color: #668797; font-size: 11px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+  .menu-listesi { display: grid; gap: 4px; padding: 0 12px; }
+  .menu-buton {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 8px;
+    color: #a9c0cb;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 550;
+    text-align: left;
+  }
+  .menu-buton:hover { color: #fff; background: rgba(255,255,255,.055); }
+  .menu-buton.aktif { color: #fff; background: rgba(0,174,239,.16); box-shadow: inset 3px 0 0 var(--titan-blue); }
+  .menu-buton svg { width: 18px; height: 18px; color: currentColor; stroke-width: 1.9; }
+  .menu-rozet { margin-left: auto; padding: 2px 7px; border-radius: 999px; color: #77d9fb; background: rgba(0,174,239,.12); font-size: 10px; font-weight: 700; }
+  .yan-menu-makine { margin: 18px 12px 10px; padding: 14px; border: 1px solid rgba(255,255,255,.08); border-radius: 10px; background: rgba(255,255,255,.035); }
+  .yan-menu-makine-ust { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .yan-menu-makine strong { color: #fff; font-size: 13px; }
+  .yan-menu-makine p { margin: 6px 0 0; color: #7f9eac; font-size: 11px; }
+  .yan-menu-alt { margin-top: auto; padding: 18px 20px; border-top: 1px solid rgba(255,255,255,.08); color: #62808f; font-size: 11px; }
+  .durum-noktasi { width: 9px; height: 9px; flex: 0 0 auto; border-radius: 50%; background: #84939b; box-shadow: 0 0 0 3px rgba(132,147,155,.12); }
+  .durum-noktasi.online { background: var(--titan-success); box-shadow: 0 0 0 3px rgba(22,156,91,.16); }
+  .durum-noktasi.gecikmeli { background: var(--titan-warning); box-shadow: 0 0 0 3px rgba(231,163,33,.16); }
+  .durum-noktasi.offline { background: var(--titan-danger); box-shadow: 0 0 0 3px rgba(214,69,69,.16); }
+
+  .uygulama-ana { grid-column: 2; min-width: 0; }
+  .ust-bar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    min-height: 74px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 13px clamp(20px, 3vw, 38px);
+    border-bottom: 1px solid var(--titan-line);
+    background: rgba(255,255,255,.94);
+    backdrop-filter: blur(12px);
+  }
+  .mobil-menu-buton { display: none; width: 42px; height: 42px; padding: 0; place-items: center; color: var(--titan-ink); background: #fff; border: 1px solid var(--titan-line); }
+  .mobil-menu-buton:hover { background: #f4f8fa; }
+  .sayfa-kimlik { min-width: 0; }
+  .sayfa-kimlik h1 { margin: 0; font-size: 21px; letter-spacing: -.02em; }
+  .sayfa-kimlik p { margin: 4px 0 0; color: var(--titan-muted); font-size: 12px; }
+  .ust-bar-sag { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .makine-secici {
+    min-width: 190px;
+    min-height: 42px;
+    padding: 8px 36px 8px 12px;
+    border: 1px solid var(--titan-line);
+    border-radius: 8px;
+    background: #fff;
+    color: #263841;
+    font-size: 13px;
+    font-weight: 650;
+  }
+  .ikon-buton { width: 42px; height: 42px; display: grid; place-items: center; padding: 0; color: #536873; background: #fff; border: 1px solid var(--titan-line); }
+  .ikon-buton:hover { color: var(--titan-blue-dark); background: #f7fbfd; }
+  .ikon-buton svg { width: 18px; height: 18px; }
+  .kullanici-karti { display: flex; align-items: center; gap: 10px; padding-left: 4px; }
+  .kullanici-avatar { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; color: #063246; background: #c6effd; font-size: 12px; font-weight: 800; }
+  .kullanici-metin { display: flex; flex-direction: column; max-width: 190px; }
+  .kullanici-metin strong { overflow: hidden; color: #2d3d45; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+  .kullanici-metin span { color: #83919a; font-size: 10px; }
+
+  .icerik { width: min(1540px, 100%); margin: 0 auto; padding: 28px clamp(20px, 3vw, 38px) 52px; }
+  .sayfa { display: none; }
+  .sayfa.aktif { display: block; animation: sayfaGiris .2s ease-out; }
+  @keyframes sayfaGiris { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .sayfa-ust { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
+  .sayfa-ust h2 { margin: 0 0 6px; font-size: 24px; letter-spacing: -.025em; }
+  .sayfa-ust p { max-width: 760px; margin: 0; color: var(--titan-muted); font-size: 14px; line-height: 1.5; }
+  .birincil-btn, button {
+    min-height: 40px;
+    padding: 9px 15px;
+    border-radius: 8px;
+    background: var(--titan-blue);
+    color: #062c3d;
+    font-weight: 700;
+  }
+  .birincil-btn:hover, button:hover { background: #16b8f3; }
+  .ikincil-btn { color: #344b57; background: #edf3f6; border: 1px solid #d6e1e6; }
+  .ikincil-btn:hover { color: #20343e; background: #e4edf1; }
+  .tehlike-btn { color: #fff; background: var(--titan-danger); }
+  .tehlike-btn:hover { background: #ba3434; }
+  .kpi-izgara { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+  .kpi-karti { min-height: 132px; padding: 20px; border: 1px solid var(--titan-line); border-radius: 12px; background: var(--titan-card); box-shadow: 0 6px 20px rgba(15,39,52,.045); }
+  .kpi-karti-ust { display: flex; align-items: center; justify-content: space-between; color: var(--titan-muted); font-size: 13px; }
+  .kpi-ikon { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 9px; color: var(--titan-blue-dark); background: #e8f8fe; }
+  .kpi-ikon svg { width: 18px; height: 18px; }
+  .kpi-deger { display: block; margin-top: 18px; font-size: 30px; font-weight: 760; letter-spacing: -.035em; }
+  .kpi-alt { display: block; margin-top: 4px; color: #81909a; font-size: 11px; }
+  .genel-izgara { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, .65fr); gap: 18px; margin-bottom: 18px; }
+  .panel, .kutu, .grafik-kutu {
+    border: 1px solid var(--titan-line);
+    border-radius: 12px;
+    background: var(--titan-card);
+    box-shadow: 0 6px 24px rgba(15,39,52,.04);
+  }
+  .panel { padding: 20px; }
+  .panel-baslik { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+  .panel-baslik h3 { margin: 0; font-size: 15px; }
+  .panel-baslik a, .metin-buton { color: var(--titan-blue-dark); font-size: 12px; font-weight: 700; text-decoration: none; }
+  .makine-ozet-karti { display: grid; grid-template-columns: 1fr auto; gap: 16px; padding: 18px; border: 1px solid #d7e6ec; border-left: 4px solid var(--titan-blue); border-radius: 10px; background: linear-gradient(135deg, #fff, #f6fbfd); cursor: pointer; }
+  .makine-ozet-karti:hover { border-color: #b5d9e7; box-shadow: 0 8px 24px rgba(0,143,197,.08); }
+  .makine-baslik { display: flex; align-items: center; gap: 10px; }
+  .makine-baslik h4 { margin: 0; font-size: 18px; }
+  .makine-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 10px 0 0; color: var(--titan-muted); font-size: 12px; }
+  .makine-hizli-deger { display: grid; align-content: center; justify-items: end; }
+  .makine-hizli-deger strong { font-size: 21px; }
+  .makine-hizli-deger span { margin-top: 3px; color: var(--titan-muted); font-size: 11px; }
+  .olay-mini-listesi { display: grid; gap: 10px; }
+  .olay-mini { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 11px 0; border-bottom: 1px solid #edf2f4; }
+  .olay-mini:last-child { border-bottom: 0; }
+  .olay-mini strong { display: block; font-size: 12px; }
+  .olay-mini span { display: block; margin-top: 3px; color: var(--titan-muted); font-size: 10px; }
+  .olay-seviye-isareti { width: 8px; height: 34px; border-radius: 5px; background: var(--titan-warning); }
+  .olay-seviye-isareti.critical { background: var(--titan-danger); }
+  .olay-zaman { color: #778790; font-size: 10px; }
+  .bos-panel { display: grid; place-items: center; min-height: 132px; padding: 24px; color: var(--titan-muted); font-size: 13px; text-align: center; }
+  .saglik-paneli { grid-template-columns: repeat(5, minmax(0, 1fr)); margin: 0; }
+  .saglik-karti { min-height: 76px; background: #fff; border-color: var(--titan-line); }
+  .aktarim-uyarisi { margin: 14px 0 0; }
+  .kutu { padding: 20px; margin: 0 0 18px; }
+  .kutu h2 { margin: 0 0 16px; font-size: 16px; }
+  .alan label { color: #5c6f79; font-size: 12px; font-weight: 650; }
+  .alan input, .alan select {
+    min-height: 40px;
+    min-width: 170px;
+    border-color: #ccd9df;
+    border-radius: 8px;
+    background: #fff;
+  }
+  .alan input:focus, .alan select:focus { border-color: var(--titan-blue); box-shadow: 0 0 0 3px rgba(0,174,239,.1); outline: none; }
+  .tablo-sarmal { border: 1px solid #e1e9ed; border-radius: 9px; }
+  table { font-size: 12px; }
+  th { padding: 11px 10px; color: #61717a; background: #f5f8fa; }
+  td { padding: 11px 10px; }
+  .grafik-kutu { min-height: 470px; padding: 20px; }
+  #grafik { width: 100% !important; min-height: 420px; max-height: 520px; }
+  #sinyalSecici { min-height: 112px; min-width: 280px; }
+  #olayKurallariYeri > .kutu > h2,
+  #olayListesiYeri > .kutu > h2,
+  #dashboardYeri > .kutu > h2,
+  #dbcYeri > .kutu > h2 { display: none; }
+  .sayfa-ust button, .panel button, .kontroller button { display: inline-flex; align-items: center; gap: 8px; }
+  .sayfa-ust button svg, .panel button svg { width: 16px; height: 16px; }
+  .dashboard-grid { gap: 16px; }
+  .widget-kart { border-color: var(--titan-line); border-radius: 10px; box-shadow: 0 5px 18px rgba(15,39,52,.045); }
+  .widget-kart h3 { font-size: 14px; }
+  body[data-dashboard-mode="viewer"] #dashboardOlusturBtn,
+  body[data-dashboard-mode="viewer"] #dashboardSilBtn,
+  body[data-dashboard-mode="viewer"] #widgetForm,
+  body[data-dashboard-mode="viewer"] .widget-islemler,
+  body[data-dashboard-mode="viewer"] .dashboard-toolbar > .alan:not(:first-child) { display: none !important; }
+  body[data-dashboard-mode="viewer"] .widget-kart { cursor: default; }
+  .hizli-araliklar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .hizli-araliklar button { min-height: 34px; padding: 6px 11px; color: #425761; background: #edf3f6; border: 1px solid #d8e3e8; font-size: 12px; }
+  .hizli-araliklar button:hover { color: #07394f; background: #e4f5fb; border-color: #a8dff2; }
+  .yetki-karti-izgara { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .yetki-karti { padding: 18px; border: 1px solid var(--titan-line); border-radius: 10px; background: #fff; }
+  .yetki-karti h3 { margin: 0 0 7px; font-size: 14px; }
+  .yetki-karti p { margin: 0; color: var(--titan-muted); font-size: 12px; line-height: 1.5; }
+  .modul-bildirimi { margin-bottom: 18px; padding: 13px 15px; border: 1px solid #bde5f3; border-radius: 9px; color: #14516a; background: #edfaff; font-size: 12px; line-height: 1.5; }
+  .dosya-yukleme-alani { display: grid; place-items: center; min-height: 250px; padding: 34px; border: 2px dashed #b9d5df; border-radius: 12px; background: #f8fcfd; text-align: center; }
+  .dosya-yukleme-alani svg { width: 40px; height: 40px; color: var(--titan-blue-dark); }
+  .dosya-yukleme-alani h3 { margin: 14px 0 7px; font-size: 17px; }
+  .dosya-yukleme-alani p { margin: 0 0 17px; color: var(--titan-muted); font-size: 13px; }
+  .dosya-yukleme-alani input { display: none; }
+  .dosya-bilgisi { margin-top: 13px; color: #42606d; font-size: 12px; }
+  .sayfa-alt-not { margin-top: 18px; color: #8a989f; font-size: 11px; }
+  .toast {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 80;
+    max-width: 390px;
+    padding: 13px 16px;
+    border-radius: 9px;
+    color: #fff;
+    background: #153342;
+    box-shadow: 0 12px 35px rgba(0,0,0,.22);
+    font-size: 13px;
+    line-height: 1.45;
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+  }
+  .toast.goster { opacity: 1; transform: translateY(0); }
+  .mobil-perde { display: none; }
+
+  @media (max-width: 1180px) {
+    :root { --sidebar-width: 244px; }
+    .kpi-izgara { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .saglik-paneli { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .yetki-karti-izgara { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .kullanici-metin { display: none; }
+  }
+  @media (max-width: 860px) {
+    .giris-ekrani { grid-template-columns: 1fr; }
+    .giris-marka { display: none; }
+    .giris-form-alani { min-height: 100vh; padding: 28px; }
+    .uygulama-kabugu { display: block; }
+    .uygulama-ana { grid-column: auto; }
+    .yan-menu { transform: translateX(-100%); transition: transform .22s ease; }
+    body.menu-acik .yan-menu { transform: translateX(0); }
+    .mobil-perde { position: fixed; inset: 0; z-index: 25; display: none; background: rgba(4,17,23,.54); }
+    body.menu-acik .mobil-perde { display: block; }
+    .mobil-menu-buton { display: grid; }
+    .genel-izgara { grid-template-columns: 1fr; }
+    .ust-bar { padding: 11px 16px; }
+    .icerik { padding: 22px 16px 40px; }
+    .makine-secici { min-width: 150px; max-width: 180px; }
+    .ikon-buton { display: none; }
+  }
+  @media (max-width: 620px) {
+    .kpi-izgara, .saglik-paneli, .yetki-karti-izgara { grid-template-columns: 1fr; }
+    .sayfa-ust { flex-direction: column; }
+    .ust-bar-sag .makine-secici { display: none; }
+    .sayfa-kimlik p { display: none; }
+    .kontroller { align-items: stretch; }
+    .kontroller .alan, .kontroller .alan input, .kontroller .alan select { width: 100%; min-width: 0; }
+    .grafik-kutu { min-height: 390px; padding: 12px; }
+    .kullanici-karti { margin-left: auto; }
+  }
 </style>
 </head>
-<body>
+<body class="ui-loading" data-dashboard-mode="viewer">
   <h1>Titan Telemetri Dashboard</h1>
   <div class="ust-satir">
     <div class="alt">Gercek CAN sinyalleri - DBC ile cozulmus - Supabase uzerinden</div>
-    <div class="surum-rozet">Dashboard v1.4.3</div>
+    <div class="surum-rozet">Dashboard v2.0.0</div>
   </div>
 
   <div class="saglik-paneli">
@@ -127,37 +530,37 @@
   <div id="aktarimUyarisi" class="aktarim-uyarisi" role="status"></div>
 
   <div class="kutu">
-    <h2>Olay Kurali Olusturucu</h2>
+    <h2>Olay Kuralı Oluşturucu</h2>
     <div class="kontroller">
       <div class="alan">
-        <label>Olay adi</label>
-        <input type="text" id="olayKuralAdi" placeholder="Orn. Yuksek motor yuku">
+        <label>Olay adı</label>
+        <input type="text" id="olayKuralAdi" placeholder="Örn. Yüksek motor yükü">
       </div>
       <div class="alan">
-        <label>Cihaz ID (bos = tum cihazlar)</label>
+        <label>Cihaz ID (boş = tüm cihazlar)</label>
         <input type="text" id="olayKuralCihazId" value="iotitan">
       </div>
       <div class="alan">
-        <label>Onem seviyesi</label>
+        <label>Önem seviyesi</label>
         <select id="olayKuralSeviye">
           <option value="info">Bilgi</option>
-          <option value="warning" selected>Uyari</option>
+          <option value="warning" selected>Uyarı</option>
           <option value="critical">Kritik</option>
         </select>
       </div>
       <div class="alan">
-        <label>Kosul mantigi</label>
+        <label>Koşul mantığı</label>
         <select id="olayKuralMantik">
-          <option value="AND" selected>Tum kosullar (AND)</option>
+          <option value="AND" selected>Tüm koşullar (AND)</option>
           <option value="OR">Herhangi biri (OR)</option>
         </select>
       </div>
       <div class="alan">
-        <label>Baslatma suresi (sn)</label>
+        <label>Başlatma süresi (sn)</label>
         <input type="number" id="olayBaslatmaSuresi" value="0" min="0">
       </div>
       <div class="alan">
-        <label>Bitirme suresi (sn)</label>
+        <label>Bitirme süresi (sn)</label>
         <input type="number" id="olayBitirmeSuresi" value="0" min="0">
       </div>
       <div class="alan">
@@ -167,12 +570,12 @@
     </div>
 
     <div class="dbc-bolum">
-      <h2>Kosullar</h2>
+      <h2>Koşullar</h2>
       <div id="olayKosullari"></div>
       <div class="kontroller">
-        <button class="ikincil-btn" onclick="olayKosuluEkle()">Kosul Ekle</button>
-        <button id="olayKuralKaydetBtn" onclick="olayKuralKaydet()">Kurali Kaydet</button>
-        <button id="olayKuralIptalBtn" class="ikincil-btn gizli" onclick="olayKuralDuzenlemeIptal()">Duzenlemeyi Iptal Et</button>
+        <button class="ikincil-btn" onclick="olayKosuluEkle()">Koşul Ekle</button>
+        <button id="olayKuralKaydetBtn" onclick="olayKuralKaydet()">Kuralı Kaydet</button>
+        <button id="olayKuralIptalBtn" class="ikincil-btn gizli" onclick="olayKuralDuzenlemeIptal()">Düzenlemeyi İptal Et</button>
       </div>
       <div id="olayKuralDurum" class="yenileme-bilgisi">Kurallar kontrol ediliyor...</div>
     </div>
@@ -189,39 +592,39 @@
     <h2>Yakalanan Olaylar</h2>
     <div class="kontroller">
       <div class="alan">
-        <label>Cihaz ID</label>
-        <input type="text" id="olayFiltreCihazId" value="iotitan">
+        <label>Makine</label>
+        <select id="olayFiltreCihazId"><option value="iotitan" selected>BYM6-001</option></select>
       </div>
       <div class="alan">
-        <label>Olay adi</label>
-        <input type="text" id="olayFiltreAdi" placeholder="Bos = tum olaylar">
+        <label>Olay adı</label>
+        <input type="text" id="olayFiltreAdi" placeholder="Boş = tüm olaylar">
       </div>
       <div class="alan">
         <label>Seviye</label>
         <select id="olayFiltreSeviye">
-          <option value="">Tumu</option>
+          <option value="">Tümü</option>
           <option value="info">Bilgi</option>
-          <option value="warning">Uyari</option>
+          <option value="warning">Uyarı</option>
           <option value="critical">Kritik</option>
         </select>
       </div>
       <div class="alan">
         <label>Durum</label>
         <select id="olayFiltreDurum">
-          <option value="">Tumu</option>
-          <option value="open">Acik</option>
-          <option value="closed">Kapanmis</option>
+          <option value="">Tümü</option>
+          <option value="open">Açık</option>
+          <option value="closed">Kapanmış</option>
         </select>
       </div>
       <div class="alan">
-        <label>Baslangic</label>
+        <label>Başlangıç</label>
         <input type="datetime-local" id="olayFiltreBaslangic">
       </div>
       <div class="alan">
-        <label>Bitis</label>
+        <label>Bitiş</label>
         <input type="datetime-local" id="olayFiltreBitis">
       </div>
-      <button onclick="olaylariGetir()">Olaylari Getir</button>
+      <button onclick="olaylariGetir()">Olayları Getir</button>
     </div>
     <div id="olayListeDurum" class="yenileme-bilgisi">Olaylar kontrol ediliyor...</div>
     <div class="tablo-sarmal">
@@ -233,21 +636,21 @@
   </div>
 
   <div class="kutu">
-    <h2>Dashboard Tasarimcisi</h2>
+    <h2>Dashboard Tasarımcısı</h2>
     <div class="dashboard-toolbar">
       <div class="alan">
-        <label>Dashboard sec</label>
+        <label>Dashboard seç</label>
         <select id="dashboardSec" onchange="dashboardSecildi()"><option value="">- dashboard yok -</option></select>
       </div>
       <div class="alan">
-        <label>Yeni dashboard adi</label>
-        <input type="text" id="dashboardAdi" placeholder="Orn. Motor Ekrani">
+        <label>Yeni dashboard adı</label>
+        <input type="text" id="dashboardAdi" placeholder="Örn. Motor Ekranı">
       </div>
       <div class="alan">
-        <label>Cihaz ID</label>
-        <input type="text" id="dashboardCihazId" value="iotitan">
+        <label>Makine</label>
+        <select id="dashboardCihazId"><option value="iotitan" selected>BYM6-001</option></select>
       </div>
-      <button id="dashboardOlusturBtn" onclick="dashboardOlustur()">Dashboard Olustur</button>
+      <button id="dashboardOlusturBtn" onclick="dashboardOlustur()">Dashboard Oluştur</button>
       <button id="dashboardSilBtn" class="tehlike-btn" onclick="dashboardSil()" disabled>Dashboard'u Sil</button>
     </div>
     <div id="dashboardDurum" class="yenileme-bilgisi">Dashboardlar kontrol ediliyor...</div>
@@ -258,18 +661,18 @@
         <div class="alan">
           <label>Widget tipi</label>
           <select id="widgetTipi" onchange="widgetFormunuGuncelle()">
-            <option value="number">Sayisal deger</option>
-            <option value="gauge">Ibreli gosterge</option>
-            <option value="status">On / Off lambasi</option>
-            <option value="time_series">Cok sinyalli grafik</option>
+            <option value="number">Sayısal değer</option>
+            <option value="gauge">İbreli gösterge</option>
+            <option value="status">Açık / Kapalı lambası</option>
+            <option value="time_series">Çok sinyalli grafik</option>
           </select>
         </div>
         <div class="alan">
           <label>Baslik</label>
-          <input type="text" id="widgetBaslik" placeholder="Orn. Motor Devri">
+          <input type="text" id="widgetBaslik" placeholder="Örn. Motor Devri">
         </div>
         <div class="alan">
-          <label>Sinyaller (grafikte birden cok secilebilir)</label>
+          <label>Sinyaller (grafikte birden çok seçilebilir)</label>
           <select id="widgetSinyaller" multiple><option value="">- once telemetri getir -</option></select>
         </div>
         <div class="alan">
@@ -289,18 +692,18 @@
           <input type="text" id="widgetOnDegeri" value="1">
         </div>
         <div class="alan">
-          <label>Genislik</label>
+          <label>Genişlik</label>
           <select id="widgetGenislik">
-            <option value="3">Ceyrek</option>
-            <option value="4">Uc kolon</option>
-            <option value="6" selected>Yarim</option>
+            <option value="3">Çeyrek</option>
+            <option value="4">Üç kolon</option>
+            <option value="6" selected>Yarım</option>
             <option value="12">Tam</option>
           </select>
         </div>
         <button id="widgetEkleBtn" onclick="widgetKaydet()">Widget Ekle</button>
-        <button id="widgetDuzenlemeIptalBtn" class="ikincil-btn gizli" onclick="widgetDuzenlemeIptal()">Duzenlemeyi Iptal Et</button>
+        <button id="widgetDuzenlemeIptalBtn" class="ikincil-btn gizli" onclick="widgetDuzenlemeIptal()">Düzenlemeyi İptal Et</button>
       </div>
-      <div class="yenileme-bilgisi">Birden cok sinyal secmek icin Ctrl (Windows) veya Command (Mac) tusunu kullanin.</div>
+      <div class="yenileme-bilgisi">Birden çok sinyal seçmek için Ctrl (Windows) veya Command (Mac) tuşunu kullanın.</div>
     </div>
 
     <div id="dashboardGrid" class="dashboard-grid">
@@ -312,20 +715,20 @@
     <h2>DBC Kutuphanesi</h2>
     <div class="kontroller">
       <div class="alan">
-        <label>DBC dosyasi sec (.dbc)</label>
+        <label>DBC dosyası seç (.dbc)</label>
         <input type="file" id="dbcDosya" accept=".dbc">
       </div>
       <div class="alan">
-        <label>Gorunen ad</label>
+        <label>Görünen ad</label>
         <input type="text" id="dbcGorunenAd" placeholder="Orn. DEUTZ Stage V">
       </div>
       <div class="alan">
-        <label>Surum</label>
+        <label>Sürüm</label>
         <input type="text" id="dbcSurum" value="1.0">
       </div>
       <div class="alan">
-        <label>Aciklama</label>
-        <input type="text" id="dbcAciklama" placeholder="Istege bagli">
+        <label>Açıklama</label>
+        <input type="text" id="dbcAciklama" placeholder="İsteğe bağlı">
       </div>
       <button id="dbcYukleBtn" onclick="dbcYukle()">Kutuphaneye Ekle</button>
       <button class="ikincil-btn" onclick="dbcYonetiminiYenile()">Listeyi Yenile</button>
@@ -340,14 +743,14 @@
     </div>
 
     <div class="dbc-bolum">
-      <h2>Cihaz ve CAN Kanali Atamasi</h2>
+      <h2>Cihaz ve CAN Kanalı Ataması</h2>
       <div class="kontroller">
         <div class="alan">
           <label>Cihaz ID</label>
           <input type="text" id="atamaCihazId" value="iotitan">
         </div>
         <div class="alan">
-          <label>CAN kanali</label>
+          <label>CAN kanalı</label>
           <select id="atamaCanKanali">
             <option value="can0">can0</option>
             <option value="can1">can1</option>
@@ -360,7 +763,7 @@
           <select id="atamaDbcSec"><option value="">- DBC sec -</option></select>
         </div>
         <div class="alan">
-          <label>Oncelik (dusuk once)</label>
+          <label>Öncelik (düşük önce)</label>
           <input type="number" id="atamaOncelik" value="100" min="0" step="10">
         </div>
         <button id="dbcAtaBtn" onclick="dbcAta()">Aktif Olarak Ata</button>
@@ -379,28 +782,28 @@
     <h2>Veri Filtresi</h2>
     <div class="kontroller">
       <div class="alan">
-        <label>Cihaz ID</label>
-        <input type="text" id="cihazId" value="iotitan">
+        <label>Makine</label>
+        <select id="cihazId"><option value="iotitan" selected>BYM6-001</option></select>
       </div>
       <div class="alan">
-        <label>Baslangic</label>
+        <label>Başlangıç</label>
         <input type="datetime-local" id="baslangic">
       </div>
       <div class="alan">
-        <label>Bitis</label>
+        <label>Bitiş</label>
         <input type="datetime-local" id="bitis">
       </div>
       <div class="alan">
-        <label>Sinyal</label>
-        <select id="sinyalSecici"><option value="">- once veri getir -</option></select>
+        <label>Sinyaller</label>
+        <select id="sinyalSecici" multiple size="4"><option value="">- önce veri getir -</option></select>
       </div>
       <button id="getirBtn" onclick="filtreliVeriGetir()">Getir</button>
       <button id="yenileBtn" class="ikincil-btn" onclick="manuelYenile()">Yenile</button>
-      <button id="sonKayitBtn" class="ikincil-btn" onclick="sonKayitliVeriyiGoster()">Son Kayitli Veriyi Goster</button>
+      <button id="sonKayitBtn" class="ikincil-btn" onclick="sonKayitliVeriyiGoster()">Son Kayıtlı Veriyi Göster</button>
       <div class="alan">
         <label>Otomatik yenileme</label>
         <select id="otomatikYenileme" onchange="otomatikYenilemeyiAyarla()">
-          <option value="0">Kapali</option>
+          <option value="0">Kapalı</option>
           <option value="5" selected>5 saniye</option>
           <option value="10">10 saniye</option>
           <option value="30">30 saniye</option>
@@ -442,13 +845,233 @@
     let duzenlenenOlayKuralId = null;
     let olayKosulSayaci = 0;
     const widgetChartlari = new Map();
-    const RENKLER = ["#1565c0", "#e65100", "#c62828", "#2e7d32", "#6a1b9a", "#00838f", "#ad1457", "#455a64"];
+    const RENKLER = ["#00aeef", "#ff9f43", "#d64545", "#169c5b", "#7656c8", "#008fa8", "#d0548d", "#536873"];
     const ONLINE_ESIK_SN = 45;
     const GECIKMELI_ESIK_SN = 90;
     const CAN_PAKET_ESIK_SN = 90;
-    const DASHBOARD_SURUM = "1.4.3";
+    const DASHBOARD_SURUM = "2.0.0";
     const TELEMETRI_SAYFA_BOYUTU = 1000;
     const TELEMETRI_MAKSIMUM_KAYIT = 20000;
+    const TITAN_LOGO_URL = "https://titanltd.com/wp-content/uploads/2022/02/Titan_Logo_Web_Header_B_Cut.png";
+    let authClient = null;
+    let authSession = null;
+    let uygulamaBaslatildi = false;
+    let aktifSayfa = "genel";
+    let toastTimer = null;
+
+    const SAYFA_BILGILERI = {
+      genel: ["Filo Genel Bakış", "Makine, bağlantı ve olay durumlarının özeti"],
+      makineler: ["Makineler", "Filonuza bağlı makineler ve telemetri durumu"],
+      dashboard: ["Dashboardlar", "Seçili makinenin operasyon ekranları"],
+      studio: ["Dashboard Tasarımcısı", "Widget yerleşimini ve gösterimleri yönetin"],
+      trend: ["Trend Analizi", "Birden fazla CAN sinyalini zaman ekseninde inceleyin"],
+      olaylar: ["Olaylar ve Uyarılar", "Aktif uyarılar ve geçmiş olay kayıtları"],
+      kurallar: ["Olay Kuralları", "Olay yakalama koşullarını oluşturun ve yönetin"],
+      offline: ["Offline Veri Aktarımı", "Tablet veya USB paketlerini doğrulayarak yükleyin"],
+      kullanicilar: ["Kullanıcılar ve Yetkiler", "Müşteri kullanıcıları ve erişim rollerini yönetin"],
+      teknik: ["Teknik Ayarlar", "DBC kütüphanesi, cihaz ve CAN kanalı atamaları"],
+    };
+
+    function arayuzuKur() {
+      const sayfaGovdeleri = `
+        <section id="sayfa-genel" class="sayfa aktif" data-sayfa="genel">
+          <div class="sayfa-ust">
+            <div><h2>Filo Genel Bakış</h2><p>Bağlantı, veri akışı ve açık olayları tek ekrandan izleyin.</p></div>
+            <button class="ikincil-btn" onclick="manuelYenile()"><i data-lucide="refresh-cw"></i> Verileri Yenile</button>
+          </div>
+          <div class="kpi-izgara">
+            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Toplam Makine</span><span class="kpi-ikon"><i data-lucide="truck"></i></span></div><strong class="kpi-deger">1</strong><span class="kpi-alt">Titan telemetri sistemine kayıtlı</span></article>
+            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Bağlı Makine</span><span class="kpi-ikon"><i data-lucide="radio-tower"></i></span></div><strong id="kpiBagliMakine" class="kpi-deger">—</strong><span id="kpiBagliAlt" class="kpi-alt">Durum kontrol ediliyor</span></article>
+            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Aktif Olay</span><span class="kpi-ikon"><i data-lucide="triangle-alert"></i></span></div><strong id="kpiAktifOlay" class="kpi-deger">—</strong><span class="kpi-alt">Açık uyarı ve kritik olay</span></article>
+            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Son Veri</span><span class="kpi-ikon"><i data-lucide="activity"></i></span></div><strong id="kpiSonVeri" class="kpi-deger">—</strong><span class="kpi-alt">BYM6-001 telemetri akışı</span></article>
+          </div>
+          <div class="genel-izgara">
+            <article class="panel">
+              <div class="panel-baslik"><h3>Makine Durumu</h3><a href="#" onclick="sayfaAc('makineler'); return false;">Tüm makineler</a></div>
+              <div class="makine-ozet-karti" onclick="sayfaAc('dashboard')">
+                <div><div class="makine-baslik"><span id="genelMakineNokta" class="durum-noktasi"></span><h4>BYM6-001</h4><span id="genelMakineRozet" class="rozet pasif">Kontrol ediliyor</span></div><div class="makine-meta"><span>Model: BYM6 Transmikser</span><span>Seri No: Pilot Makine</span><span id="genelMakineSonVeri">Son veri bekleniyor</span></div></div>
+                <div class="makine-hizli-deger"><strong id="genelMakineVolt">— V</strong><span>Besleme gerilimi</span></div>
+              </div>
+            </article>
+            <article class="panel">
+              <div class="panel-baslik"><h3>Son Olaylar</h3><a href="#" onclick="sayfaAc('olaylar'); return false;">Olay geçmişi</a></div>
+              <div id="genelOlayListesi" class="olay-mini-listesi"><div class="bos-panel">Olay kayıtları kontrol ediliyor.</div></div>
+            </article>
+          </div>
+          <article class="panel"><div class="panel-baslik"><h3>Bağlantı ve Veri Sağlığı</h3><span class="sayfa-alt-not">Son heartbeat ve telemetri kayıtlarına göre</span></div><div id="saglikPaneliYeri"></div><div id="aktarimUyarisiYeri"></div></article>
+        </section>
+
+        <section id="sayfa-makineler" class="sayfa" data-sayfa="makineler">
+          <div class="sayfa-ust"><div><h2>Makineler</h2><p>Müşteriye ait makineleri, son bağlantılarını ve açık olaylarını görüntüleyin.</p></div><button onclick="makineEslestirBilgisi()"><i data-lucide="plus"></i> Makine Eşleştir</button></div>
+          <article class="panel">
+            <div class="makine-ozet-karti" onclick="sayfaAc('dashboard')">
+              <div><div class="makine-baslik"><span id="listeMakineNokta" class="durum-noktasi"></span><h4>BYM6-001</h4><span id="listeMakineRozet" class="rozet pasif">Kontrol ediliyor</span></div><div class="makine-meta"><span>BYM6 Transmikser</span><span>Pilot Makine</span><span>Cihaz: iotitan</span><span id="listeMakineSonVeri">Son veri bekleniyor</span></div></div>
+              <div class="makine-hizli-deger"><strong id="listeMakineOlay">—</strong><span>aktif olay</span></div>
+            </div>
+          </article>
+        </section>
+
+        <section id="sayfa-dashboard" class="sayfa" data-sayfa="dashboard">
+          <div class="sayfa-ust"><div><h2 id="dashboardSayfaBaslik">Makine Dashboardu</h2><p id="dashboardSayfaAciklama">BYM6-001 için kayıtlı dashboardu görüntüleyin.</p></div><button id="dashboardModButon" class="ikincil-btn" onclick="dashboardModDegistir()"><i data-lucide="pencil-ruler"></i> Tasarım Modu</button></div>
+          <div id="dashboardYeri"></div>
+        </section>
+
+        <section id="sayfa-trend" class="sayfa" data-sayfa="trend">
+          <div class="sayfa-ust"><div><h2>Trend Analizi</h2><p>Sinyalleri aynı zaman ekseninde karşılaştırın ve veri kesintilerini inceleyin.</p></div><button class="ikincil-btn" onclick="grafikSifirla()"><i data-lucide="scan"></i> Görünümü Sıfırla</button></div>
+          <div class="hizli-araliklar"><button onclick="hizliZamanAraligi(15)">15 dk</button><button onclick="hizliZamanAraligi(60)">1 saat</button><button onclick="hizliZamanAraligi(360)">6 saat</button><button onclick="hizliZamanAraligi(1440)">24 saat</button><button onclick="hizliZamanAraligi(10080)">7 gün</button></div>
+          <div id="veriFiltresiYeri"></div><div id="grafikYeri"></div>
+        </section>
+
+        <section id="sayfa-olaylar" class="sayfa" data-sayfa="olaylar"><div class="sayfa-ust"><div><h2>Olaylar ve Uyarılar</h2><p>Aktif uyarıları filtreleyin, kapanan olayları ve tetik değerlerini inceleyin.</p></div><button class="ikincil-btn" onclick="olaylariGetir()"><i data-lucide="refresh-cw"></i> Yenile</button></div><div id="olayListesiYeri"></div></section>
+        <section id="sayfa-kurallar" class="sayfa" data-sayfa="kurallar"><div class="sayfa-ust"><div><h2>Olay Kuralları</h2><p>Bir veya birden fazla sinyal koşuluyla uyarı kuralları oluşturun.</p></div></div><div id="olayKurallariYeri"></div></section>
+
+        <section id="sayfa-offline" class="sayfa" data-sayfa="offline">
+          <div class="sayfa-ust"><div><h2>Offline Veri Aktarımı</h2><p>Tablet veya USB ile alınan Titan veri paketini seçili makineye aktarın.</p></div></div>
+          <div class="modul-bildirimi">Bu ekran kullanıcı yetkisine bağlıdır. Paket imzası, cihaz eşleşmesi ve mükerrer kayıt kontrolü sunucu tarafındaki doğrulama servisiyle tamamlanacaktır.</div>
+          <article class="panel"><label class="dosya-yukleme-alani" for="offlineDosya"><i data-lucide="file-up"></i><h3>Veri paketini buraya bırakın</h3><p>.titanpkg, .jsonl, .json.gz veya .zip</p><span class="birincil-btn">Dosya Seç</span><input id="offlineDosya" type="file" accept=".titanpkg,.jsonl,.json,.gz,.zip" onchange="offlineDosyaSecildi(this)"><span id="offlineDosyaBilgisi" class="dosya-bilgisi">Henüz dosya seçilmedi.</span></label></article>
+        </section>
+
+        <section id="sayfa-kullanicilar" class="sayfa" data-sayfa="kullanicilar">
+          <div class="sayfa-ust"><div><h2>Kullanıcılar ve Yetkiler</h2><p>Her kullanıcı yalnızca rolüne ve müşteri hesabına ait verilere erişir.</p></div><button onclick="kullaniciModuluBilgisi()"><i data-lucide="user-plus"></i> Kullanıcı Davet Et</button></div>
+          <div class="yetki-karti-izgara"><article class="yetki-karti"><h3>Müşteri Yöneticisi</h3><p>Kullanıcıları, dashboardları ve müşteri içi yetkileri yönetir.</p></article><article class="yetki-karti"><h3>Bakım Mühendisi</h3><p>Trendleri inceler, olay kuralları ve dashboard tasarımları oluşturur.</p></article><article class="yetki-karti"><h3>Operasyon Kullanıcısı</h3><p>Dashboardları ve olay kayıtlarını takip eder.</p></article><article class="yetki-karti"><h3>Görüntüleyici</h3><p>Yetkili olduğu makinelerin verilerini salt okunur görüntüler.</p></article></div>
+          <p class="sayfa-alt-not">Kalıcı kullanıcı ve izin yönetimi, müşteri izolasyonu ve denetim kaydıyla birlikte ikinci güvenlik aşamasında bağlanacaktır.</p>
+        </section>
+
+        <section id="sayfa-teknik" class="sayfa" data-sayfa="teknik"><div class="sayfa-ust"><div><h2>Teknik Ayarlar</h2><p>Bu alan yalnızca Titan sistem yöneticileri ve yetkili teknik kullanıcılar içindir.</p></div></div><div class="modul-bildirimi">DBC dosyaları ve CAN kanalı atamaları müşteri operasyon ekranlarından ayrılmıştır.</div><div id="dbcYeri"></div></section>`;
+
+      document.body.insertAdjacentHTML("afterbegin", `
+        <section id="girisEkrani" class="giris-ekrani" aria-label="Titan Fleet & Telemetry giriş">
+          <div class="giris-marka"><div class="giris-marka-ust"><span class="giris-logo-zemin"><img src="${TITAN_LOGO_URL}" alt="Titan Makina"></span></div><div class="giris-marka-icerik"><span class="urun-etiket"><i data-lucide="radio-tower"></i> Fleet & Telemetry</span><h1>Filonuzun verisi, tek bir çalışma alanında.</h1><p>Makine sağlığını, CAN sinyallerini ve operasyon olaylarını güvenli biçimde izleyin.</p></div><div class="giris-marka-alt">© Titan Makina · Yeraltı maden ve tünel hizmet araçları</div></div>
+          <div class="giris-form-alani"><div class="giris-karti"><h2>Hesabınıza giriş yapın</h2><p class="giris-aciklama">Yetkili olduğunuz müşteri hesabı ve makinelerle devam edin.</p><form id="girisFormu" class="giris-formu"><div class="form-grup"><label for="girisEposta">E-posta adresi</label><input id="girisEposta" type="email" autocomplete="username" placeholder="kullanici@firma.com" required></div><div class="form-grup"><label for="girisParola">Parola</label><input id="girisParola" type="password" autocomplete="current-password" placeholder="Parolanızı girin" required></div><div class="giris-yardim"><span>Güvenli kullanıcı oturumu</span><a href="#" onclick="parolaHatirlat(); return false;">Parolamı unuttum</a></div><button id="girisButon" class="giris-buton" type="submit"><i data-lucide="log-in"></i> Güvenli Giriş</button></form><div id="girisHata" class="giris-hata" role="alert"></div><div class="giris-guvenlik"><i data-lucide="shield-check"></i><span>Bu portal yalnızca yetkilendirilmiş kullanıcılar içindir. Oturum ve veri erişimi kullanıcı yetkilerine göre sınırlandırılır.</span></div></div></div>
+        </section>
+        <div id="uygulamaKabugu" class="uygulama-kabugu gizli">
+          <aside class="yan-menu"><div class="yan-menu-marka"><span class="yan-menu-logo"><img src="${TITAN_LOGO_URL}" alt="Titan Makina"></span><span class="yan-menu-urun"><strong>Fleet & Telemetry</strong><span>Operasyon Portalı</span></span></div><div class="yan-menu-baslik">Operasyon</div><nav class="menu-listesi" aria-label="Ana menü"><button class="menu-buton aktif" data-menu-sayfa="genel" onclick="sayfaAc('genel')"><i data-lucide="layout-dashboard"></i>Genel Bakış</button><button class="menu-buton" data-menu-sayfa="makineler" onclick="sayfaAc('makineler')"><i data-lucide="truck"></i>Makineler</button><button class="menu-buton" data-menu-sayfa="dashboard" onclick="sayfaAc('dashboard')"><i data-lucide="panels-top-left"></i>Dashboardlar</button><button class="menu-buton" data-menu-sayfa="trend" onclick="sayfaAc('trend')"><i data-lucide="chart-no-axes-combined"></i>Trend Analizi</button><button class="menu-buton" data-menu-sayfa="olaylar" onclick="sayfaAc('olaylar')"><i data-lucide="bell-ring"></i>Olaylar ve Uyarılar<span id="menuOlayRozet" class="menu-rozet">—</span></button></nav><div class="yan-menu-baslik">Yönetim</div><nav class="menu-listesi" aria-label="Yönetim menüsü"><button class="menu-buton" data-menu-sayfa="studio" onclick="sayfaAc('studio')"><i data-lucide="pencil-ruler"></i>Dashboard Tasarımı</button><button class="menu-buton" data-menu-sayfa="kurallar" onclick="sayfaAc('kurallar')"><i data-lucide="git-branch"></i>Olay Kuralları</button><button class="menu-buton" data-menu-sayfa="offline" onclick="sayfaAc('offline')"><i data-lucide="file-up"></i>Offline Aktarım</button><button class="menu-buton" data-menu-sayfa="kullanicilar" onclick="sayfaAc('kullanicilar')"><i data-lucide="users"></i>Kullanıcılar</button><button class="menu-buton" data-menu-sayfa="teknik" onclick="sayfaAc('teknik')"><i data-lucide="settings-2"></i>Teknik Ayarlar</button></nav><div class="yan-menu-makine"><div class="yan-menu-makine-ust"><strong>BYM6-001</strong><span id="yanMakineNokta" class="durum-noktasi"></span></div><p id="yanMakineDurum">Bağlantı kontrol ediliyor</p></div><div class="yan-menu-alt">Portal v${DASHBOARD_SURUM}</div></aside>
+          <div class="mobil-perde" onclick="mobilMenuKapat()"></div>
+          <div class="uygulama-ana"><header class="ust-bar"><button class="mobil-menu-buton" onclick="mobilMenuAc()" aria-label="Menüyü aç"><i data-lucide="menu"></i></button><div class="sayfa-kimlik"><h1 id="sayfaBaslik">Filo Genel Bakış</h1><p id="sayfaAltBaslik">Makine, bağlantı ve olay durumlarının özeti</p></div><div class="ust-bar-sag"><select class="makine-secici" aria-label="Makine seç" onchange="makineSecildi(this.value)"><option value="iotitan">BYM6-001 · Pilot Makine</option></select><button class="ikon-buton" title="Bildirimler" onclick="sayfaAc('olaylar')"><i data-lucide="bell"></i></button><div class="kullanici-karti"><span id="kullaniciAvatar" class="kullanici-avatar">—</span><span class="kullanici-metin"><strong id="kullaniciEposta">—</strong><span>Yetkili kullanıcı</span></span></div><button class="ikon-buton" title="Oturumu kapat" onclick="cikisYap()"><i data-lucide="log-out"></i></button></div></header><main class="icerik">${sayfaGovdeleri}</main></div>
+        </div><div id="toast" class="toast" role="status"></div>`);
+
+      const olayKuralKutusu = document.getElementById("olayKuralAdi")?.closest(".kutu");
+      const olayListeKutusu = document.getElementById("olayListeGovde")?.closest(".kutu");
+      const dashboardKutusu = document.getElementById("dashboardSec")?.closest(".kutu");
+      const dbcKutusu = document.getElementById("dbcDosya")?.closest(".kutu");
+      const veriKutusu = document.getElementById("cihazId")?.closest(".kutu");
+      const grafikKutusu = document.getElementById("grafik")?.closest(".grafik-kutu");
+      const saglikPaneli = document.querySelector("body > .saglik-paneli");
+      const aktarimUyarisi = document.querySelector("body > #aktarimUyarisi");
+
+      if (olayKuralKutusu) document.getElementById("olayKurallariYeri").appendChild(olayKuralKutusu);
+      if (olayListeKutusu) document.getElementById("olayListesiYeri").appendChild(olayListeKutusu);
+      if (dashboardKutusu) document.getElementById("dashboardYeri").appendChild(dashboardKutusu);
+      if (dbcKutusu) document.getElementById("dbcYeri").appendChild(dbcKutusu);
+      if (veriKutusu) document.getElementById("veriFiltresiYeri").appendChild(veriKutusu);
+      if (grafikKutusu) document.getElementById("grafikYeri").appendChild(grafikKutusu);
+      if (saglikPaneli) document.getElementById("saglikPaneliYeri").appendChild(saglikPaneli);
+      if (aktarimUyarisi) document.getElementById("aktarimUyarisiYeri").appendChild(aktarimUyarisi);
+
+      document.querySelector("body > h1")?.remove();
+      document.querySelector("body > .ust-satir")?.remove();
+      document.body.classList.remove("ui-loading");
+      document.body.classList.add("ui-hazir");
+      document.getElementById("girisFormu").addEventListener("submit", girisYap);
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function sayfaAc(sayfa) {
+      aktifSayfa = sayfa;
+      const gercekSayfa = sayfa === "studio" ? "dashboard" : sayfa;
+      document.querySelectorAll(".sayfa").forEach((el) => el.classList.toggle("aktif", el.dataset.sayfa === gercekSayfa));
+      document.querySelectorAll(".menu-buton").forEach((el) => el.classList.toggle("aktif", el.dataset.menuSayfa === sayfa));
+      document.body.dataset.dashboardMode = sayfa === "studio" ? "studio" : "viewer";
+      const bilgi = SAYFA_BILGILERI[sayfa] || SAYFA_BILGILERI.genel;
+      document.getElementById("sayfaBaslik").textContent = bilgi[0];
+      document.getElementById("sayfaAltBaslik").textContent = bilgi[1];
+      const studio = sayfa === "studio";
+      const modButon = document.getElementById("dashboardModButon");
+      if (modButon) modButon.innerHTML = studio ? '<i data-lucide="eye"></i> Görüntüleme Modu' : '<i data-lucide="pencil-ruler"></i> Tasarım Modu';
+      document.getElementById("dashboardSayfaBaslik").textContent = studio ? "Dashboard Tasarımcısı" : "Makine Dashboardu";
+      document.getElementById("dashboardSayfaAciklama").textContent = studio ? "Widget ekleyin, sıralayın ve kayıtlı tasarımı yönetin." : "BYM6-001 için kayıtlı dashboardu görüntüleyin.";
+      if (sayfa === "olaylar") olaylariGetir();
+      if (sayfa === "trend") veriGetir();
+      mobilMenuKapat();
+      if (window.lucide) window.lucide.createIcons();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function dashboardModDegistir() { sayfaAc(aktifSayfa === "studio" ? "dashboard" : "studio"); }
+    function mobilMenuAc() { document.body.classList.add("menu-acik"); }
+    function mobilMenuKapat() { document.body.classList.remove("menu-acik"); }
+    function toastGoster(metin) { const el = document.getElementById("toast"); if (!el) return; el.textContent = metin; el.classList.add("goster"); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove("goster"), 4200); }
+    function makineEslestirBilgisi() { toastGoster("Makine eşleştirme, müşteri yöneticisi yetkisi ve cihaz aktivasyon koduyla açılacaktır."); }
+    function kullaniciModuluBilgisi() { toastGoster("Kullanıcı daveti, müşteri ve rol tabloları tamamlandıktan sonra etkinleştirilecektir."); }
+    function parolaHatirlat() {
+      const hata = document.getElementById("girisHata");
+      const eposta = document.getElementById("girisEposta").value.trim();
+      if (!authClient) { hata.textContent = "Giriş hizmeti henüz hazır değil. Lütfen birkaç saniye sonra yeniden deneyin."; return; }
+      if (!eposta) { hata.textContent = "Parola bağlantısı için önce e-posta adresinizi yazın."; return; }
+      parolaSifirlamaGonder(eposta);
+    }
+    async function parolaSifirlamaGonder(eposta) {
+      const { error } = await authClient.auth.resetPasswordForEmail(eposta);
+      document.getElementById("girisHata").textContent = error ? "Parola bağlantısı gönderilemedi: " + error.message : "Parola yenileme bağlantısı e-posta adresinize gönderildi.";
+    }
+    function makineSecildi(cihazId) { ["cihazId", "dashboardCihazId", "olayKuralCihazId", "olayFiltreCihazId", "atamaCihazId"].forEach((id) => { const el = document.getElementById(id); if (el) el.value = cihazId; }); manuelYenile(); }
+    function hizliZamanAraligi(dakika) { const bitis = new Date(); const baslangic = new Date(bitis.getTime() - dakika * 60000); document.getElementById("bitis").value = toLocalInputValue(bitis); document.getElementById("baslangic").value = toLocalInputValue(baslangic); filtreliVeriGetir(); }
+    function grafikSifirla() { if (chart?.resetZoom) chart.resetZoom(); else sinyaliCiz(); }
+    function offlineDosyaSecildi(input) { const dosya = input.files?.[0]; document.getElementById("offlineDosyaBilgisi").textContent = dosya ? `${dosya.name} · ${(dosya.size / 1024 / 1024).toFixed(2)} MB · doğrulama bekliyor` : "Henüz dosya seçilmedi."; if (dosya) toastGoster("Dosya seçildi. Güvenli paket doğrulama servisi bir sonraki aşamada bağlanacak."); }
+
+    async function girisYap(event) {
+      event.preventDefault();
+      const buton = document.getElementById("girisButon");
+      const hata = document.getElementById("girisHata");
+      const email = document.getElementById("girisEposta").value.trim();
+      const password = document.getElementById("girisParola").value;
+      hata.textContent = "";
+      buton.disabled = true;
+      buton.textContent = "Giriş yapılıyor…";
+      try {
+        const { data, error } = await authClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        await oturumAcildi(data.session);
+      } catch (e) {
+        hata.textContent = "Giriş başarısız. E-posta adresinizi ve parolanızı kontrol edin.";
+      } finally {
+        buton.disabled = false;
+        buton.innerHTML = '<i data-lucide="log-in"></i> Güvenli Giriş';
+        if (window.lucide) window.lucide.createIcons();
+      }
+    }
+
+    async function cikisYap() { if (authClient) await authClient.auth.signOut(); authSession = null; if (otomatikYenilemeTimer) clearInterval(otomatikYenilemeTimer); document.getElementById("uygulamaKabugu").classList.add("gizli"); document.getElementById("girisEkrani").classList.remove("gizli"); document.getElementById("girisParola").value = ""; }
+
+    async function oturumAcildi(session) {
+      if (!session) return;
+      authSession = session;
+      document.getElementById("girisEkrani").classList.add("gizli");
+      document.getElementById("uygulamaKabugu").classList.remove("gizli");
+      const eposta = session.user?.email || "Yetkili kullanıcı";
+      document.getElementById("kullaniciEposta").textContent = eposta;
+      document.getElementById("kullaniciAvatar").textContent = eposta.slice(0, 2).toUpperCase();
+      if (!uygulamaBaslatildi) { uygulamaBaslatildi = true; await verileriBaslat(); }
+      else { await manuelYenile(); otomatikYenilemeyiAyarla(); }
+    }
+
+    async function authBaslat() {
+      if (!window.supabase?.createClient) { document.getElementById("girisHata").textContent = "Giriş hizmeti yüklenemedi. İnternet bağlantınızı kontrol edin."; return; }
+      authClient = window.supabase.createClient(SUPABASE_URL, ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+      const { data } = await authClient.auth.getSession();
+      if (data.session) await oturumAcildi(data.session);
+      authClient.auth.onAuthStateChange((event, session) => { authSession = session; if (event === "SIGNED_OUT") { document.getElementById("uygulamaKabugu").classList.add("gizli"); document.getElementById("girisEkrani").classList.remove("gizli"); } });
+    }
+
+    async function verileriBaslat() {
+      varsayilanTarihleriAyarla();
+      olayKosuluEkle();
+      widgetFormunuGuncelle();
+      await Promise.all([olayKurallariniGetir(), dbcYonetiminiYenile(), dashboardlariGetir()]);
+      await manuelYenile();
+      otomatikYenilemeyiAyarla();
+      sayfaAc("genel");
+    }
 
     function varsayilanTarihleriAyarla() {
       const simdi = new Date();
@@ -468,7 +1091,7 @@
 
     const apiHeaders = (ek = {}) => ({
       apikey: ANON_KEY,
-      Authorization: `Bearer ${ANON_KEY}`,
+      Authorization: `Bearer ${authSession?.access_token || ANON_KEY}`,
       ...ek,
     });
 
@@ -540,7 +1163,7 @@
       olaySinyalSecicileriniGuncelle();
 
       const secici = document.getElementById("sinyalSecici");
-      const oncekiSecim = secici.value;
+      const oncekiSecimler = [...secici.selectedOptions].map((x) => x.value).filter(Boolean);
       secici.innerHTML = "";
       if (!kayitliSinyalAdlari.length) {
         secici.innerHTML = '<option value="">- secilen zaman araliginda kayitli sinyal yok -</option>';
@@ -552,11 +1175,12 @@
         const opt = document.createElement("option");
         opt.value = ad;
         opt.textContent = aktifSet.has(ad) ? ad : `${ad} [eski DBC]`;
+        opt.selected = oncekiSecimler.includes(ad);
         kayitliGrup.appendChild(opt);
       }
       secici.appendChild(kayitliGrup);
-      if (kayitliSinyalAdlari.includes(oncekiSecim)) {
-        secici.value = oncekiSecim;
+      if (!oncekiSecimler.some((ad) => kayitliSinyalAdlari.includes(ad)) && kayitliSinyalAdlari.length) {
+        secici.options[0].selected = true;
       }
     }
 
@@ -571,6 +1195,44 @@
     function lambaAyarla(id, sinif, metinId, metin) {
       document.getElementById(id).className = `durum-lambasi ${sinif || ""}`.trim();
       document.getElementById(metinId).textContent = metin;
+    }
+
+    function filoDurumunuGuncelle(health, sonTelemetri) {
+      const heartbeat = health?.son_heartbeat ? new Date(health.son_heartbeat) : null;
+      const heartbeatYasi = heartbeat && Number.isFinite(heartbeat.getTime())
+        ? Math.max(0, (Date.now() - heartbeat.getTime()) / 1000)
+        : Infinity;
+      const durumSinifi = heartbeatYasi <= ONLINE_ESIK_SN
+        ? "online"
+        : heartbeatYasi <= GECIKMELI_ESIK_SN
+          ? "gecikmeli"
+          : "offline";
+      const durumMetni = durumSinifi === "online" ? "Bağlı" : durumSinifi === "gecikmeli" ? "Gecikmeli" : "Offline";
+      ["genelMakineNokta", "listeMakineNokta", "yanMakineNokta"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.className = `durum-noktasi ${durumSinifi}`;
+      });
+      ["genelMakineRozet", "listeMakineRozet"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.className = `rozet ${durumSinifi === "online" ? "aktif" : "pasif"}`;
+        el.textContent = durumMetni;
+      });
+      const yanDurum = document.getElementById("yanMakineDurum");
+      if (yanDurum) yanDurum.textContent = Number.isFinite(heartbeatYasi) ? `${durumMetni} · ${gecenSureMetni(heartbeatYasi)}` : durumMetni;
+      const kpiBagli = document.getElementById("kpiBagliMakine");
+      if (kpiBagli) kpiBagli.textContent = durumSinifi === "online" ? "1" : "0";
+      const kpiBagliAlt = document.getElementById("kpiBagliAlt");
+      if (kpiBagliAlt) kpiBagliAlt.textContent = Number.isFinite(heartbeatYasi) ? `${durumMetni} · ${gecenSureMetni(heartbeatYasi)}` : "Heartbeat bulunamadı";
+
+      const veriZamani = sonTelemetri?.alindi_zaman ? new Date(sonTelemetri.alindi_zaman) : null;
+      const veriYasi = veriZamani && Number.isFinite(veriZamani.getTime()) ? Math.max(0, (Date.now() - veriZamani.getTime()) / 1000) : Infinity;
+      const sonVeriMetni = Number.isFinite(veriYasi) ? gecenSureMetni(veriYasi) : "Veri yok";
+      ["genelMakineSonVeri", "listeMakineSonVeri"].forEach((id) => { const el = document.getElementById(id); if (el) el.textContent = `Son veri: ${sonVeriMetni}`; });
+      const kpiSon = document.getElementById("kpiSonVeri");
+      if (kpiSon) kpiSon.textContent = veriYasi < 60 ? `${Math.floor(veriYasi)} sn` : veriYasi < 3600 ? `${Math.floor(veriYasi / 60)} dk` : Number.isFinite(veriYasi) ? `${Math.floor(veriYasi / 3600)} sa` : "—";
+      const volt = document.getElementById("beslemeVoltajDegeri")?.textContent || "— V";
+      ["genelMakineVolt"].forEach((id) => { const el = document.getElementById(id); if (el) el.textContent = volt; });
     }
 
     function sayisalAlan(...degerler) {
@@ -1156,6 +1818,20 @@
       return `${Math.floor(saniye / 3600)} sa ${Math.floor((saniye % 3600) / 60)} dk`;
     }
 
+    function olayOzetiniGuncelle(olaylar) {
+      const acikOlaylar = (olaylar || []).filter((olay) => olay.durum === "open");
+      const sayi = acikOlaylar.length;
+      ["kpiAktifOlay", "listeMakineOlay", "menuOlayRozet"].forEach((id) => { const el = document.getElementById(id); if (el) el.textContent = String(sayi); });
+      const liste = document.getElementById("genelOlayListesi");
+      if (!liste) return;
+      const gosterilecek = (sayi ? acikOlaylar : olaylar || []).slice(0, 4);
+      if (!gosterilecek.length) {
+        liste.innerHTML = '<div class="bos-panel">Seçilen zaman aralığında olay bulunmuyor.</div>';
+        return;
+      }
+      liste.innerHTML = gosterilecek.map((olay) => `<div class="olay-mini"><span class="olay-seviye-isareti ${olay.seviye === "critical" ? "critical" : ""}"></span><div><strong>${htmlKacir(olay.olay_adi)}</strong><span>BYM6-001 · ${olay.durum === "open" ? "Devam ediyor" : "Kapanmış olay"}</span></div><span class="olay-zaman">${new Date(olay.baslangic_zamani).toLocaleString("tr-TR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span></div>`).join("");
+    }
+
     async function olaylariGetir() {
       const durumEl = document.getElementById("olayListeDurum");
       const govde = document.getElementById("olayListeGovde");
@@ -1176,6 +1852,7 @@
         const res = await fetch(`${SUPABASE_URL}/rest/v1/olaylar?${params.toString()}`, { headers: apiHeaders() });
         if (!res.ok) throw new Error(await hataMetni(res));
         const olaylar = await res.json();
+        olayOzetiniGuncelle(olaylar);
         if (!olaylar.length) {
           govde.innerHTML = '<tr><td colspan="8" class="bos-mesaj">Secilen aralikta yakalanmis olay yok.</td></tr>';
           durumEl.textContent = "Olay bulunamadi. Event Worker calismiyorsa kuyruktaki veriler henuz degerlendirilmemis olabilir.";
@@ -1657,7 +2334,7 @@
         govde.innerHTML = `<div class="widget-gauge-wrap"><canvas id="${canvasId}"></canvas><div class="gauge-merkez"><strong>${sayi === null ? "-" : sayi.toFixed(ayar.decimals ?? 1)}</strong><span>${htmlKacir(ayar.unit || "")}</span></div></div><div class="widget-alt">${htmlKacir(ayar.signal)} - ${min} / ${max}</div>`;
         const grafik = new Chart(document.getElementById(canvasId), {
           type: "doughnut",
-          data: { datasets: [{ data: [dolu, bos], backgroundColor: ["#1565c0", "#e8ecef"], borderWidth: 0 }] },
+          data: { datasets: [{ data: [dolu, bos], backgroundColor: ["#00aeef", "#e8eef1"], borderWidth: 0 }] },
           options: { responsive: true, maintainAspectRatio: false, rotation: -90, circumference: 180, cutout: "72%", plugins: { legend: { display: false }, tooltip: { enabled: false } } },
         });
         widgetChartlari.set(widget.id, grafik);
@@ -1675,7 +2352,7 @@
           borderColor: s.color || RENKLER[i % RENKLER.length],
           backgroundColor: s.color || RENKLER[i % RENKLER.length],
           yAxisID: s.axis === "right" ? "y1" : "y",
-          spanGaps: true,
+          spanGaps: false,
           tension: 0.18,
           borderWidth: 2,
           pointRadius: zamanlar.map((z) => z.gunDegisti ? 4 : 0),
@@ -1811,12 +2488,14 @@
             lambaAyarla("veriDurumLambasi", "offline", "veriDurumMetni", `Akis yok - son veri ${gecenSureMetni(veriYasi)}`);
           }
         }
+        filoDurumunuGuncelle(health, sonTelemetri);
       } catch (e) {
         lambaAyarla("cihazDurumLambasi", "offline", "cihazDurumMetni", "Durum okunamadi");
         lambaAyarla("canDurumLambasi", "offline", "canDurumMetni", "Durum okunamadi");
         lambaAyarla("veriDurumLambasi", "offline", "veriDurumMetni", "Durum okunamadi");
         lambaAyarla("kuyrukDurumLambasi", "offline", "kuyrukDurumMetni", "Durum okunamadi");
         beslemeVoltajiniGuncelle(sonTelemetri);
+        filoDurumunuGuncelle(null, sonTelemetri);
       }
     }
 
@@ -1980,76 +2659,71 @@
     }
 
     function sinyaliCiz() {
-      const secilenSinyal = document.getElementById("sinyalSecici").value;
-      if (!secilenSinyal) {
+      const secilenSinyaller = [...document.getElementById("sinyalSecici").selectedOptions]
+        .map((x) => x.value)
+        .filter(Boolean)
+        .slice(0, 6);
+      if (!secilenSinyaller.length) {
         if (chart) { chart.destroy(); chart = null; }
         return;
       }
-
-      const etiketler = [];
-      const degerler = [];
-
-      for (const satir of mevcutVeriSatirlari) {
-        const veri = satir.veri || {};
-        if (!(secilenSinyal in veri)) continue;
-        const ham = veri[secilenSinyal];
-        const sayi = typeof ham === "number" ? ham : parseFloat(String(ham).replace(",", "."));
-        if (isNaN(sayi)) continue;
-        etiketler.push(satirZamani(satir));
-        degerler.push(sayi);
+      if ([...document.getElementById("sinyalSecici").selectedOptions].filter((x) => x.value).length > 6) {
+        toastGoster("Grafik okunabilirliği için aynı anda en fazla 6 sinyal gösterilir.");
       }
-
-      grafigiCiz(etiketler, degerler, secilenSinyal);
+      grafigiCiz(mevcutVeriSatirlari, secilenSinyaller);
     }
 
-    function grafigiCiz(etiketler, degerler, etiket) {
+    function grafigiCiz(satirlar, sinyaller) {
       const ctx = document.getElementById("grafik").getContext("2d");
       if (chart) chart.destroy();
-      let oncekiGun = null;
-      const gunDegisimleri = [];
-      const sadeEtiketler = etiketler.map((tarih) => {
-        const gun = tarih.toLocaleDateString("tr-TR");
-        const saat = tarih.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
-        const degisti = gun !== oncekiGun;
-        gunDegisimleri.push(degisti);
-        oncekiGun = gun;
-        return degisti ? `${gun} - ${saat}` : saat;
-      });
+      const zamanlar = satirlar.map((satir) => satirZamani(satir));
+      const etiketler = zamanlar.map((tarih) => tarih.toLocaleString("tr-TR", {
+        day: "2-digit", month: "2-digit", year: "numeric",
+        hour: "2-digit", minute: "2-digit", second: "2-digit",
+      }));
+      const datasets = sinyaller.map((sinyal, index) => ({
+        label: sinyal,
+        data: satirlar.map((satir) => {
+          const ham = (satir.veri || {})[sinyal];
+          if (ham === null || ham === undefined || ham === "") return null;
+          const sayi = typeof ham === "number" ? ham : parseFloat(String(ham).replace(",", "."));
+          return Number.isFinite(sayi) ? sayi : null;
+        }),
+        borderColor: RENKLER[index % RENKLER.length],
+        backgroundColor: RENKLER[index % RENKLER.length],
+        yAxisID: index === 0 ? "y" : "y1",
+        tension: .12,
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        spanGaps: false,
+      }));
       chart = new Chart(ctx, {
         type: "line",
         data: {
-          labels: sadeEtiketler,
-          datasets: [{
-            label: etiket,
-            data: degerler,
-            borderColor: "#1a1a1a",
-            backgroundColor: "rgba(26,26,26,0.06)",
-            tension: 0.25,
-            pointRadius: gunDegisimleri.map((x) => x ? 4 : 1),
-            fill: true,
-          }],
+          labels: etiketler,
+          datasets,
         },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
           scales: {
-            x: { ticks: { maxTicksLimit: 10, autoSkip: true } },
-            y: { title: { display: true, text: etiket } },
+            x: { ticks: { maxTicksLimit: 10, autoSkip: true, maxRotation: 0 }, grid: { color: "rgba(92,117,130,.08)" } },
+            y: { position: "left", grid: { color: "rgba(92,117,130,.09)" }, title: { display: true, text: sinyaller[0] } },
+            y1: { position: "right", display: sinyaller.length > 1, grid: { drawOnChartArea: false }, title: { display: sinyaller.length > 1, text: sinyaller.slice(1).join(" / ") } },
           },
-          plugins: { legend: { display: true } },
+          plugins: {
+            legend: { display: true, position: "bottom", labels: { usePointStyle: true, boxWidth: 8, padding: 18 } },
+            tooltip: { mode: "index", intersect: false, callbacks: { title: (items) => items[0]?.label || "" } },
+          },
         },
       });
     }
 
+    arayuzuKur();
     document.getElementById("sinyalSecici").addEventListener("change", sinyaliCiz);
-
-    varsayilanTarihleriAyarla();
-    olayKosuluEkle();
-    olayKurallariniGetir();
-    dbcYonetiminiYenile();
-    widgetFormunuGuncelle();
-    dashboardlariGetir();
-    manuelYenile();
-    otomatikYenilemeyiAyarla();
+    authBaslat();
   </script>
 </body>
 </html>
