@@ -655,6 +655,139 @@
     .operasyon-metrik-izgara { grid-template-columns: 1fr; }
     .trend-olay-paneli-ust { align-items: flex-start; }
   }
+
+  /* Titan Fleet & Telemetry v2.3 karar ve aksiyon arayuzu */
+  .kpi-izgara.kpi-besli { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .kpi-karti.kpi-vurgu { position: relative; overflow: hidden; border-top: 3px solid var(--titan-blue); }
+  .kpi-karti.kpi-vurgu::after { content: ""; position: absolute; right: -28px; bottom: -42px; width: 110px; height: 110px; border-radius: 50%; background: rgba(0,174,239,.055); }
+  .kpi-delta { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; color: #58707c; font-size: 12px; }
+  .kpi-delta svg { width: 14px; height: 14px; }
+  .kpi-delta.iyi { color: var(--titan-success); }
+  .kpi-delta.uyari { color: #9a6710; }
+  .iki-kolon-pro { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(330px, .72fr); gap: 18px; margin-bottom: 18px; }
+  .panel-baslik-aciklama h3 { margin: 0; font-size: 16px; }
+  .panel-baslik-aciklama p { margin: 5px 0 0; color: var(--titan-muted); font-size: 12px; line-height: 1.45; }
+  .durum-aciklamasi { display: flex; flex-wrap: wrap; gap: 14px; color: #627680; font-size: 12px; }
+  .durum-aciklamasi span { display: inline-flex; align-items: center; gap: 6px; }
+  .durum-aciklamasi i { width: 9px; height: 9px; border-radius: 3px; background: #1f9fc8; }
+  .durum-aciklamasi .rolanti { background: #f0a64a; }
+  .durum-aciklamasi .offline { background: #9eafb7; }
+  .durum-aciklamasi .veri-yok { background: #dce4e8; }
+  .filo-zaman-listesi { display: grid; gap: 16px; margin-top: 18px; }
+  .filo-zaman-satiri { display: grid; grid-template-columns: minmax(150px, 210px) 1fr 64px; gap: 14px; align-items: center; }
+  .filo-zaman-makine strong { display: block; font-size: 13px; }
+  .filo-zaman-makine span { display: block; margin-top: 3px; color: var(--titan-muted); font-size: 12px; }
+  .filo-zaman-bar { display: flex; height: 16px; overflow: hidden; border-radius: 5px; background: #e7edef; }
+  .filo-zaman-bar span { display: block; min-width: 0; transition: width .25s ease; }
+  .filo-zaman-bar .operasyon { width: 0; background: linear-gradient(90deg, #087da5, var(--titan-blue)); }
+  .filo-zaman-bar .rolanti { width: 0; background: #f0a64a; }
+  .filo-zaman-bar .offline { width: 0; background: #9eafb7; }
+  .filo-zaman-bar .veri-yok { width: 100%; background: repeating-linear-gradient(135deg, #dce4e8, #dce4e8 8px, #e8eef1 8px, #e8eef1 16px); }
+  .filo-zaman-oran { color: #405660; font-size: 12px; font-weight: 750; text-align: right; }
+  .aksiyon-listesi { display: grid; gap: 10px; }
+  .aksiyon-karti { padding: 13px; border: 1px solid #e0e8ec; border-left: 4px solid #4d93ad; border-radius: 9px; background: #fff; }
+  .aksiyon-karti.warning { border-left-color: var(--titan-warning); }
+  .aksiyon-karti.critical { border-left-color: var(--titan-danger); background: #fffafa; }
+  .aksiyon-karti-ust { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .aksiyon-karti h4 { margin: 0; font-size: 13px; line-height: 1.35; }
+  .aksiyon-karti p { margin: 6px 0 0; color: var(--titan-muted); font-size: 12px; line-height: 1.45; }
+  .aksiyon-meta { display: flex; flex-wrap: wrap; gap: 7px 12px; margin-top: 10px; color: #6f818a; font-size: 12px; }
+  .aksiyon-islemleri { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 11px; }
+  .aksiyon-islemleri button { min-height: 31px; padding: 5px 9px; font-size: 12px; }
+  .durum-etiketi { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 999px; color: #45606c; background: #edf3f6; font-size: 12px; font-weight: 750; white-space: nowrap; }
+  .durum-etiketi.online { color: #116a40; background: #e3f5eb; }
+  .durum-etiketi.success { color: #116a40; background: #e3f5eb; }
+  .durum-etiketi.warning { color: #865710; background: #fff1d3; }
+  .durum-etiketi.critical { color: #982f2f; background: #fde6e6; }
+  .durum-etiketi.danger { color: #982f2f; background: #fde6e6; }
+  .filo-filtreleri { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+  .filo-filtreleri input, .filo-filtreleri select { min-height: 40px; padding: 8px 11px; border: 1px solid #ccd9df; border-radius: 8px; background: #fff; }
+  .filo-filtreleri input { min-width: min(100%, 290px); }
+  .filo-tablo-makine { display: flex; align-items: center; gap: 11px; min-width: 220px; }
+  .filo-tablo-makine img { width: 70px; height: 46px; object-fit: contain; padding: 3px; border-radius: 7px; background: #eff4f6; }
+  .filo-tablo-makine strong { display: block; font-size: 13px; }
+  .filo-tablo-makine span { display: block; margin-top: 3px; color: var(--titan-muted); font-size: 12px; }
+  .saglik-puani { display: inline-grid; place-items: center; width: 42px; height: 42px; border: 4px solid #cbd6db; border-radius: 50%; color: #516872; font-size: 12px; font-weight: 800; }
+  .saglik-puani.iyi { border-color: #72d09f; color: #12653e; }
+  .saglik-puani.uyari { border-color: #f0c66c; color: #80530a; }
+  .saglik-puani.kritik { border-color: #e58b8b; color: #982f2f; }
+  .saglik-puani.veri-yok { border-color: #dfe6e9; color: #8a999f; }
+  .makine-hero { display: grid; grid-template-columns: minmax(260px, 380px) 1fr auto; gap: 24px; align-items: center; margin-bottom: 18px; padding: 22px; border: 1px solid var(--titan-line); border-radius: 13px; background: linear-gradient(135deg, #fff 48%, #f1f9fc); box-shadow: 0 8px 28px rgba(15,39,52,.055); }
+  .makine-hero-gorsel { height: 180px; display: grid; place-items: center; border-radius: 10px; background: #eff4f6; overflow: hidden; }
+  .makine-hero-gorsel img { width: 100%; height: 100%; object-fit: contain; padding: 10px; }
+  .makine-hero-icerik h2 { margin: 0; font-size: 27px; letter-spacing: -.03em; }
+  .makine-hero-icerik > p { margin: 7px 0 0; color: var(--titan-muted); font-size: 14px; }
+  .makine-hero-meta { display: flex; flex-wrap: wrap; gap: 8px 17px; margin-top: 16px; color: #536a75; font-size: 12px; }
+  .makine-hero-sag { display: grid; justify-items: center; gap: 8px; min-width: 112px; }
+  .makine-hero-sag .saglik-puani { width: 78px; height: 78px; border-width: 7px; font-size: 21px; }
+  .makine-hero-sag span { color: var(--titan-muted); font-size: 12px; }
+  .sekme-listesi { display: flex; gap: 5px; overflow-x: auto; margin-bottom: 18px; padding: 5px; border: 1px solid var(--titan-line); border-radius: 10px; background: #edf3f6; }
+  .sekme-buton { min-height: 36px; padding: 7px 13px; color: #506670; background: transparent; white-space: nowrap; }
+  .sekme-buton:hover { color: #143541; background: #f7fbfc; }
+  .sekme-buton.aktif { color: #082f40; background: #fff; box-shadow: 0 2px 8px rgba(15,39,52,.08); }
+  .makine-sekme-paneli { display: none; }
+  .makine-sekme-paneli.aktif { display: block; }
+  .alt-sistem-izgara { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .alt-sistem-karti { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; min-height: 94px; padding: 15px; border: 1px solid #dfe8ec; border-radius: 10px; background: #fff; }
+  .alt-sistem-ikon { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 9px; color: var(--titan-blue-dark); background: #e8f8fe; }
+  .alt-sistem-ikon svg { width: 20px; height: 20px; }
+  .alt-sistem-karti strong { display: block; font-size: 13px; }
+  .alt-sistem-karti p { margin: 4px 0 0; color: var(--titan-muted); font-size: 12px; }
+  .veri-kalite-izgara { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .veri-kalite-karti { min-height: 112px; padding: 15px; border: 1px solid #dfe8ec; border-radius: 10px; background: #fff; }
+  .veri-kalite-karti span { color: var(--titan-muted); font-size: 12px; }
+  .veri-kalite-karti strong { display: block; margin-top: 11px; color: #17313d; font-size: 18px; }
+  .veri-kalite-karti small { display: block; margin-top: 5px; color: #89979e; font-size: 12px; line-height: 1.4; }
+  .rapor-kart-izgara { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .rapor-karti { display: flex; flex-direction: column; min-height: 205px; padding: 18px; border: 1px solid var(--titan-line); border-radius: 11px; background: #fff; }
+  .rapor-ikon { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 10px; color: var(--titan-blue-dark); background: #e7f8fe; }
+  .rapor-ikon svg { width: 21px; height: 21px; }
+  .rapor-karti h3 { margin: 15px 0 6px; font-size: 15px; }
+  .rapor-karti p { margin: 0; color: var(--titan-muted); font-size: 12px; line-height: 1.5; }
+  .rapor-karti > button { align-self: flex-start; margin-top: auto; }
+  .rapor-karti .kart-aksiyonlari { margin-top: auto; padding-top: 16px; }
+  .rapor-filtreleri { display: grid; grid-template-columns: repeat(3, minmax(190px, 1fr)) auto; gap: 10px; align-items: end; margin-bottom: 16px; padding: 14px; border: 1px solid var(--titan-line); border-radius: 10px; background: #f8fbfc; }
+  .rapor-filtreleri .form-grup { margin: 0; }
+  .rapor-filtreleri input, .rapor-filtreleri select { width: 100%; min-height: 39px; padding: 7px 9px; border: 1px solid #ccd9df; border-radius: 7px; background: #fff; }
+  .is-emri-ozet { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .is-emri-mini { padding: 15px; border: 1px solid var(--titan-line); border-radius: 10px; background: #fff; }
+  .is-emri-mini span { color: var(--titan-muted); font-size: 12px; }
+  .is-emri-mini strong { display: block; margin-top: 8px; font-size: 24px; }
+  .gelistirme-rozeti { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border: 1px solid #bce4f2; border-radius: 999px; color: #07516f; background: #e9f9fe; font-size: 12px; font-weight: 750; }
+  .trend-ileri-araclar { display: grid; grid-template-columns: repeat(4, minmax(150px, 1fr)); gap: 10px; margin-bottom: 12px; padding: 13px; border: 1px solid var(--titan-line); border-radius: 10px; background: #f8fbfc; }
+  .trend-ileri-araclar label { display: flex; align-items: center; gap: 8px; color: #506670; font-size: 12px; cursor: pointer; }
+  .trend-ileri-araclar input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--titan-blue); }
+  .trend-ileri-araclar select { min-height: 36px; padding: 6px 9px; border: 1px solid #ccd9df; border-radius: 7px; background: #fff; color: #405762; font-size: 12px; }
+  .trend-ileri-araclar .form-grup { margin: 0; }
+  .trend-ileri-araclar .form-grup > label { margin-bottom: 6px; cursor: default; }
+  .esik-girdileri { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+  .esik-girdileri input { width: 100%; min-height: 36px; padding: 6px 9px; border: 1px solid #ccd9df; border-radius: 7px; background: #fff; }
+  .trend-esik-alani { display: flex; align-items: center; gap: 7px; }
+  .trend-esik-alani input { width: 90px; min-height: 36px; padding: 6px 9px; border: 1px solid #ccd9df; border-radius: 7px; }
+  .veri-durumu-seridi { display: flex; flex-wrap: wrap; align-items: center; gap: 9px 16px; margin-bottom: 18px; padding: 12px 14px; border: 1px solid #d8e5ea; border-radius: 10px; background: #fbfdfe; color: #526873; font-size: 12px; }
+  .veri-durumu-seridi strong { color: #243b46; }
+
+  @media (max-width: 1280px) {
+    .kpi-izgara.kpi-besli { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .alt-sistem-izgara, .rapor-kart-izgara { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .trend-ileri-araclar { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
+  }
+  @media (max-width: 1020px) {
+    .iki-kolon-pro { grid-template-columns: 1fr; }
+    .makine-hero { grid-template-columns: minmax(220px, 310px) 1fr; }
+    .makine-hero-sag { grid-column: 1 / -1; grid-template-columns: auto auto; justify-content: start; }
+    .veri-kalite-izgara, .is-emri-ozet { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .rapor-filtreleri { grid-template-columns: repeat(2, minmax(190px, 1fr)); }
+  }
+  @media (max-width: 620px) {
+    .kpi-izgara.kpi-besli, .alt-sistem-izgara, .rapor-kart-izgara, .veri-kalite-izgara, .is-emri-ozet, .trend-ileri-araclar { grid-template-columns: 1fr; }
+    .rapor-filtreleri { grid-template-columns: 1fr; }
+    .makine-hero { grid-template-columns: 1fr; padding: 16px; }
+    .makine-hero-gorsel { height: 150px; }
+    .makine-hero-sag { grid-column: auto; }
+    .filo-zaman-satiri { grid-template-columns: 1fr; gap: 7px; }
+    .filo-zaman-oran { text-align: left; }
+  }
 </style>
 </head>
 <body class="ui-loading" data-dashboard-mode="viewer">
@@ -1043,6 +1176,7 @@
     let duzenlenenWidgetId = null;
     let suruklenenWidgetId = null;
     let olayKurallari = [];
+    let sonOlayListesi = [];
     let duzenlenenOlayKuralId = null;
     let olayKosulSayaci = 0;
     const widgetChartlari = new Map();
@@ -1050,9 +1184,10 @@
     const ONLINE_ESIK_SN = 45;
     const GECIKMELI_ESIK_SN = 90;
     const CAN_PAKET_ESIK_SN = 90;
-    const DASHBOARD_SURUM = "2.2.0";
+    const DASHBOARD_SURUM = "2.3.0";
     const TELEMETRI_SAYFA_BOYUTU = 1000;
-    const TELEMETRI_MAKSIMUM_KAYIT = 20000;
+    const TELEMETRI_MAKSIMUM_KAYIT = 12000;
+    const GRAFIK_VARSAYILAN_MAKSIMUM_NOKTA = 2500;
     const TITAN_LOGO_URL = "https://titanltd.com/wp-content/uploads/2022/02/Titan_Logo_Web_Header_B_Cut.png";
     const BYM6_IMAGE_URL = "data:image/webp;base64,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";
     const BKOS_IMAGE_URL = "data:image/webp;base64,UklGRgxHAABXRUJQVlA4IABHAABwgQGdASqEA1sBPpFEnEqlo6wwpFJbShASCWdu3Ni7kf05nDp94WRYU+ct4TPXm/g1a+P9F1If3X+p3T6jHhr8R5OPTHmw/73sS/Vv6ofAN/ZvLd9if9j9Df7ifuB7tP/Z9cf969GbqhfRR6aH+2YRf5TPm/8r/xvFf0EfOdsTDX8T4OfZB+r/lPax/g/s15V/sn896B35p/V/+FwYu9eYj7c/dvN6/T84/tR7AnmZ4nv5L1DP1R6w//D5xv171GiaWW2s/baz9trP22s/baz9trP22s/baz9trP22s/baz9trP22s/baz9trP22s/baz9trP22s/baz9trP22s/baz9trP22s/baz9trP22s/bYLpX2o1sAkow6f0jOY8zG8f0sEVu21jRf7b5V6HlXoeVeh5V6HlXoeVeh5V6HkvhmoJlsIcfv8kNmmNGL0C65kqMl1Dxk4ggKlUmI0vRSTiaPlBiofJMsttZ+21n7bWfttZ+21n7bWfttZ+21n7bVzGKmyWnzwgSr18JawYcGFKoeMICyQrgYtYlGi1unqm5+U0x8YN5OA3k4DeTgN5OA3k4DeTgN5OA3k4CelKoFd5Pm1U5bC5m7umEmrc04ToDmo6C1EYhY0X+2+Veh5V6HlXoeVeh5V6HlXoeVeh5Lxp4zdXPAeiHYZaDwj6grVR3HXwO68+WW2s/baz9trP22s/baz9trP22s6cU5zKAdIpEFbHzjOrEwpj/Hr2XZVtjHRj0ajobf30Ib6m3iN5UfHya6+UmMGu1BrF06qL7bV1Yz6q03pGAN+rGti8gjK5i5MxLXLPoebxHfx21LmqvKVfnCigfnQexZYghZ0KDuiQ5g8q9Dyr0PKvQ8q9BZcmcDacNToUNBoUTpPf+nRNuJMHxflq/x8B4Q7f7L314hDi57dBbRwVkaQ3SpslD9Hfn+m8qrRh/EYSdoDm4kqLCyK09JPG6nlsZ/ci4DKuKegF/Iu1vvKoTVH/5v/M4NWdLrU8070sbSt/AxhO5PfFDxpS2aw14kqmYqUOyS1CDS/23yr0PKvQ7CG986w3vGmUgnFDY7HC9C/69sXS6CqeC8NKsxDnP4yC2BSJVglgOTfcsBD1WvUv+zEmkHVZhY8PamqJ6ySpFXwtNvU+bk3zb5+FTuef4z4zpU8kCETRzj/dcVX0miWoVXWVZt2rTT0mFlaguAnUHYrnFyFuJ1X1iwtT3xXxVfX1MkwiFDfyJU/qeu63m0MzWLqVYkN2qZcvymuJvCS/hIWo7sS7To9zltvz+oNYQG8l7pBnVagR89+Go4UBsZRiJnP9fow/uD/9Qd2D95DB1/sfyz3owdJIGLNiM3cW3JljmdNHFLYvqhUHes7RC6Z8XQsXCVNlAfs/xCVQbmV2DP4hgVwe3AyddwjXGB3eZz+4RhCr3o49Qtyez5vHZ7H+L7lo15Z29VrXA21rSs6xUS1MhVlolssstMwYA9q44Wsjsixx1ZMcZGcw9JXfn5oyUUsYTYb1n7KUCoBTNgb5YIgQOsN3ABF9BeUH3uGZNCafa1zBBwUf8Dvg8L14qnAbbIcobHp2PB72WTGvNSUap2OnzyAHWI3VhtbuBKHFvidWDrhlFRX1NB1gRoDpH/4vrreUc95dfzE2ITFdPQAcgl+/JgE7ACYfs1SkHmAD9mrViqk+Er7Y1RCXgTbJACkjHT705VbtKddkCAkbjwbrG5IH9Iz/InMs22URnkRe6srzmyW+1hJxlltdrmODqlN8mJct+1IO7FmDw8nomnyBOIjSPL+ysfqxPRKOT+RlACHW9Q5Iyv6ewxlF2+H+wfnBhlzASXj+WglSbXwANej1O2x1stY/B7G6YTSwxCKAQyJRdIsUgzF2boKNKJt9xT7tb+tnmHDQIEMKIpqNxRTzFzrTUce2aDFuKW94daBjdsFk04ARMflv8Tmf5T0ivkjCajldPg0X69H3vwGF4fjOWuHKx+XGZXTpUQasB3o4y14SdEqsMKDzvKZdRWwJT0g6Tda2WsnQ4gL9iJAxy9mzL6Q0MtFTA4r4LsM/9+hpCTIF+koKdcTPX2/SbUb6PxdgLtMmtDaVfxfksQNU1+vFq+DOpn0f9EPPv1O4wQpJLTO7aULBuWVtZ1jVNnenKdhNDtkBhstcmJsW7bVzUg/TzJr3EC4xLpqwSC1huw8eEJjudfXoXb9A3uOHiSkMoSXZmKweWts0moNEf162gRzq4YMgCDIcpB9YVMUMAW3CKXMU0X9Qj5fL0kpqiCIbe8g16fIqEXxm8yEdHZ0ANBco8rVIkrJO0PEUQMgNZ6ZTYXYH1yMMFnwcfo+Si9uGwYY9jK1+ICwmNEJLZIV0WOCPR0GQA3D6OcumGazrUuX5K4JMYMKotfcjfgNnE1DZfCUZjxNPSlRBsgLIWfc/BtOFZDgVqYTOo2LXYDOjJLbqZitDlF5WMKk709qF+hv63LS2BGupgrMLeMrXb/W8Jt909tT+Mj8EWhbDA3rpcCRgiY6ZD9HFRTq1pH5+la8mzIk3Uup4ZX0UmRsZ9xaV15IONMAMb4YENWBsNNVvp5R75Eu/H/SqU35bcFQZJl3Xrg1waflzX2rfiksvUJdKEgC4HUi12uGhWo1bf1eW18ip6mkx093ZLkolje8PXlzqh9N04xCxSYsTYlFCQk7KFkQJ8UnhFv86aFss/3qmuJx1OuZaZSBbcA0lCxYOGocUktpZ+WLcDm/b+UD29nQ8M1TWpGUR8qWWsrCLigzp//OZiqmEg9PgrQN326L/e3VimtRIfelaJ9+l648/WcVc0zcZmfLaGXGftCPfg5xTXfXQtJmIBIDBr31AUVmJS90yWf/GGzNK2NwYqLD12NhtYbDeFO7pTuN/Mf4p5VGl3tI39Lwv5vuk8D4tFjePivCW18SngclEVEXbLQ01FN9tqJvyWXKkajOpO8srv1pmq1rTg1UvtLw58tWrB25LqV92PLoEsC+8FF/cmLzJhQlBnmqpu58az12pSSZpxKTpdVRAO3sWS9TmoKqV+lL+jGc/1PRF6BTHvp4YnPTw+W0IFB1TyMaNgLVJ9AfTikQhAK01UNGF0LvG8fxf/D6+BiOB7xkrPPsTo/oZptRTImhNZA8F2nQmtTcnu/Rt88hQXzt+RTIG/OTmht1hygTqfLknX8QhI6lusMUfhuvpbxFLgX7iaNYRlPLZUUGrmFs/q7UIDnAUe98VfbGpoQon8DguZJSomPR6vAtwdeB6U1kM8V3jZp20FLuXq2Q7sAjwklJ+8ncK2X498vY3yHWoLuT9CQlg3bQd/iXO3q/uj56fhkU895M8o5W9/+3ZJ7ONdJPBYSzKZ2ml4/Ur2QLOxhjCAXzuugEdx1tStnmiIhuxrdui9xQ4WV0w/M/027rxsc3fzqeaetJ48g7OK2v+bTQyEiFdKeZVyUGcL+0YdMkKJVlwlwRxwPsoXootRZ2wVp/+ymIiKoZJKA8TXptu9XR1CMrpD+mGjmLTgec1lZEg2+Ubb1S8BgcXV9e6lGEuA1+xNnbjz4j9fUPtwf4kJhNOZN8+ASX6GEkoI1FZfHo7qYOoQJ2B+1xEPHSxMzYpzyqLo7BuKlpJb89X3ENsy8tF1NKsqan5Dbh31OPL6ScGxihpf7ah0kqTSGnzGaqUuQ/P05oM93Rgux70stef5ZZ5+/Qn/GsqKT6mSBaRCkPv3V8RFmYRXRIKj4WaQ/SdX/gD/8/FMFwYG3lroG6Z3zc940nz60sfocWugD2OFSGsJ7Kple4Oa/cLcMYLmxsrOKksGeaiLyV52jnSlN/Soue4Q3NDU9TyPhHzEp5gBwTvKHVI0VBaNn6XVvzM5YX0Z9XdpLYhpzT48206/nmb/b1/BKq7UnDn7uAq96HgTX7mQ/tujb3PaCOpzGi03QYHYVf4jjiceqJORYbKPIhF37QIlxELYhdpKHSzXJP/SKw59FzZc36b+WlLah8oyjaX32y+MVrBCYGUz9uNzJsfriwa8Czx5v7z1/lJYGSP/lQ8Ehkhm0JKiEFJgabx/zOPObWqzC4iMepbRiTjIZ7nTka/GP7cLx63J98zJIax0BvJwG8nAeURoEsjQSZuq8GIPcyWrBrc10dZiOLCCfD4MG8KAAD+/0aAAAAAAAAAAAAAAAAAAAAAAAAApKI+7f6n/k5mYt6XLeDzzvilXtNhwoWYJbgbZ3XoLbLUobxgG8Sg9Cc/3G1VeTAXQMlN5GtmO6JT+mSbLFd3sz0pBgvHktX19zlMfTvTdOIQZF87Yie8mBzb4PiBLA/QQhu/DF6oMP4/4AXgAAAAAACKpNmFrl5RgBxFFhlIfjYoElI/pBVeTXv1kHRQX1usWmQxzYNS3A6+h3vbYZaX9FdgMFHfO2d0Rz5fyZcFPV339WA3nIuydAo9TCK+vLKoyst1Au9+Y312lef44zuGDgv9g0z4swa3/ZL3I8b4G7CLeHGVioqHEx7hhOuw9idH3dZQhU8AXI2aEq42lqFa2GvEdErWTvxyez7gWopxxjS2WdfKGr8xOGSt8IVm3RjJz3grqZDCgG9/dQeuTqDyQTT3Z6I4OF9SH+7IuiAWSShe9QAAAAAAABAhLKR0dgpvb5Z6cSIwAv60XTy87v3zretntTqkwPmUfjkQY12xjxjT4TMa2bO/v64SfKzNSwmpEoPeeXTC63IbKhZkx8g9Ts3Go7/IHhT+ZA+CWoBl5VoysxmKnRWOnIMLVU/t+R6dkblTjJxsS90O52NdXADqQOr202aS+W3v5t9GfZ3HbCPiZCBg4ZVLwNX87Vzo+p+/8m8jY6HoEC8WdyqiZW+kd3gYC47xgFUqudD/2MRjoB1YRDvIlBDmM/HgQnSZgdqY1dqrrU91u+bv9A8Kt+QnJinQKxIOd0a4Ybw1WtwXeRoEAOQgIAAAAAAB+xKCNGkdURT4aNuoYjp0UT0yFuvjDeQePJvKkcznScn8rJzvQGSFmT9pLClxMdRUWfjgYOA5IQ7Haizqm+SaRiLbE/6bEeJsK1lX7u+ZvXTJS1VOnsFFfltUEQtXDE3oClAVuE2A1oxP4onJQsD/imDver4sn3JlE7B6T//zVBPnsGSUj9eZnH7IaIy/3v1dF3uxzfYfiewqU28hrxc8P+iy45p7oqOXKC+sluryB6xTYN+qsGtYSoUoUAAAAAAARJV7w7HY5WlldDW7u6o/DkXL6W1pWehixT40dKVRtbrH1hxx+8anlouaVryG9WQzOW24UhxsxYKIJoV5Oi/l8ufN9XjVa58GsYHg85EX0ZfgOHDObr5vdo4uYo8ly1chXiclAyc/GSNJU6u7WTc1niLeUR7NhV6ohoJGgMz5kgTs77bHazGqNnbz3zbfHRr/pTAD9iI78UTGcG5MzFrRribZ+bTAAAAAANLBBWiv6AXWscIONyU02XwnShRBYo7Twy5g0pvWs+8xLrX6xIT1pVZ5SMA+23zN+f5QJsZ2ug1cVWsGN9knz8AEJzshvt/MZqvNxd62Zc6CGX4Gq6qun3Rk0Pr5mWGm3XPy5ASXZQTI+eZ4LWxpTPqqEEfvf5VdmubagbPVfJPKgS1F+mS72iumB84+DUxQ3LV+Rn11rJn5A+KW7jaC6Ci7ui4I6bFyJ2UVNF9eFCUzVVSaNcek8mDo7wEVMwqNbvhl0ZX5TKgB0EEMby+9AvRrPolkvnfZf4BnLuhY+TPaXHYEOCoo69m+OryFoU28XYLKLG5DmznPKU1y9sSlvq/hRYVZ2kX4PpgblD2Exv7HAZg5gdt5Jmb108uMA0GgqlhtoX1GAifrLCNQZ7WpcfuDxyQfjXN9lbb+8BeqqvUqYVntOZuz0LUCN7/815Xd9sk7KgT8xALzxaD0j6x694kdjNlKzFfrYuKYsAxDjerrmLVSVOndOo9JxK0mToQ8lJz8YjU3+4fCqu0Q483wJ71KwYpbEGFIJVr88j5odN9wbCMtroAYXay9G+XE2I2/gPXaekzVS05rRh1knaXqmTN6g8vcMep5c2mCp2eDw8U6Ri+u+O2rzUlGZRvTmBUkcSXf8lzYgiAqRXrwoHloC9gFv/AOIga0pMlYgEMjoZ7jU8g8yz4/zx29cNzmqBIDc9IH+g/8qms+vlBA5L8VnGiW7/xhHXjx7mOSMnicmbcyEjj8TE5Lq53Inp5DSe+06fbvzKVBawkddmHdQeBPrN8IFqm7gZVno6Rk2U2nzT6/8RwapzDNb5f3hYA4igntEEMU0Z+JxgCLHHTAgssJuxNjAAABPbZCqAT27YbLoScPZeuUOsfkl/9tY4qQV3gKHLyFZHukShomlVWDW5+VtXdxc1u49VEIeXj9mTI7q53ufIxhqz+P3zmzPHrjdXrt653r3UVnTNPG8b2UtVcp5UPgPUOR8m1XmePjgGkiOn2R88UxzqfXcNbrDgj4Vkm+HWGgKbd0qUromwxDHyMoNeQWAj7IRVXtitDlsnMR/rfD1DKnFn9A4tUuZlPjeHvHRaBcedFut/6P5PJKR4Xo3Nt0hcISlvVmDxwmags6AP45aZgxKUtV5XKEZKZjT/f/lLLb/voyHya3CZyeJDfEryWdq4Yhf+YwqZngZdCXVsZYO8ts7X4c9WJfNLiYk1weYdh1bXJB8dQI2oCaKkQc5G1VYfzesrMqvvitN3rsRloLarMq1sJf6X7HOhcpHuHz0h9AGSX/0KvTvHO/bwarhoLCm+G2HXxOCiB1a6cSKXj3XnylRWK9moAUZRe2j+/NvwyTWKLXB0W7hK/LLtXb32Muno7Y77IjcDxX166lLsplwoR1h/vPTjLHZOkyzz5qwGN6W6yx7B07+MnzkhmMuAiT0j5rQWRT5wEE+Dw9R9HRTEpyW5nf4xZhyEQRTIF4QGLfqpOLdYfSpxlEqQHok1xBdOuyVJ1+cL5fF907GatmmxO09kLNGyuKYmvwJXxEtObqvj3M+yQy5VQSbw9qmnkH0RpYdyijLWNxJW+flg8I9JP2fyj1arDHUWvhkNp7bUzkhJdBhIsc+HyzKw1Yz4JzaMVy+94CroTq6VwX+jaEal9s1tTL0NtgySlh0JT4G86KjgU9L7KU6Eeh/pO4HnTDL48A89Hc3tg5Qi3gOAVFjOsEEqbCOjgniSODeIt2dCbBWQ/uAJrnFQ+b3u6F2W2bJp5qeRN3jkuBws8B5x1TrIBzCS97HkYIpnf4CsJnYqGx5ykAXcu6LDJeuUT0PXcGolXfIMxItKCzk0y/J2M9ZDwnT3Vw6QzDQUWcZV638aqpHtvUry9SLIsFIqL3tsp73zUP6iwK7vzSFYfK8n2yDRonwaYJjoCjIUmJSuQ9LIflAjIVZiuXob+8XC3xoUmFZPHtpVisI9BngxdcebQXlNQsmIMdh0f3eU69wRsJ18O0++sKt0jstHMHq0r5bCiStAk+XPZeOlXoA0uAJ9Ks4G8DZtXMr9F3DyYR50kHDE66efqKohtM78DWRds5OepeLU/Siq+FRgnK3ZrbehZqHL/FQyrrPxmPxnJZv+htSpBTbrDH3aD+5F/XPILYFZaxZF0lamOVAXcuPa+fx5yzICeGnIoxmwvOgfNsUhpIp83lKNaWvmIAABh3sQJ2FQGzUeGFawvQBdjQyuWsmj45u86/ZPLDlL3JZ/JfkLx9LK/sRY+MMFFe048Cg+/QmEDKEGwvGoEa/7l7hDP3Mo+FQXg20Az0gi/FGMnXHY/T4uYhR7XhjbxGQ55/19/q56MQgxUwAU0+aNkCD45YVkvMXONs6D+kjMm3HDO9CnUgNH3oHw+1nb+KQcLP7uOzRB+D39Yxnh9Or+nNNPbe0zaisR/3vSgDrdah9nhAwjoFPEQWkqLJv0xcs7O8DM6lFG9k06ATaX7wEtJIUaQiccxy5NN8VhTpGAuPewuPApbayd9jW6/GQjFTmI7ZKs+C+M82VFeFCq2xrf4J5ReeABsyfg7sSosDub7b6Edy07Ux2/HH/2Blkpy50DMa2Lbwv5yYbs1KFVnwWKux8pVRDBvEhucufZoQuzrk64Q2uz7PYcO0sRZ5U5b+lsSsKIAzz4yR4zWEyMrmwViZlQyfel00L+amddkYyLkjq8yeEkcXs/UA/2A0Fs8eHC59nelPcyRSDtxepcx1wr7DpLDlp/RCnDDRtrHzsI4+RMbcmEArjXkH07f8BqiV/AN8E9DnyNgATUneXIAR3vyxpXLrlQQmFbAH2A4C4e109/9bB4rQRQRhqNOc0Q8hp/Ktxv4im5obsqKAMn9drj/EJZKdY6zcO2ougxSDspbRvF9rBvvCvP6Me9iZl5BZMRsUnSwdaWQUGOMg30fPyvr8bkwwSsTsBSpjm9FmJgQhtsFUD81aH1s76IYQqWKSrmO4rI1TryMjHsIaTMrvknE0Dsjyc+oKQ8TsQquoSmwrYGtewhCosFUNSn2Hx8RoinGEfLsW5fz6J/CfGL9A2pd+8rTMhpxiHacuW6yb+TRgqUipVhH9470AFByOrZOHs0/OEcnsufonNXDA8Y34+67SZhtc01e7tDbyQUYwsALpZxyr9P6izo18kFG3FPy/nukzrkWDvKgBC1LwUa5heh04AuObDRhkpfg2aiBF9bxgPuWK+I0BT/EN6nwMnvy34b5qdGDzVrRde51o1uAPUJ4xx10NwLxLlkeOYALEEREMo4/MylBW40Nj4F4NQs3Kt/AV+V/jkk9h3ybIrNPBpY0k7VOuxpzdJ9m0FopxPG7E+fKuQA2QiK/Ma6AP18F43U4EYQH0y3hHHUiK35gxm+s2O/Aa/nuZgxXtIu/uXCH6h1s3+K3ZVfmtKJoLlr3F9km1I240Gys0gnihXMWFyBynhDpJmX6n0cC5sbu4Dyl2dzI1mC960uNPJR4+DexZgHq2sjFgVrnbJad7llmYck5fM5GaDMWRf+w4SNBlJEGnBGTivRwuFCy2gLOAf25ulvVwG/VWWAkG58OIpvze1xNVSMS9X6S0PfI0777K08PG8j/kxBnwpd5S4YwEXCOnSQ8PGzMXkLCjlgF6yUUSoiijaRLYPjNL7vt6D1W+2DQruFgN0J3AM+4wQJnLc1G+ecv4Q60o2RpB5H8T0jKvxuN4LmtLlUounwEWn7Rr78N3XCMGacCFPrgDnQ8mJHxMz0PfPtkIqmDooCp2PGeC+PAr9+GrAUQyS4j23c+Qh7WxeYjdo/f5tBOrk5Re5cIqK08MPI7QXqffHxunPQkd2D3QtohpQ0Y+CDoKQs5UAgA2lH3fb1fuEgBoP5v6cbrRDGNQOYNuq1TkUtJuVU9tNpcOXpPyuLeCIrAf/gVF9DxjII3DeVYeKlO6Y3XyMaoH/Jn0rBid899Ny5HBAWQq9fyXiBqBXPd6joRX3pek2wILCKR6gnb5BEGPRNoKee7P/AbRn1ta9L8kxfxExOgRlh1kj5ZxiUqExECHC4hqfsaNMFYi02EBeDMDqGoAS8NSr/EDfR1sCbDh7w3ORgcqn9HjEJNY1GVVPaS4Wpo/OPuUn8CyR2E1pPtuz4/8I78HNWm8WEVWrM4lNwJL69c1Cl2YvjdYjM79WKxI2zNYL/9JLRXHL+p/qcslAMC+Y8sYgpAPXqYUOzzgyLHyNaQT2NPb4RJ1crFQ/YmYvKuEzR/QMA6TCe5a9Aq499ArRkncSr69C62ZFx9WR1rEEavo8ZEBYTdjKFBe2EPhOrDxmwbLSo4vJh4mLJGsXnuDvyIxN1fddaBV8XyifCwHaRHaHgNoyGISmXEdOeSXbm92VwdMWQZVZfXpyOBKCABKP8aI5/sa5zz1hZhgmgd46qiqGqUvsBjPdFj7bjrBgdG4B2Xb0YR1aEE/zo8RwVR+S7CEImPwLb09uv0hyrdBbZhR5LX+4RgQQWgvDQlnXc9qKQSCXKA8aHeiUjPU5g3CHNStKVaYAMDBF9RAbEsZYhW7v8YPCBG297WF95fxg0hn2RX+GqrAsi04yNXolBgzdLmNNO3J+kCPf1M+EybXN6cDdGaI0igZy0OhG/LI6d1a6pKZDzQkspckKt9FlF7DpsHeE0aCknXvt8rWm9c/rxuh/Fy3DMB5YlrGTeW3GQV9Ucns+VcGRTuNZgAvVhKEOlBvmTOPUjb6koqY08xZgY+0KKabU1XATXxeAdLzmfkfec7VFZxpz+n+nE7KjJHeS0ZFOLk42BWe2UYnFp5EyaV4w/szHlRzuxBb1L+A2g8GZZGq4GKrFPK+tk0qfvZBbDOyLzp9CPBEg7EiHivfVJacGwuz8Rn0+ouTWt9vyUy7tEIqArvebGcedBUeetLSIkTaYnKLcJBhGRf4bFw4jYR4xkmQlohsclMd1bQu2OVWu5rrDp1PffdngB6PI+vqzqFxhgnyIT54SUo70G/lTFBRG5xP7gFLGftmj9es73lhf6Us3E+tFxDZOmfXVM7SU2onB38kFpy0Y+YWsiluWY5if9hnUfWDQNde5mUZNNVgM6y1tj79AXn1RKpbJAtX/Z3B9rmKRsCdxZJb8QKwMgSWL+nJFa2Fumpq3ET2evbk9Uyhky7VmXO0OMxJ+1SgJ6tHYbgfgEd3uBLMKigBpolS/3NUE2fx4bWIeb4xU1DYFg2Sf6B1RbX+MlkW6Y90hSjcuPzS86BjjvTWrv6NBMeSy042GLsqtSkjTe/f1XOvIxWQl+vW6Ihle8KmeMDJ9QfqSk19H6aPh1XfaGALM0pwxUysWSaqN1HCYQhfuUbBuXnPLlgqTkALuYy0EcdPSxyVs5yb3s6fgZpvQ7l2GnAJ2EazGIwvkCOjNzHZeYgQAqVw2+ffDIK30aE7slszbbiIUYBwjXEkTUNMq8sCWSx8TgmrsQHsIg30FCZA9+4YWf6EWc4GeZ9mAjxltUpo3n7YDtA1GPls1GitGvTopBWT8BpSNKgPx/P5LsQ+rVsU2kbwEbsiW0KziX4H8wKVg2PKsI1dfe7pEclprqw/mGQhYwwYcTeOA9acwWYczI0Bxc9ge5dsOSTvmITARYDkEkHtlyLn9EtDntjlHIxtYwdpqkkyQBAi5VVBfFY7MKUwFq8Otwo6imjwKh4elh27pRyXevCqr2Wc2QnID65yUMSryTA9jeGcWcyC5uVNN5bV7cyDDbgcKs0PL+UHwqaxuG6mEvx7W+4u8aoTr8Cnw4Rxl/AkzCCXe7Eu7x5NZeri5+nlVUKFiCx8mts3kTvKJGKuQDLAMKOkqsWEc+v9DkKyHS2OiCvp4tSkZkqZ21FrwNBd8EdprkNXXxLUmVmyGqQOVp1uY+dxWaitNkN21/yanzttpZmB6BBYMjdtP2PbGAdGSzQylPzUOBPDeneEA8oUi3l2oeVBq328uCTv/iVuvwdzrrgOVsfR9PtV8pN4qb6MiS1vwvkE6JX4NfOXT5E6IPccYwJer671/N+Z+KI2zHzNaiqri5tddgi21mK7xOiQCCbDXuzANF1PQfYkbuDH2LnzBpjrt6Ub9zaT5v1SuYI0ZqOO5P+DEJIPZRo5UMWBd/fFZBxlOacQqwGpl/lEeFmZcZbYARoAF3SFzur1GUS0RZeqCSJ2hRovV2n5GHNwp6sXLl9uuv+OjrppFJn/mhSLuXIb6sLgxvvVIRmc7AwJSHM9vCsXvqkrBVXaKWK6tK0r9MU2KrsKZzzYTnNvvSGgSocn6LymQKn46TzSFCEmpvvwzo7+AEBeAtQVWdrWNhrlQANF8T/YPxpT97vHfRMV9x2YeMXIBumURK9pf5HswtfGg/QSBFE6ef3TGqYdK/9fq23EKfw/2YgVp378+ZRsLY+hJOeikbC6zmfG8PivTu3yup4CwyK4EvFbPHj2pYxgiJFCUgIvlqQIkIekdr49kksW+zueglB4RDD0Y/WbDwdrf41DdPHpGju0OXn2UxvzAgZC3VaE9Pty/mwRgGzpM14uT/lQ1XSYqhLhMRBIc+uZba3qQdpA3KPysjwDh3SZf7oLUNeadBHVyi+MC+v8f9ncXA3sgZczoTMTPfQQN52793aiI4MyFJqdX8kvkVYFK5/TLC54oBYkm1Ws1EFgGdV3z9BoWjHibbW7VdGM3XQEU/klEhbiJsTabJdj07wTBshz+ttiq2/N5jZK0DMIBbyv9m/al+NcoEdX+nc8W0RG3/4zJF6eKhVswB+08K7q7K5g3QdijUc4xItsA3jP2/ecSenY4u7xlBZV7JFg1VDgBcQ7w/S1HrCzCuLqz4LwFNHlK7yarYKuczbSDR2RqjnI8uXvMO0lTbcHksdCXD5kREvuKlSnrTOulU2hJLRuvGUUvXd+tpUXSMc7MLj4SZUFh5tLXGmFfDDNZyYuv3d4091FrV41is0VH3YNDW1gqUmhiOWf5SQOqHAYujVCg35NzDMPxrbU28zkgQFkNZWDHlWc0aQU4YctKsvRKeJy3XgNHZSXHgB44PmGwkVJhjg4GoNjNnf9OxLdr8rnwl9va8MAijAbvxRQBTdPME92r1bTPu6PcGKWsWOnixNIqtvoC85NAmsZTWgXL6mavBUT6WkXE/N2HjYEJ41BpLTVYDjsjHOjDQKfFnmsmSAlACLM9QkNchuxvp6Ozt2fbju3Mu2f4ih6h0ROGBmijs1GWhv72rsaOiR4aj59Y7iOSuQBWPy7sTs2YF+kRARpLamVCUZgFv7R6DEX5E6D1I+R+4kFJ0u6kTj5tRt6GTsKb5heqvf7n67HHl4sflL/tQrdhSQacFAC7yyL8WWmheSxlb96AgrZ5KMl33TKp4CoqApZrVwT1DaEmMXQ6JagEHvQpDZ/Ia+8nQRKFoAeBQm//Pq8Upb/66ttRhQyNHEdHkfbBs41K3+NskFEwGe1EWfhCN0jEky3lsw6c/VxnlL12ECVaUnCxhdjzH6FUJyTSgNWwut85AGLoxWd6ZyqbLu0gKdsobjL/5gYk7ZuDOCm6IQzV5d82LqnmnKLdfr+vqxZdICWr+RsB3Y7J92Qtn2Ub1PA3hIYALB1Xpo860TL9dpdWN7Vn0fV+o0SpdIbvvbYjB1irlWkMGCBUYY68RN4kCN1Vbwcs3E10t8YjJXgbiiGXIAK2fs4dRirpywx7/VG03599oVqTvNzG9mSU6jTX8z+uxfo+3TQo85uuvQORMrQFV3j61nv3mV4rAAUWutqhKWsX97OMpPnlXA1D+3u0RLuh8IA2UxOL7boeKd5FhqpA2S3GBByA/qbpjNnzXGc8mzA+BZo/QBhZqKO6IVmK3tq+wVivCb2yWP0+Kf8j3z0GTbStebVavfnRknhLT1LKP2q4Xha8DdaQaq1dFGPvbz9LRPbHWzMtWPkvF9ZVYhD0Bzj2Xds6YvYVFa38XFkDetoyn9LNLDs/XKWxhN3/6CBJfILNNJcGkqJquf88BMYD9tXjCYUPh3CqhCTcQbcvpRNfGbLjDEWlEhlMz+/FwA6ZRMGC3Phwi4wxfnH/FVgGxV8BamWuq9U9GcWKsov20f5rZxbR9dKiYEcKbWBKQDOM0GIxFelmZapirhO/gy8q+CK2s6MBWs/FPpQXKwvABiEfd5WCw/Mo2sk+xe2zXPjd0aNWLX2J1l3wmOhpmy58BhZ8xnbF2vKvde7NSdVqk5ElKm7gG8zYgcEjaniVYR1yFdUmH1zfrFsPbQ/zpbQzcm/tF+JRy/af+Uw/tPUc527bHVNr1OkWtva1SwH76bbfeWbCy3hanTeZ5ln19wPsJCUjIVBIeAlUCOnZoomcdz5WPngeD7EUFt5LH73r/LSr5PD+6gTopTy6sTdIkK6BWNApyirOPGtuL7aIhgJ9Id6Rhc6JNhqxrjIc/6YoXlT+l9Syq8GSvYMsFgSQOl5RDvpU6l0t3/IX0a06dysHyIyH4XGI8m46QRojvKwmcUZ523TW8haEgccqqtUyZ/EmgHmlb59Gg2JFRhxTXaQ5ayA1HIp/wzzP2O1VqRD4iZQPqoFREcxpkco9Muyby2yvdMMbRxTosHDNSCwzXXrMZv44aDAT4OyGJ3JnoMwgYnofFWU1npyIBMUpgroIplds9lGGqsKZ74v5CSOAsrLKwEEZbkuFM5n43DIGmkkVNt6hd6n9R+QFew/p9L5sERk12kaxu9AIWpIGFSodFw4nGLtZBpQRHKa0Ao4EzHgZQvi68PyjrOCrFW2K2E30Xt7iX+WtU/YkgCLFkZCKlAyplO8TONDtDCIkd/C8pEbLFJqWPOs1Px4CeOy1PGAchDeJNTqiDxeOgMey1UYSIpSJIRr4V+xniTO6XjC6SfGL5rKhfh66+bPx+RHpmZwlJ/mx1dOqo1qUIFdKzQFXqX0Q4fAzt8Cm4KdpKniNzHUlM2pVRvB6U5UmSfXZ41kU8U145I4e+sGMETwLsjsrwHYZRf6LX3SFQJKtept60dCltAqOrlZXQHnn35jbHPs2WWYvGIbO4dynBL+xM1cyc1KnUwCL3ckWMKMj083qaDbFxxgpeKG157DH7MDThXhq1dTyQy7+MbohVZUyONIr+owLGqfO0NKnsuoUuUFNFCp40srRAmILHcwmBRoZZrT/migCZ4ih7X8zU2Gan4nUYCvo/ZC4XVornEKHr2fgZdEkP+3SKpTK6bkAyr6WpyIC4TwYhJmFswSvyfo0zFgnZSj8bWDa16UV8sSMPR1UKC4PEbivL5iZ3VIkO5cbKwlTYnqXAUqNg079YM3PaoD/E/pRJ5KS0oG/Br7yxDQDI6XybUhkhzSuT/BDtqZbngehBzRKR3dv2d9w+IxP4eeRdqhTv8NRjMTXqNFO2SpSdaTcrAKIA7SrOQX19WpBxyb3V++Fnl6uwAhgVuH0C042Q3HOBPviGQLIxPSNCRoa1jsldTAIODuBjNgiHE/HN2IHnT913svN8RultMLkBYSRLZUFdHQlSMgPDuQMEmH/LW7e+payGY+LkclrcSZZ8XQw7OybHCWLPupvhxQVJOI4pBvOwpClIQ2zyBXhHuj9bWJ6PJCRfJpu4UqEJ/KQLtjoWA485f4b7PbyhfJ27UQNzcvPqHJyI7r90kjVfWIJq9Ucwq4K7GFQR8Z5Cn8otKNKUGMY+f9SQxNu0cOd3FB+ImgLLp3pxMdkTbpZJHYt6v/Oqk/f53dkY+A6elz6QLy0drdyfQqu8RTrxiXzrsJrrU4ZX+ju2E0PXxExm8AjXbnK/x0rmZ+P703zKL3LM1BVo4hGTC/SL4LptH3Oxl1k23CXxbIMbr/Aa8QXyYa/83AeTRrg/w+vNFe3PKbmaPSdfJ4YVE8yksrdwgm7Jm1lenZ1YHQXPNX/qrp8fOHbGBmrj/H76iC0uc1iWLQeAxuFIChZCbnBBlXPj/0PpwYWl4Vs/dPCKc4Vqq+37FPX//3HDcB5HzTbaJhuSAPN+QAfskuhFCL5X3XEd5h+z6g371hDMrwOXchhjPbLW+2atF4NdNjxUj1mBACbRFkWUOiNRO+eDMBYiG1cPEIFKDPKDg7LQBcVZcnh/SFROhiImzriNeBnUFxL6A4mzf1EfjSPNtGNMJda9tTcPhyD3REGot1oGW0QLn5w+s9aNIcctlia3GK4HRE10njFa9odm03QQoddipm8I7U4+viKf20+4lGCaGEXrgFWVuO/IVx5Joha+7gGYnUdlnD39JZ3sJBTKts3JjFvEENV9EIqZ+KLfyslTVgvaiPQQ/Y1ylV52iL5z284Oer/gXGo6ZrDgAIVGO20AclMa+oqQJnGIowq/UpcmLD8jAAGn8FQNMVRdX8YwbVYalME5GZB9OKQJHh5TCnaPn4BVW/qpGTZXuCB4kHcu+iKrA7gdnenQXlrVtTfqzPfK1kIdJDf6ytsp4Wrs7tpdkDUCTkbLbopd8qw7MY6oGGJ/4mzKJRyI9dyVkgjuAeTNM/WCQiSifDNbTdh2x2Eqx5DPxZvzELkduZ/GHVPXXpJhTpEdpiTGccXjd7vYt3qbN8JjN7H9gNJlv6XVxZQ+6f8tu8Irl8T4q7lcEOgSpfcFIfPuF0ZvS/qXiBqM5jgmzdb6JsZ9Og25x6Q+X/NJlTAM3bL+0jrUTkbQzXP+cgUOmPNWOMYiTyCSq68UWqobEBZD4KEX7XCW/QZnIKW2jGQ2Od0T4sW49QsctwXXFH5/rtWwyyKrDbK+I6TkpKgsLBAxX2ShY2hBKeMQETI1FjMQOQ+7FNK6bv5S3WZTFDLMatePk0FJbdlC2of6fTU25ZnXdqEy1JhP4p81zD8MNSXiSNS4M1F4mcOTzHb1d+u7qO3egrs0HTx920LZ37f478AESAlNcw8vZ3dUW/tE9H2XDJXeonTmlT9BUgtiaFz70kyeYa1zP/vK4YypOqgX7KveG2bKV+YHT4zx8b9PTaMveaPVxwme09rf5QukYmiP1p4K3p6wFxitbqJWNig6BIgorj9faFvIkqBLj+k/u5cZNe6t3O/vOpG/f6YIeBsnMpnHOtw4AL7tAeeb3/G56BBWNxlo/oGdFoJG6jnO9MZfxMZF03Jdu+iwo0OCIsx+0KECTXOQnJEyAth1g+4AotHzXsuJKFNnmY99VMdaMLQISGZ2/KoNYcPGCqGH4w8tkce6QS7ymRIJ0PdBJUwf2dlLJQjWtTE6nyyXIy+/0QQrn1mn/WsW9OXTt1FcrKurttIbaxrkrgbPR9H3i0PlpUQWdALJ0qb+TKPyn//P+OpkrRKTT8CjH1Jy6yrwxIQ4ARldlXlCS6Y81xSpGlWqziF/DlZFvEeDC+lYyCP7FxBaR/cL40u8WyIBRNh2FEVGRDbMEUHzU1/COVNqV2qrmWM2zzFn+VQkulMdx41zuLkJp8JOC3LX4QLJ1kHL43Hy3FifaHDwCoHdpJUSHwnkT64h9q2qLiZJzj2ihuBFf4F04zXiTu4dxRSfLFyloAlZvIDxylwAvDQSqiuTxoWVdJMlmi2qp1BAjbKgqMc1ZcgvbXpsoAHymmwZcKZxQPmSLr2h8rzTAHEm9y1XKKVdGXDwPhEGtY7FrNJFYD36iZf+NQrCmRnRbtRPhXQCm8WhckBKmXx17ZnHuHz7JY2fPkPIAKOuxbdl3b6ddq03gkMaXuMmPQM/6wEL8AIklLT4aqE262wXCSzXYmS1qCTXeb/AO+qn6N2m8zhl3fkAFwbUTv27XiyUKUZ0HC5YbB9tUMYXBlU6jnFiwBpqvVN8JZ5bAjN82XSjMokZoi+InMNd6wQY8Y3jGjO9YLa86bL7hLRnyqwtWMIE5YB5Fhi20wOcwuRwAWlEj6p0nnkJnmbC6aLFQ/oDuDvTV8yfipDPnByat3HH0V5zlMAq6ylylUI4Xu66w+TKB6xyNyCV7tkQploE8B1404XRkToZLmba42xuVRa8Yh/nLL4iBUgIgf9jZa1dwuoGUCdQDyT+c0+LWtVBtHacmK5+YzQG/F1r0C0x1T6ynuB3faF/jM/GiZ6j1/Z3PcTdJsnziZblUD+BQvYq1BMGKrejZ8SGBPmzjCL66ncD+cYHSQvx9xSNfoWBbrkbLI7yiuozcP3yqzqzVrqWLZFkWj7/YWBGjP4cXPBJMFy/h1z9GT7QZLsCOIidspz6/QbaLbaxe3Lt1uqesvLELlG7DBadbpp/Pcb8HBg72XRzspG6UZAseQ4G01/euGL6XQiNbCv18FEe/D+X7vUAyxvFst1/9YsTfiik6T/DSRiPRdAM5GhzqHM3McmUR12UqR8KPXdsAacGa4mt8/RBn7arH0txL1I4ZX5mfQAWk5I/IFGGGdFijRU+eHEejge4IyRPmySv969bUZci9UViLNTq2T2foASO7E2orqhD8eyHUD4AKltnur8HY+Y7/S87pr5McSVVZmeBzB+dS6qkdtwVPoeervRREOBMg0Buw2TP7gCnN60CT511sCo1umRhXsOcdd1ZeeDQ1WH05pXrgF1GKErDy5x8PeclzCluRYcSI2Oy4uRWpLi6powi3VOjpblRrvoc/kKrUjRZ9TTfJfFnoOJP9qPRQGy4nP02dy2jMc1rMpNsOM7OIbCNWGWQ1TNTyKBF6SvkBIkzHGyi+ItgGUVwefozxgvjc5t51YUnbMOyaE5mkrqUxzqc8zOFF6sU7hsc/Xq5kpu9o55uDIHs92P9439R7iygrCfnxu8XlreAhGpc25vxTBuIhgUS0whouR56yyvDepoleJkKpS6nLSUWcggtDULFa1YG58DQjAUycP9ghU+1zgxGpKaoQbKToihSb3SWk/hKY15eWkckt+6D/QeDPlqFJFnqmMEBZoGdbqMmYfPYf3J6mEr5l/QJinyThWeyeNZR4PavhmN/bYtSbJmDkuwdNNktU4MyQtXNpdZ8YyeBp7gFkNJwxswt8ECg5hRPWxFy1XMYYlxW/WPfAeXfQxLuyMzJ0GCV6lecMkZUGtJ2uf1/IV7A/VSRBeCgbMF93TalbKEZULbRin56Z99jsRwF6Z4fZv+g5p9vm1kpZja7BRGtvpEo/F4rhDvwLhXvo13SK8qa1rYu3iocybvXznvHBs2b8HPSM2uegcJsZ4y3/wjU4CX8pjCBeL1KRC9xD8/iO6gUqPqLM90dZpSUGNicFSTXDejG96wtj63vnogyr+Vf8tEdwQf3mZN16hK6jBou+qcbIrpa7vpy01kG7FQTwEJXTMNvso9l2vcCH40o/Cmp3X3u3/NKVETWu8Vnu0wHyjeNxle3R8gYjg5FZA04lRjdX+5bFLCx/kWGvn8AGGkDOYhXl17XD9wmOLOwvInnJaNMd/icUbBZP3hnONIB9sDfkdKuK/W6hkbvQNW4MXCPAwgjn7Gy61JCUXjCRCkJnbYRUv34KQb+x40rWg9iFBB5D3OUkGKa45SsiwzYjRQj8x3CNkGTi/ZvlgF+/H57ltMOgX/yhqV2ZCwnjc9Q6vERtaf0y53HnWZLb6eCtmthj1mmQVk/htDUsuEymTI6fJ2FBweoyxnBAGqWk+rWuMZBdTxmGnWuqRMFV68pbJUaVMzfjf2VyxfHYwxzAozWr100xupmp5Y6oD4cLkveOvEqOatdoAVv8Ie1ezz3Id09Y2tCMexu9X6xQjIbRzxwUoBqm0kDp/P+7Y14qLM+zH4O5Plcoio8/I+mxNVCdNfm2dxYTuDkhEtjpvkFdDU1u9/GJwRkrmCig9c5JqZKQ/gk8LUCTfI5kh4r6y6hg32Kzrn8W8VXudxHK/NXkEMqsM8Sm/N05cubZzD2U1yYMvoul9xBBduz5quc6c/6fth3lGju3h23iGotUWh3o+QWHciYePSqDfATVpk3lSPC+SrsyYwPwY8PCA/79g3AnPuZP3sNRVBr0at47NMHQWfjPiMNTtRhLlxiomeKa0s8mHIS2Dysy8EsmZPiYbavmRRLCc7zkCIRm7qh2Ohcn5QEdMDy39EReqmvgI2i9AsOYARb4hEJeKyO4QATgMkXqDrhNN2O8CGZ8Ah7+LeV3OtqpAmf1tpqTGZ+nYztYi0wqyZ3BvTJ/4AKTOv9BIpUhtaIVW4BGnzaOP4gUaUy/UKfLCXdxEuEJzHPzJVq20nHrtEXwC8xJMq9DRX3c++ZRM2O8Wal3SZU8jVLHkBzgIJdWj8+EEbqnDWLKN+R6Ajsp986sx7CgaNT/z8YEQ7cf6/W41STFl3tM48IBLH4OSoV7ORB8ksdvHV/+phpQ+6foaZk7Qa6pD+8WSB3PomclsGUYZH8QJiu4xThDFRLkQlAcNwrpKoTIUW9GUAyvM2IqUPfMYsuZODFW8Gxy7Lx93BHdb15as02R3yyuijedP8TBG9EVbOUxwSN5w8PwUalgY6gKw0Bn11AS0SQAaj3P9KcYOJgOdDQO4ULM7VmDlIB0vDevAFRZTDg+DSEGexx7reZrbGif78r2E8dK1vtkPhct/dtJl4oWaWmNYbLtPSE1jLYEtryu7sc/eAK9gEaFf0XW/yAETj4mYTYFdxf6teb96DE3bo/xSTTnGW9UCoyuh0qw4zX4K4bGC8z2nmyF6J9DaJUV3IMBKR2UVi4ZxsPPL9VEl5mF23vkCFxPVYikqjbBbEHwfFZxSsS4ufz/rsywwKP+QuGw/AqbncmE9I6FoqsL2nANlBPNvXHrvyHvbWObXYezgwu+b/XYg2TmZ7oUIXdY547rU/aFEv4SfClzwxAvfeF96Wc5A9TvIbWh9yKk7ScdgS+/63AeqFF8OlVd1wnNexZyVJShmUuMDYDtye8M/+glqBYiwVY5xkVXiKBeMSdxiLBxxj1dMIEoe0kL5N4q6ROXsd70EhO9W6PfNLllxWdvJvbkSqJ6ESBIUblKB8dCaXuMkgtkGUQr3f+cYE3VWY5Pkqyv1+DgLKCOh/D3Xa4AP20SBvpzsBTgorTeQWiMrFyj9aWCvd4j/F+9TspmGbER3HhfF4oSqZyZg60AKa+aW56m5P8EyuuyZmKvXPSJ5jKtVE8pcqOYevqNbx6FidSKMGJR8d3rSACjrZQKRiZtFc8OmsTR4PtGHIDt52iWNYuW3jpKMWbfNgIVpPVWBEjrQ9u4/VB/X6VcJ1+in4otqpCNorwx8Ee1V1FPOOakcRptfUbUwUOgn6oStyqObU/qU5IJfhINVJopFOC8uEqr/qE43Btz7CrQOiz5R+Uech95h7A1lukIYnLFJ27wIAh3eG0xrFrgO57gbTl1jgmUzHmZcMPcGrmGzFNvB3w3zyRgL2TXInMUkz2J33DbFyKxHtuie2wGpuDaLlDJvXkW37/OjaDLMxyajjtbjI//BpzFm6kPLmpR/oM1Pw0GC017slQssmI0KStLMKpLvsSu+asJCv86Rk24+hkPMWaH35gS1Ra6Jf+dZiK0nthXF1uBZ8YfoKyhs+MdOROGPQlb25GpGMoT401agd/fBMpriOVGCpl93X936zTcV8PLtORT+hF+NYtU0nM44/Y2akfTzSTkpdgZa3kNnuyc0i9dgyYUFUY7a+GVIafuCFo6a0R3QJpDuGFztWZkelEY7x5PKqf1+v6HP/isf+/V1HnmTzSmqRlv/gBFhLBV8N8hoDRbdn+6gRN4GJUxs3w13avIoEQTGJuTRr4mukNAO3ynxVJQ6LCg5yykJfIXfkln9V3n7dO5BvKlg9kv6feIeek250KjdSYYEO99O5ZV85EUYSOfOXHEhYCAGMlFR2nLiIajLJv0dd2FCG833mq6LLr1yJpo0ICQU9GWnEJ9B1hdy/3JJlG5D8IVQPobcFIXemlXu+2uFWA/nFMD8vHfvrJ7vYOksGqf8yDij7He6ptPupkvmEBEYZP8VGOdTi1qeSMBpmfTkojmm955T9h682VVT6+vAZmmdTKPCsOtnvNnQqArncucX+oc0WjId2P4l9mm/oFoPzaZy17iyhr87n47vU/1ZAZBw7IR10AQ2L9u29s/q5IiTDXYNxxpRV2DSrFpsurywk5BR61jYOpt+x5e/Dlhi2kQG83vSMIUGI617XZMyxgcgoFye0bZi/Fa5erVO9o8BdOv14q1mb776W8kf8ZpgavGcA1yWR65X7mf3Zx8HEWNxM4rx6R3wWH0nHLe5eVLhTQZf211hGxT9BA9VOsH738Yflj5Y+t2jEFrfb5Lz2IQXrZao8QDkUl2HT6B51zisRDx8/bcEjiplamR1HLkywo1bCn7u+iUuR9Om6ZDOaYvrNvxYXTP1Y5mRSO4SjLMPkq1T7qF8eYZgY3VNLaN39lYXOSikpJ+CYeDCgBC4Z2lug3LgrwhqBoNmNIEmlIak5G5q+T4g/kDsKhn8rsUXdEqsHcH1XqiRnfjlnlEh5G9v3XWo4lfEEhCGhPXD6wggYphm9cEbnr+UWAuEK3pBdcWPgcPCIRt2Vvvf+B2bP3GHwy0H3kMd+uLY+sYnafDKEGXw3VHs1uGoTLnN+HIpwP80x4amMxOwZiCCN1WeKaXRNc6MXDFWZUxqNAOWO0mER/gQIw3a9QdPhup8fW2UqIWVzFLdDjhimcNGeT4CbbdyfH3N1JHO/khZSb4CyuTMSstGGOm9FA2QOnYpOlkgEi5Fw3/MADNFSqsVSG2NDz+8hVlpgQ0bWSrgbl2m8NA3Ba1fz8R9IVInxuc7FJx97qiHcXu++QEU77g5JKB33g9flfNsfxRcyZ1GRi8Yat2o5t9Bq0GRmFBJKdgYX+rF81wNgde+q3g5JMKix8AeizC7vF6xh7vuXJSLYTnHVTvHZfzy68hmLQf/VsTwUxeGfHC4DAk+VmAUsnPD24CXWke7vYBuQ2g8liLV11T8LNE04F+Zz7gQwDSIu//Lhc2OYn4ncVKExrcg1zSRIdKfbeQsm4oFLeXEkbXDM1Ey15VcWIIBk02D6jOXWG65TfB/YoZ6Lm6zG9HyDwNgx6RDfjhNWrS2CppmSFpsYE3XjanjFTXtykHFl2nBU7CUF5KuamVrCQf2Gdi1vR5oFE9fpKyo0njvWe4ZeTZZ0gQQ4vv+nKqEWftO907w6H7RNoQVB/tIxRgxNNO0h/ZJ1+EUh7OfCgtjyuk8+MU0qXgy0S3JAwg1KldDngecBIFi5OSNXr26G0sk0ndreeAeGCrVBnKaocH9/ohdT/I5vmG4n/TNo4aIcxblQtRHpDuyB7XFu1frGzbaGBp+Z2x1VIwN5weCDrK21nx1nhRe2yhWsgNA2OiIV6oI23UOkKGo4a9gSSbjL3Rp5g2sRRfja9HIT5ETNRKsTUKXcfFcMQMxcI7rps1kLbIQirG7qGEPzjrHkiybTeDQzJU9qN1jXSTo32W3f7PM/SIcVBlB5PXuuU/6G5x65Rci+k4AqGcq+oKwVBVJ3WMWYP692IZFPjDJ2DkRBCoMfCL23w+z1DOEPFWPWL0U7Jvti3STyAJ15H+iAQifro6QnKXBBBwBnmEh7KMIki7E1up14bDg39X4aeB3AVfYZRIH7WXEd2pqliQjnJO6IUIvIcjWEqEtuE5fY4MbWuAuqwCoj7jyoUOBF53FrdwXcxZZNhKe/ip1N1vi2TD9i8JhM4h+wanMqnKesdjXXRhVoAuNWoC35z7Xg4F6ecz6g1yQJictpiVUFdeUZM1UKSr2j2E4Kl8o6sfG6oefzEHAv79BIfmWcpWMiskmK9mDxf9+PegZt1gJFa16HXkSbcKbMRQs3wb9jjcoYK9pvo3AIH7AOji1y0WTLUm9YcmR4Ln9W7+rDvWrp+jCmSzofJfr2wMM4S5FeIte9jzoyDZllg9KT1WybmmVgkKoTWZQse2Al+ZnltZCN9+ahVehcktENRI0F2eJzOuUqX6JYinP1vC/YAmjx9fXqKDqIcRPYIka9Qeq6bzomeAaNSW787OVuK5KZeyxBNQji44YcrBFeRnEnr1Jz/yi8EYvoQS8BG9fexH9E4Cjpzlsd7cszU8Hr1CpoJzvXw7yZSaPwL+QuLeppUq5KN81lgDEUh9R8XV2+1AVwhgPlMQq3mkoWInvBkqm3f3pwSIQXrxFMbNKOBkqQVNb2vxgnyAzffEpmaHKeGxs4+kbQE57K8VyBMdJD4uBPfx/5/Dit82/muU9UYeVaVm9og4S0k7+F+yHnla0e6ytgkoogrwKQjm+7PaA//9Vtif8lzolIF9rNKybUmmeqVRAmKoA0w4dz8raN2CaQeHbcQAAEpX+rjqY1FZgmsXdOd2st4qC1MYjFs1jNB4tiyjNRXJodl50maG4vnTlLVjNGj5BdwfrwO4xpryB3uCvvsRwPVNffgqkHzY1zCKT3pPJqMh0x89ifcyhdNIwccLPZLKur3h3aD4Rhsvwok4F4ZCjfeBNMAAMNAHJR9HMCvAIZafHf+HQMtN6sgAHbMo7EDamEg0i5b3o7d3g0zoGHz3wdD+Hy8bM0vXdzoZuCu8duqwbEg4+yb5sO7SmlDQ1V02mr1KD3SilU9d6IzfEQNsOz9t18+Qs48d7/Nal4gausP5JBwyU+aqBVAJDVhms+tfGdWaPm5VqP2XywS2s27buMi0dm9bPfqt1IyUoVU1YV97ap9YC1hXu5yCCt33WWNW3qEsgD25dCLTJ5Le+03yPhN05XIZURcCWvQWNa3R/gZcD9O1uRlyBWpeqpmiJ8fXyrCLzIU/JQ0ohia28no1J/xZwj6c/mwwVQ7reFqI/OMcudTcrNFbQGYOeg36mSReLi+LjlPrBLoNMgzOB/E6vkD4+0pNnlMaqU/fvAtdpwmGBSAnwdFsk78QGI9mw4Og83MHJk4CGaITIiUUcNjAjpJzxehkvNuXU0ISgYUZx5cgIwLIlBkZgxpRwkKoA83Q7HogxcdRzIHTE2+O6DVIs5/mMtfnshWYxui+P6welUFJq3KBU9a6oaX8wOG4gBgrlAASENDAAAAAAAAAAAAAAAAAAAAAAAA==";
@@ -1076,87 +1211,110 @@
     let seciliKatalogModeli = MAKINE_KATALOGU[0];
 
     const SAYFA_BILGILERI = {
-      genel: ["Filo Genel Bakış", "Makine, bağlantı ve olay durumlarının özeti"],
-      makineler: ["Makineler", "Filonuza bağlı makineler ve telemetri durumu"],
-      bakim: ["Bakım Yönetimi", "Motor saatine göre filo bakım planları"],
+      genel: ["Filo Genel Bakış", "Kullanılabilirlik, verimlilik ve açık aksiyonların özeti"],
+      makineler: ["Filo", "Makine sağlığı, kullanım ve bakım durumunu birlikte yönetin"],
+      makine: ["Makine Detayı", "BYM6-001 için sağlık, kullanım ve veri kalitesi"],
+      saglik: ["Sağlık Merkezi", "Makine alt sistemlerini ve erken risk işaretlerini izleyin"],
+      bakim: ["Bakım Planları", "Motor saatine göre yaklaşan ve geciken bakımları izleyin"],
+      isemirleri: ["İş Emirleri", "Bakım aksiyonlarını sorumlu, durum ve terminle yönetin"],
       dashboard: ["Dashboardlar", "Seçili makinenin operasyon ekranları"],
       studio: ["Dashboard Tasarımcısı", "Widget yerleşimini ve gösterimleri yönetin"],
       trend: ["Trend Analizi", "Birden fazla CAN sinyalini zaman ekseninde inceleyin"],
-      olaylar: ["Olaylar ve Uyarılar", "Aktif uyarılar ve geçmiş olay kayıtları"],
+      olaylar: ["Olaylar ve Aksiyonlar", "Uyarıları önceliklendirin, sahiplenin ve çözüme taşıyın"],
+      raporlar: ["Rapor Merkezi", "Filo, kullanım, olay ve bakım raporlarını yönetin"],
       kurallar: ["Olay Kuralları", "Olay yakalama koşullarını oluşturun ve yönetin"],
       offline: ["Offline Veri Aktarımı", "Tablet veya USB paketlerini doğrulayarak yükleyin"],
       kullanicilar: ["Kullanıcılar ve Yetkiler", "Müşteri kullanıcıları ve erişim rollerini yönetin"],
-      teknik: ["Teknik Ayarlar", "DBC kütüphanesi, cihaz ve CAN kanalı atamaları"],
+      teknik: ["DBC ve Sinyaller", "DBC kütüphanesi, cihaz ve CAN kanalı atamaları"],
+      cihazlar: ["Cihazlar ve OTA", "Telemetri donanımı, sürüm ve güncelleme kampanyaları"],
     };
 
     function arayuzuKur() {
       const sayfaGovdeleri = `
         <section id="sayfa-genel" class="sayfa aktif" data-sayfa="genel">
           <div class="sayfa-ust">
-            <div><h2>Filo Genel Bakış</h2><p>Bağlantı, veri akışı ve açık olayları tek ekrandan izleyin.</p></div>
-            <button class="ikincil-btn" onclick="manuelYenile()"><i data-lucide="refresh-cw"></i> Verileri Yenile</button>
+            <div><h2>Filo Genel Bakış</h2><p>Filonun kullanılabilirliğini, operasyon kayıplarını ve müdahale bekleyen konuları tek çalışma alanından yönetin.</p></div>
+            <div class="buton-grubu"><select id="genelPeriyot" class="makine-secici" aria-label="Özet dönemi"><option>Bugün</option><option>Son 7 gün</option><option>Bu ay</option></select><button class="ikincil-btn" onclick="manuelYenile()"><i data-lucide="refresh-cw"></i> Yenile</button></div>
           </div>
-          <div class="kpi-izgara">
-            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Toplam Makine</span><span class="kpi-ikon"><i data-lucide="truck"></i></span></div><strong class="kpi-deger">2</strong><span class="kpi-alt">1 bağlı · 1 eşleme bekliyor</span></article>
-            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Bağlı Makine</span><span class="kpi-ikon"><i data-lucide="radio-tower"></i></span></div><strong id="kpiBagliMakine" class="kpi-deger">—</strong><span id="kpiBagliAlt" class="kpi-alt">Durum kontrol ediliyor</span></article>
-            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Aktif Olay</span><span class="kpi-ikon"><i data-lucide="triangle-alert"></i></span></div><strong id="kpiAktifOlay" class="kpi-deger">—</strong><span class="kpi-alt">Açık uyarı ve kritik olay</span></article>
-            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Son Veri</span><span class="kpi-ikon"><i data-lucide="activity"></i></span></div><strong id="kpiSonVeri" class="kpi-deger">—</strong><span class="kpi-alt">BYM6-001 telemetri akışı</span></article>
+          <div class="kpi-izgara kpi-besli">
+            <article class="kpi-karti kpi-vurgu"><div class="kpi-karti-ust"><span>Bağlı Filo</span><span class="kpi-ikon"><i data-lucide="activity"></i></span></div><strong id="kpiKullanilabilirlik" class="kpi-deger">—</strong><span id="kpiBagliAlt" class="kpi-alt">Heartbeat kontrol ediliyor</span><span id="kpiBagliMakine" class="gizli">—</span></article>
+            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Operasyon Oranı</span><span class="kpi-ikon"><i data-lucide="circle-play"></i></span></div><strong id="kpiOperasyon" class="kpi-deger">—</strong><span class="kpi-alt">Motor saati − rölanti</span></article>
+            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Rölanti Oranı</span><span class="kpi-ikon"><i data-lucide="pause-circle"></i></span></div><strong id="kpiRolanti" class="kpi-deger">—</strong><span class="kpi-alt">Kümülatif motor saatine göre</span></article>
+            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Açık Aksiyon</span><span class="kpi-ikon"><i data-lucide="triangle-alert"></i></span></div><strong id="kpiAktifOlay" class="kpi-deger">—</strong><span class="kpi-alt">Atama veya inceleme bekliyor</span></article>
+            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Yaklaşan Bakım</span><span class="kpi-ikon"><i data-lucide="calendar-clock"></i></span></div><strong id="kpiBakim" class="kpi-deger">—</strong><span class="kpi-alt">En yakın motor saati periyodu</span></article>
           </div>
-          <article class="panel operasyon-paneli">
-            <div class="panel-baslik"><div><h3>Operasyon Performansı</h3><span id="operasyonVeriNotu" class="sayfa-alt-not">Son telemetri sayaçları kontrol ediliyor</span></div><a href="#" onclick="sayfaAc('trend'); return false;">Detaylı analiz</a></div>
-            <div class="operasyon-metrik-izgara">
-              <div class="operasyon-metrik-karti"><div class="operasyon-metrik-ust"><span>Motor Saati</span><i data-lucide="timer"></i></div><strong id="operasyonMotorSaati">—</strong><small>SPN 247 · kümülatif</small></div>
-              <div class="operasyon-metrik-karti"><div class="operasyon-metrik-ust"><span>Rölanti Süresi</span><i data-lucide="pause-circle"></i></div><strong id="operasyonRolanti">—</strong><small>SPN 235 · kümülatif</small></div>
-              <div class="operasyon-metrik-karti"><div class="operasyon-metrik-ust"><span>Rölanti Oranı</span><i data-lucide="pie-chart"></i></div><strong id="operasyonRolantiOrani">—</strong><small>Motor saatine göre</small></div>
-              <div class="operasyon-metrik-karti"><div class="operasyon-metrik-ust"><span>Toplam Yakıt</span><i data-lucide="fuel"></i></div><strong id="operasyonToplamYakit">—</strong><small>SPN 250 · kümülatif</small></div>
-              <div class="operasyon-metrik-karti"><div class="operasyon-metrik-ust"><span>Toplam Mesafe</span><i data-lucide="route"></i></div><strong id="operasyonMesafe">—</strong><small>SPN 245 · kümülatif</small></div>
-              <div class="operasyon-metrik-karti"><div class="operasyon-metrik-ust"><span>Yakıt Verimliliği</span><i data-lucide="gauge"></i></div><strong id="operasyonYakitVerimi">—</strong><small>Toplam mesafe / yakıt</small></div>
-              <div class="operasyon-metrik-karti"><div class="operasyon-metrik-ust"><span>Güncel Hız</span><i data-lucide="navigation"></i></div><strong id="operasyonHiz">—</strong><small>SPN 84 · son değer</small></div>
-              <div class="operasyon-metrik-karti"><div class="operasyon-metrik-ust"><span>Anlık Yakıt Debisi</span><i data-lucide="droplets"></i></div><strong id="operasyonYakitDebisi">—</strong><small>SPN 183 · son değer</small></div>
-            </div>
-            <div class="kullanim-dagilimi"><div><h4>Motor Çalışma Dağılımı</h4><p>Kümülatif motor ve rölanti sayaçlarına göre</p></div><div id="operasyonKullanimCubugu" class="kullanim-cubugu veri-yok"><span class="calisma"></span><span class="rolanti"></span></div><div class="kullanim-oranlari"><span id="operasyonCalismaOrani">Çalışma —</span><span id="operasyonRolantiOraniAlt">Rölanti —</span></div></div>
-          </article>
-          <div class="genel-izgara">
+
+          <div class="iki-kolon-pro">
             <article class="panel">
-              <div class="panel-baslik"><h3>Makine Durumu</h3><a href="#" onclick="sayfaAc('makineler'); return false;">Tüm makineler</a></div>
-              <div class="makine-ozet-karti makine-gorselli-kart">
-                <div class="makine-gorsel"><img src="${BYM6_IMAGE_URL}" alt="Titan BYM6 beton transmikseri" loading="lazy" decoding="async"></div>
-                <div class="makine-kart-icerik"><div class="makine-baslik"><span id="genelMakineNokta" class="durum-noktasi"></span><h4>BYM6-001</h4><span id="genelMakineRozet" class="rozet pasif">Kontrol ediliyor</span></div><div class="makine-meta"><span>OEM model: Titan BYM6</span><span>Müşteri etiketi: <strong data-makine-etiketi>UG-042</strong></span><span id="genelMakineSonVeri">Son veri bekleniyor</span></div><div class="kart-aksiyonlari"><button onclick="sayfaAc('dashboard')">Dashboardu Aç</button><button class="ikincil-btn" onclick="sayfaAc('bakim')">Bakım Planı</button></div></div>
-                <div class="makine-kart-metrikler"><div class="makine-mini-metrik"><strong id="genelMakineMotorSaati">— sa</strong><span>Motor saati</span></div><div class="makine-mini-metrik"><strong id="genelMakineRolanti">— sa</strong><span>Rölanti süresi</span></div><div class="makine-mini-metrik"><strong id="genelMakineYakit">— L</strong><span>Toplam yakıt</span></div><div class="makine-mini-metrik"><strong id="genelMakineVolt">— V</strong><span>Besleme gerilimi</span></div></div>
+              <div class="panel-baslik"><div class="panel-baslik-aciklama"><h3>Filo Kullanım Dağılımı</h3><p>Çalışma, rölanti, offline ve veri bulunmayan sürelerin karşılaştırması</p></div><a href="#" onclick="sayfaAc('trend'); return false;">Trendleri incele</a></div>
+              <div class="durum-aciklamasi"><span><i></i>Operasyon</span><span><i class="rolanti"></i>Rölanti</span><span><i class="offline"></i>Offline</span><span><i class="veri-yok"></i>Veri yok</span></div>
+              <div class="filo-zaman-listesi">
+                <div class="filo-zaman-satiri"><div class="filo-zaman-makine"><strong>BYM6-001</strong><span data-makine-etiketi>UG-042</span></div><div class="filo-zaman-bar"><span id="filoOperasyonParca" class="operasyon"></span><span id="filoRolantiParca" class="rolanti"></span><span id="filoOfflineParca" class="offline"></span></div><div id="filoOperasyonOran" class="filo-zaman-oran">—</div></div>
+                <div class="filo-zaman-satiri"><div class="filo-zaman-makine"><strong>BKOS-014</strong><span>UG-BKOS-07</span></div><div class="filo-zaman-bar"><span class="veri-yok"></span></div><div class="filo-zaman-oran">Eşlenmedi</div></div>
               </div>
             </article>
             <article class="panel">
-              <div class="panel-baslik"><h3>Son Olaylar</h3><a href="#" onclick="sayfaAc('olaylar'); return false;">Olay geçmişi</a></div>
-              <div id="genelOlayListesi" class="olay-mini-listesi"><div class="bos-panel">Olay kayıtları kontrol ediliyor.</div></div>
+              <div class="panel-baslik"><div class="panel-baslik-aciklama"><h3>Aksiyon Merkezi</h3><p>Öncelik, sorumlu ve durum bilgisiyle açık konular</p></div><a href="#" onclick="sayfaAc('olaylar'); return false;">Tümünü aç</a></div>
+              <div id="genelOlayListesi" class="aksiyon-listesi"><div class="bos-panel">Açık aksiyonlar kontrol ediliyor.</div></div>
             </article>
           </div>
-          <article class="panel"><div class="panel-baslik"><h3>Bağlantı ve Veri Sağlığı</h3><span class="sayfa-alt-not">Son heartbeat ve telemetri kayıtlarına göre</span></div><div id="saglikPaneliYeri"></div><div id="aktarimUyarisiYeri"></div></article>
+
+          <article class="panel">
+            <div class="panel-baslik"><div class="panel-baslik-aciklama"><h3>Filo Durumu</h3><p>Makine sağlığı, veri tazeliği ve bakım önceliği</p></div><a href="#" onclick="sayfaAc('makineler'); return false;">Filo ekranını aç</a></div>
+            <div class="tablo-sarmal"><table><thead><tr><th>Makine</th><th>Bağlantı</th><th>Veri tazeliği</th><th>Sağlık</th><th>Motor saati</th><th>Rölanti</th><th>Yakıt</th><th>Besleme</th><th>Sonraki adım</th></tr></thead><tbody>
+              <tr><td><div class="filo-tablo-makine"><img src="${BYM6_IMAGE_URL}" alt="Titan BYM6"><div><strong>BYM6-001</strong><span>Titan BYM6 · <span data-makine-etiketi>UG-042</span></span></div></div></td><td><span id="genelMakineNokta" class="durum-noktasi"></span><span id="genelMakineRozet" class="durum-etiketi">Kontrol ediliyor</span></td><td id="genelMakineSonVeri">Son veri bekleniyor</td><td><span id="genelSaglikPuani" class="saglik-puani veri-yok">—</span></td><td id="genelMakineMotorSaati">— sa</td><td id="genelMakineRolanti">— sa</td><td id="genelMakineYakit">— L</td><td id="genelMakineVolt">— V</td><td><button class="ikincil-btn mini-btn" onclick="sayfaAc('makine')">Makineyi Aç</button></td></tr>
+              <tr><td><div class="filo-tablo-makine"><img src="${BKOS_IMAGE_URL}" alt="Titan BKOS"><div><strong>BKOS-014</strong><span>Titan BKOS · UG-BKOS-07</span></div></div></td><td><span class="durum-etiketi warning">Eşleme bekliyor</span></td><td>Henüz veri yok</td><td><span class="saglik-puani veri-yok">—</span></td><td>—</td><td>—</td><td>—</td><td>—</td><td><button class="ikincil-btn mini-btn" onclick="makineEslestirBilgisi('BKOS')">Eşlemeyi Başlat</button></td></tr>
+            </tbody></table></div>
+          </article>
+
+          <article class="panel" style="margin-top:18px"><div class="panel-baslik"><div class="panel-baslik-aciklama"><h3>Bağlantı ve Veri Sağlığı</h3><p>Cihaz bağlantısı, CAN trafiği, bulut akışı ve yerel kuyruk birbirinden bağımsız izlenir</p></div><span id="veriKaliteOzet" class="gelistirme-rozeti"><i data-lucide="shield-check"></i> Kontrol ediliyor</span></div><div id="saglikPaneliYeri"></div><div id="aktarimUyarisiYeri"></div></article>
         </section>
 
         <section id="sayfa-makineler" class="sayfa" data-sayfa="makineler">
-          <div class="sayfa-ust"><div><h2>Makineler</h2><p>OEM modeli, müşteriye özel makine etiketi, telemetri durumu ve bakım bilgisini birlikte yönetin.</p></div><button onclick="makineEslestirBilgisi()"><i data-lucide="plus"></i> Makine Ekle</button></div>
+          <div class="sayfa-ust"><div><h2>Filo</h2><p>OEM modeli, müşteri etiketi, saha, telemetri ve bakım durumuna göre makine parkınızı yönetin.</p></div><button onclick="makineEslestirBilgisi()"><i data-lucide="plus"></i> Makine Ekle</button></div>
+          <div class="filo-filtreleri"><input id="filoArama" type="search" placeholder="Makine, model veya müşteri etiketi ara…" oninput="filoKartlariniFiltrele()"><select id="filoDurumFiltre" onchange="filoKartlariniFiltrele()"><option value="">Tüm durumlar</option><option value="aktif">Bağlı</option><option value="bekliyor">Eşleme bekliyor</option></select><select><option>Tüm sahalar</option><option>Yeraltı Operasyonu</option></select><button class="ikincil-btn" onclick="filoFiltreleriniTemizle()"><i data-lucide="list-restart"></i> Temizle</button></div>
           <article class="panel makine-liste-izgara">
-            <div class="makine-ozet-karti makine-gorselli-kart">
+            <div class="makine-ozet-karti makine-gorselli-kart" data-filo-kart data-filo-durum="aktif" data-filo-arama="bym6-001 bym6 ug-042 beton transmikseri">
               <div class="makine-gorsel"><img src="${BYM6_IMAGE_URL}" alt="Titan BYM6 beton transmikseri" loading="lazy" decoding="async"></div>
-              <div class="makine-kart-icerik"><div class="makine-baslik"><span id="listeMakineNokta" class="durum-noktasi"></span><h4>BYM6-001</h4><span id="listeMakineRozet" class="rozet pasif">Kontrol ediliyor</span></div><div class="makine-meta"><span>OEM model: Titan BYM6</span><span>Müşteri etiketi: <strong data-makine-etiketi>UG-042</strong></span><span>Seri no: Pilot Makine</span><span>Cihaz: iotitan</span><span id="listeMakineSonVeri">Son veri bekleniyor</span></div><div class="kart-aksiyonlari"><button onclick="sayfaAc('dashboard')">Dashboard</button><button class="ikincil-btn" onclick="sayfaAc('trend')">Trend</button><button class="ikincil-btn" onclick="makineEtiketiDuzenle()">Etiketi Düzenle</button></div></div>
-              <div class="makine-kart-metrikler"><div class="makine-mini-metrik"><strong id="listeMakineMotorSaati">— sa</strong><span>Motor saati</span></div><div class="makine-mini-metrik"><strong id="listeMakineRolanti">— sa</strong><span>Rölanti süresi</span></div><div class="makine-mini-metrik"><strong id="listeMakineYakit">— L</strong><span>Toplam yakıt</span></div><div class="makine-mini-metrik"><strong id="listeMakineOlay">—</strong><span>Aktif olay</span></div></div>
+              <div class="makine-kart-icerik"><div class="makine-baslik"><span id="listeMakineNokta" class="durum-noktasi"></span><h4>BYM6-001</h4><span id="listeMakineRozet" class="rozet pasif">Kontrol ediliyor</span></div><div class="makine-meta"><span>OEM model: Titan BYM6</span><span>Müşteri etiketi: <strong data-makine-etiketi>UG-042</strong></span><span>Saha: Yeraltı Operasyonu</span><span>Seri no: Pilot Makine</span><span>Cihaz: iotitan</span><span id="listeMakineSonVeri">Son veri bekleniyor</span></div><div class="kart-aksiyonlari"><button onclick="sayfaAc('makine')">Makine Detayı</button><button class="ikincil-btn" onclick="sayfaAc('dashboard')">Dashboard</button><button class="ikincil-btn" onclick="sayfaAc('trend')">Trend</button><button class="ikincil-btn" onclick="makineEtiketiDuzenle()">Etiketi Düzenle</button></div></div>
+              <div class="makine-kart-metrikler"><div class="makine-mini-metrik"><strong id="listeMakineMotorSaati">— sa</strong><span>Motor saati</span></div><div class="makine-mini-metrik"><strong id="listeMakineRolanti">— sa</strong><span>Rölanti süresi</span></div><div class="makine-mini-metrik"><strong id="listeMakineYakit">— L</strong><span>Toplam yakıt</span></div><div class="makine-mini-metrik"><strong id="listeMakineOlay">—</strong><span>Açık aksiyon</span></div></div>
             </div>
-            <div class="makine-ozet-karti makine-gorselli-kart makine-bekliyor">
+            <div class="makine-ozet-karti makine-gorselli-kart makine-bekliyor" data-filo-kart data-filo-durum="bekliyor" data-filo-arama="bkos-014 bkos ug-bkos-07 çalışma platformu">
               <div class="makine-gorsel"><img src="${BKOS_IMAGE_URL}" alt="Titan BKOS yeraltı çalışma platformu" loading="lazy" decoding="async"></div>
-              <div class="makine-kart-icerik"><div class="makine-baslik"><span class="durum-noktasi gecikmeli"></span><h4>BKOS-014</h4><span class="rozet pasif">Eşleme bekliyor</span></div><div class="makine-meta"><span>OEM model: Titan BKOS</span><span>Müşteri etiketi: UG-BKOS-07</span><span>Seri no: Tanımlanacak</span><span>Telemetri cihazı atanmadı</span></div><div class="kart-aksiyonlari"><button onclick="makineEslestirBilgisi('BKOS')">Eşlemeyi Başlat</button></div></div>
+              <div class="makine-kart-icerik"><div class="makine-baslik"><span class="durum-noktasi gecikmeli"></span><h4>BKOS-014</h4><span class="rozet uyari">Eşleme bekliyor</span></div><div class="makine-meta"><span>OEM model: Titan BKOS</span><span>Müşteri etiketi: UG-BKOS-07</span><span>Saha: Atanmadı</span><span>Seri no: Tanımlanacak</span><span>Telemetri cihazı atanmadı</span></div><div class="kart-aksiyonlari"><button onclick="makineEslestirBilgisi('BKOS')">Eşlemeyi Başlat</button></div></div>
               <div class="makine-kart-metrikler"><div class="makine-mini-metrik"><strong>—</strong><span>Motor saati</span></div><div class="makine-mini-metrik"><strong>Bekliyor</strong><span>Aktivasyon durumu</span></div></div>
             </div>
+            <div id="filoBosSonuc" class="bos-panel gizli">Filtreyle eşleşen makine bulunamadı.</div>
           </article>
         </section>
 
+        <section id="sayfa-makine" class="sayfa" data-sayfa="makine">
+          <div class="makine-hero">
+            <div class="makine-hero-gorsel"><img src="${BYM6_IMAGE_URL}" alt="Titan BYM6 beton transmikseri"></div>
+            <div class="makine-hero-icerik"><div class="makine-baslik"><span id="detayMakineNokta" class="durum-noktasi"></span><h2>BYM6-001</h2><span id="detayMakineRozet" class="rozet pasif">Kontrol ediliyor</span></div><p>Titan BYM6 · Yeraltı beton transmikseri</p><div class="makine-hero-meta"><span>Müşteri etiketi: <strong data-makine-etiketi>UG-042</strong></span><span>Saha: Yeraltı Operasyonu</span><span>Seri no: Pilot Makine</span><span>Cihaz: iotitan</span><span id="detayMakineSonVeri">Son veri bekleniyor</span></div><div class="kart-aksiyonlari"><button onclick="sayfaAc('trend')"><i data-lucide="chart-no-axes-combined"></i> Trend Aç</button><button class="ikincil-btn" onclick="sayfaAc('olaylar')"><i data-lucide="triangle-alert"></i> Aksiyonlar</button><button class="ikincil-btn" onclick="sayfaAc('bakim')"><i data-lucide="wrench"></i> Bakım Planı</button></div></div>
+            <div class="makine-hero-sag"><span id="detaySaglikPuani" class="saglik-puani veri-yok">—</span><span>Genel sağlık puanı</span></div>
+          </div>
+          <div class="sekme-listesi" role="tablist"><button class="sekme-buton aktif" data-makine-sekme="ozet" onclick="makineSekmesiAc('ozet')">Genel Bakış</button><button class="sekme-buton" data-makine-sekme="sistemler" onclick="makineSekmesiAc('sistemler')">Makine Sağlığı</button><button class="sekme-buton" data-makine-sekme="kullanim" onclick="makineSekmesiAc('kullanim')">Kullanım</button><button class="sekme-buton" data-makine-sekme="veri" onclick="makineSekmesiAc('veri')">Veri Kalitesi</button></div>
+          <div class="makine-sekme-paneli aktif" data-makine-panel="ozet"><div class="kpi-izgara"><article class="kpi-karti"><div class="kpi-karti-ust"><span>Motor Saati</span><span class="kpi-ikon"><i data-lucide="timer"></i></span></div><strong id="detayMotorSaati" class="kpi-deger">—</strong><span class="kpi-alt">SPN 247</span></article><article class="kpi-karti"><div class="kpi-karti-ust"><span>Rölanti Süresi</span><span class="kpi-ikon"><i data-lucide="pause-circle"></i></span></div><strong id="detayRolanti" class="kpi-deger">—</strong><span class="kpi-alt">SPN 235</span></article><article class="kpi-karti"><div class="kpi-karti-ust"><span>Toplam Yakıt</span><span class="kpi-ikon"><i data-lucide="fuel"></i></span></div><strong id="detayYakit" class="kpi-deger">—</strong><span class="kpi-alt">SPN 250</span></article><article class="kpi-karti"><div class="kpi-karti-ust"><span>Besleme</span><span class="kpi-ikon"><i data-lucide="battery-charging"></i></span></div><strong id="detayVolt" class="kpi-deger">—</strong><span class="kpi-alt">SPN 168</span></article></div><article class="panel"><div class="panel-baslik"><div class="panel-baslik-aciklama"><h3>Son Durum</h3><p>Canlı telemetri ve açık olaylardan üretilen operasyon özeti</p></div></div><div id="makineOzetMetni" class="modul-bildirimi">Makine verisi kontrol ediliyor.</div></article></div>
+          <div class="makine-sekme-paneli" data-makine-panel="sistemler"><div class="alt-sistem-izgara"><article class="alt-sistem-karti"><span class="alt-sistem-ikon"><i data-lucide="cog"></i></span><div><strong>Motor</strong><p>Devir, sıcaklık, basınç ve arıza kodları</p></div><span id="sistemMotorDurum" class="durum-etiketi">Veri bekleniyor</span></article><article class="alt-sistem-karti"><span class="alt-sistem-ikon"><i data-lucide="git-compare-arrows"></i></span><div><strong>Şanzıman</strong><p>Yağ sıcaklığı, basınç ve vites davranışı</p></div><span class="durum-etiketi">Sinyal seti bekleniyor</span></article><article class="alt-sistem-karti"><span class="alt-sistem-ikon"><i data-lucide="droplets"></i></span><div><strong>Hidrolik</strong><p>Basınç, sıcaklık ve çalışma çevrimleri</p></div><span class="durum-etiketi">Sinyal seti bekleniyor</span></article><article class="alt-sistem-karti"><span class="alt-sistem-ikon"><i data-lucide="battery-charging"></i></span><div><strong>Elektrik</strong><p>Besleme gerilimi ve elektriksel durumlar</p></div><span id="sistemElektrikDurum" class="durum-etiketi">Veri bekleniyor</span></article><article class="alt-sistem-karti"><span class="alt-sistem-ikon"><i data-lucide="octagon-alert"></i></span><div><strong>Fren Sistemi</strong><p>Uyarılar, sıcaklık ve operatör olayları</p></div><span class="durum-etiketi">Kural seti bekleniyor</span></article><article class="alt-sistem-karti"><span class="alt-sistem-ikon"><i data-lucide="network"></i></span><div><strong>CAN ve Haberleşme</strong><p>Hat durumu, paket tazeliği ve veri akışı</p></div><span id="sistemCanDurum" class="durum-etiketi">Kontrol ediliyor</span></article></div></div>
+          <div class="makine-sekme-paneli" data-makine-panel="kullanim"><article class="panel operasyon-paneli"><div class="panel-baslik"><div class="panel-baslik-aciklama"><h3>Kullanım ve Verimlilik</h3><p>Kümülatif sayaçlardan hesaplanan güncel görünüm</p></div><a href="#" onclick="sayfaAc('trend'); return false;">Detaylı analiz</a></div><div class="operasyon-metrik-izgara"><div class="operasyon-metrik-karti"><div class="operasyon-metrik-ust"><span>Toplam Mesafe</span><i data-lucide="route"></i></div><strong id="detayMesafe">—</strong><small>SPN 245</small></div><div class="operasyon-metrik-karti"><div class="operasyon-metrik-ust"><span>Güncel Hız</span><i data-lucide="navigation"></i></div><strong id="detayHiz">—</strong><small>SPN 84</small></div><div class="operasyon-metrik-karti"><div class="operasyon-metrik-ust"><span>Yakıt Verimliliği</span><i data-lucide="gauge"></i></div><strong id="detayYakitVerimi">—</strong><small>Mesafe / yakıt</small></div><div class="operasyon-metrik-karti"><div class="operasyon-metrik-ust"><span>Anlık Yakıt Debisi</span><i data-lucide="fuel"></i></div><strong id="detayYakitDebisi">—</strong><small>SPN 183</small></div></div></article></div>
+          <div class="makine-sekme-paneli" data-makine-panel="veri"><div class="veri-kalite-izgara"><article class="veri-kalite-karti"><span>Cihaz bağlantısı</span><strong id="detayCihazBaglanti">Kontrol ediliyor</strong><small>Heartbeat durumuna göre</small></article><article class="veri-kalite-karti"><span>CAN paket tazeliği</span><strong id="detayCanPaket">Kontrol ediliyor</strong><small>Arayüzün UP olması paket geldiği anlamına gelmez</small></article><article class="veri-kalite-karti"><span>Buluta son aktarım</span><strong id="detayBulutAktarim">Kontrol ediliyor</strong><small>Telemetri kayıt zamanına göre</small></article><article class="veri-kalite-karti"><span>Yerel kuyruk</span><strong id="detayKuyruk">Kontrol ediliyor</strong><small>Offline paket ve ACK durumu</small></article><article class="veri-kalite-karti"><span>DBC sürümü</span><strong id="detayDbc">Kontrol ediliyor</strong><small>Aktif CAN kanal ataması</small></article><article class="veri-kalite-karti"><span>Eksik sinyal oranı</span><strong id="detayEksikSinyal">—</strong><small>Seçilen operasyon sinyal setine göre</small></article></div></div>
+        </section>
+
+        <section id="sayfa-saglik" class="sayfa" data-sayfa="saglik">
+          <div class="sayfa-ust"><div><h2>Sağlık Merkezi</h2><p>Alt sistemleri önem sırasına göre izleyin; olaydan bakım aksiyonuna geçişi tek ekrandan başlatın.</p></div><span class="gelistirme-rozeti"><i data-lucide="sparkles"></i> AI hazırlık katmanı</span></div>
+          <div class="modul-bildirimi">Sağlık puanları mevcut bağlantı, sinyal tazeliği ve olay durumundan türetilen ilk değerlendirmedir. Tahmine dayalı modeller yeterli saha verisi ve doğrulanmış bakım kayıtlarıyla devreye alınacaktır.</div>
+          <div class="iki-kolon-pro"><article class="panel"><div class="panel-baslik"><div class="panel-baslik-aciklama"><h3>Filo Sağlık Matrisi</h3><p>Sistem bazında güncel risk ve veri kapsamı</p></div></div><div class="tablo-sarmal"><table><thead><tr><th>Makine</th><th>Genel</th><th>Motor</th><th>Şanzıman</th><th>Hidrolik</th><th>Elektrik</th><th>CAN</th><th>Öneri</th></tr></thead><tbody><tr><td><strong>BYM6-001</strong><br><span data-makine-etiketi>UG-042</span></td><td><span id="saglikMerkeziPuan" class="saglik-puani veri-yok">—</span></td><td><span id="saglikMotorRozet" class="durum-etiketi">Veri bekleniyor</span></td><td><span class="durum-etiketi">Kapsam dışı</span></td><td><span class="durum-etiketi">Kapsam dışı</span></td><td><span id="saglikElektrikRozet" class="durum-etiketi">Veri bekleniyor</span></td><td><span id="saglikCanRozet" class="durum-etiketi">Kontrol ediliyor</span></td><td><button class="ikincil-btn mini-btn" onclick="sayfaAc('makine'); makineSekmesiAc('sistemler')">İncele</button></td></tr><tr><td><strong>BKOS-014</strong><br>UG-BKOS-07</td><td><span class="saglik-puani veri-yok">—</span></td><td colspan="5">Telemetri eşlemesi bekleniyor</td><td><button class="ikincil-btn mini-btn" onclick="makineEslestirBilgisi('BKOS')">Eşle</button></td></tr></tbody></table></div></article><article class="panel"><div class="panel-baslik"><div class="panel-baslik-aciklama"><h3>Erken Risk Analizi</h3><p>Planlanan makine öğrenmesi iş akışı</p></div></div><div class="aksiyon-listesi"><div class="aksiyon-karti"><div class="aksiyon-karti-ust"><h4>Normal davranış profilini öğren</h4><span class="durum-etiketi">Planlanan</span></div><p>Makine modeli, çalışma modu ve çevrim bazında referans davranış oluşturulur.</p></div><div class="aksiyon-karti"><div class="aksiyon-karti-ust"><h4>Anomaliyi açıklanabilir göster</h4><span class="durum-etiketi">Planlanan</span></div><p>Etkilenen sinyaller, güven oranı ve önerilen kontrol kullanıcıya birlikte sunulur.</p></div><div class="aksiyon-karti"><div class="aksiyon-karti-ust"><h4>Bakım sonucuyla modeli doğrula</h4><span class="durum-etiketi">Planlanan</span></div><p>Teknisyen geri bildirimiyle yanlış alarm ve gerçek arıza ayrımı güçlendirilir.</p></div></div></article></div>
+        </section>
+
         <section id="sayfa-bakim" class="sayfa" data-sayfa="bakim">
-          <div class="sayfa-ust"><div><h2>Bakım Yönetimi</h2><p>Her makinenin motor saatini bakım periyotlarıyla karşılaştırın; yaklaşan ve geciken işleri filo ölçeğinde takip edin.</p></div><button onclick="bakimPlaniBilgisi()"><i data-lucide="calendar-plus"></i> Bakım Planı Tanımla</button></div>
+          <div class="sayfa-ust"><div><h2>Bakım Planları</h2><p>Motor saati, takvim ve durum verilerini planlanan bakım adımlarına dönüştürün.</p></div><div class="buton-grubu"><button class="ikincil-btn" onclick="sayfaAc('isemirleri')"><i data-lucide="clipboard-check"></i> İş Emirleri</button><button onclick="bakimPlaniBilgisi()"><i data-lucide="calendar-plus"></i> Plan Tanımla</button></div></div>
           <div class="modul-bildirimi">Gösterilen 500 / 1.000 / 2.000 saat periyotları örnek planlardır. Seri bazlı bakım geçmişi ve müşteri onaylı periyotlar bağlandığında gerçek bakım durumu hesaplanacaktır.</div>
           <div class="bakim-kpi-izgara">
             <article class="kpi-karti"><div class="kpi-karti-ust"><span>Motor Saati</span><span class="kpi-ikon"><i data-lucide="timer"></i></span></div><strong id="bakimMotorSaati" class="kpi-deger">—</strong><span class="kpi-alt">BYM6-001 son telemetri değeri</span></article>
             <article class="kpi-karti"><div class="kpi-karti-ust"><span>Yaklaşan Bakım</span><span class="kpi-ikon"><i data-lucide="calendar-clock"></i></span></div><strong id="bakimYaklasan" class="kpi-deger">—</strong><span class="kpi-alt">En yakın periyodik bakım</span></article>
-            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Geciken</span><span class="kpi-ikon"><i data-lucide="circle-alert"></i></span></div><strong class="kpi-deger">—</strong><span class="kpi-alt">Bakım geçmişi bağlandığında hesaplanır</span></article>
-            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Bakım Kapsamı</span><span class="kpi-ikon"><i data-lucide="wrench"></i></span></div><strong class="kpi-deger">1 / 2</strong><span class="kpi-alt">Motor saati alınabilen makine</span></article>
+            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Geciken</span><span class="kpi-ikon"><i data-lucide="circle-alert"></i></span></div><strong id="bakimGeciken" class="kpi-deger">—</strong><span class="kpi-alt">Bakım geçmişi bağlandığında hesaplanır</span></article>
+            <article class="kpi-karti"><div class="kpi-karti-ust"><span>Bakım Kapsamı</span><span class="kpi-ikon"><i data-lucide="wrench"></i></span></div><strong id="bakimKapsam" class="kpi-deger">1 / 2</strong><span class="kpi-alt">Motor saati alınabilen makine</span></article>
           </div>
           <article class="panel">
             <div class="panel-baslik"><div><h3>BYM6-001 · <span data-makine-etiketi>UG-042</span></h3><span class="sayfa-alt-not">OEM model: Titan BYM6 · Motor saatine dayalı örnek bakım planı</span></div><span class="rozet aktif">Takipte</span></div>
@@ -1168,22 +1326,36 @@
           </article>
         </section>
 
+        <section id="sayfa-isemirleri" class="sayfa" data-sayfa="isemirleri">
+          <div class="sayfa-ust"><div><h2>İş Emirleri</h2><p>Uyarı ve bakım ihtiyaçlarını sorumlu, termin ve kapanış kanıtı olan görevlere dönüştürün.</p></div><button onclick="isEmriBilgisi()"><i data-lucide="plus"></i> İş Emri Oluştur</button></div>
+          <div class="modul-bildirimi">İş emri akışı arayüz prototipidir. Kalıcı kayıt, bildirim, dosya eki, onay ve denetim izi v2.4 servisleriyle devreye alınacaktır.</div>
+          <div class="bakim-kpi-izgara"><article class="kpi-karti"><div class="kpi-karti-ust"><span>Açık İş</span><span class="kpi-ikon"><i data-lucide="clipboard-list"></i></span></div><strong class="kpi-deger">2</strong><span class="kpi-alt">Sunum için örnek iş akışı</span></article><article class="kpi-karti"><div class="kpi-karti-ust"><span>Yaklaşan</span><span class="kpi-ikon"><i data-lucide="calendar-clock"></i></span></div><strong class="kpi-deger">1</strong><span class="kpi-alt">Motor saatine göre taslak</span></article><article class="kpi-karti"><div class="kpi-karti-ust"><span>Kritik</span><span class="kpi-ikon"><i data-lucide="shield-alert"></i></span></div><strong class="kpi-deger">0</strong><span class="kpi-alt">Canlı olaylardan üretilecek</span></article><article class="kpi-karti"><div class="kpi-karti-ust"><span>Tamamlanma</span><span class="kpi-ikon"><i data-lucide="badge-check"></i></span></div><strong class="kpi-deger">—</strong><span class="kpi-alt">Geçmiş kayıt bağlandığında</span></article></div>
+          <article class="panel"><div class="panel-baslik"><div class="panel-baslik-aciklama"><h3>Planlanan İş Akışı</h3><p>Örnek kayıtlar; gerçek bakım geçmişi değildir</p></div><span class="gelistirme-rozeti">Arayüz ön izlemesi</span></div><div class="tablo-sarmal"><table><thead><tr><th>İş emri</th><th>Makine</th><th>Kaynak</th><th>Görev</th><th>Sorumlu</th><th>Termin</th><th>Durum</th><th></th></tr></thead><tbody><tr><td>WO-TASLAK-01</td><td><strong>BYM6-001</strong><br><span data-makine-etiketi>UG-042</span></td><td>500 saat planı</td><td>Motor yağı ve filtre kontrolü</td><td>Atanmadı</td><td>Motor saatine göre</td><td><span class="durum-etiketi warning">Taslak</span></td><td><button class="ikincil-btn mini-btn" onclick="isEmriBilgisi()">Aç</button></td></tr><tr><td>WO-TASLAK-02</td><td><strong>BYM6-001</strong><br><span data-makine-etiketi>UG-042</span></td><td>Olay aksiyonu</td><td>Sinyal sapmasını incele</td><td>Atanmadı</td><td>Olaydan üretilecek</td><td><span class="durum-etiketi">Beklemede</span></td><td><button class="ikincil-btn mini-btn" onclick="isEmriBilgisi()">Aç</button></td></tr></tbody></table></div></article>
+        </section>
+
         <section id="sayfa-dashboard" class="sayfa" data-sayfa="dashboard">
           <div class="sayfa-ust"><div><h2 id="dashboardSayfaBaslik">Makine Dashboardu</h2><p id="dashboardSayfaAciklama">BYM6-001 için kayıtlı dashboardu görüntüleyin.</p></div><button id="dashboardModButon" class="ikincil-btn" onclick="dashboardModDegistir()"><i data-lucide="pencil-ruler"></i> Tasarım Modu</button></div>
           <div id="dashboardYeri"></div>
         </section>
 
         <section id="sayfa-trend" class="sayfa" data-sayfa="trend">
-          <div class="sayfa-ust"><div><h2>Trend Analizi</h2><p>Sinyalleri aynı zaman ekseninde karşılaştırın; tam zamanı görün, yakınlaştırın ve dışa aktarın.</p></div><div class="buton-grubu"><button class="ikincil-btn" onclick="veriyiExceleAktar()"><i data-lucide="file-spreadsheet"></i> Excel'e Aktar</button><button class="ikincil-btn" onclick="grafikSifirla()"><i data-lucide="scan"></i> Görünümü Sıfırla</button></div></div>
+          <div class="sayfa-ust"><div><h2>Trend Analizi</h2><p>Altı sinyale kadar aynı zaman ekseninde karşılaştırın; olayları, eşikleri ve tam zamanlı değerleri birlikte inceleyin.</p></div><div class="buton-grubu"><button class="ikincil-btn" onclick="grafikGorseliniIndir()"><i data-lucide="image-down"></i> Grafiği İndir</button><button class="ikincil-btn" onclick="veriyiExceleAktar()"><i data-lucide="file-spreadsheet"></i> Excel'e Aktar</button><button class="ikincil-btn" onclick="grafikSifirla()"><i data-lucide="scan"></i> Sıfırla</button></div></div>
           <div class="hizli-araliklar"><button onclick="hizliZamanAraligi(15)">15 dk</button><button onclick="hizliZamanAraligi(60)">1 saat</button><button onclick="hizliZamanAraligi(360)">6 saat</button><button onclick="hizliZamanAraligi(1440)">24 saat</button><button onclick="hizliZamanAraligi(10080)">7 gün</button></div>
           <div id="veriFiltresiYeri" class="trend-filtre-paneli"></div>
+          <div class="trend-ileri-araclar"><div class="form-grup"><label for="trendCozunurluk">Çizim çözünürlüğü</label><select id="trendCozunurluk" onchange="trendCozunurluguDegisti()"><option value="auto">Otomatik</option><option value="1200">Hızlı · 1.200 nokta</option><option value="2500">Detaylı · 2.500 nokta</option><option value="5000">Yüksek · 5.000 nokta</option></select></div><div class="form-grup"><label>Birinci sinyal eşikleri</label><div class="esik-girdileri"><input id="trendEsikAlt" type="number" step="any" placeholder="Alt sınır" oninput="sinyaliCiz()"><input id="trendEsikUst" type="number" step="any" placeholder="Üst sınır" oninput="sinyaliCiz()"></div></div><label class="trend-olay-toggle"><input id="trendEsikGoster" type="checkbox" checked onchange="sinyaliCiz()">Eşik çizgileri</label><label class="trend-olay-toggle"><input id="trendOrtalamaGoster" type="checkbox" onchange="sinyaliCiz()">Ortalama çizgisi</label><div class="form-grup"><label for="trendKarsilastirma">Karşılaştırma</label><select id="trendKarsilastirma"><option>BYM6-001 · seçili dönem</option><option disabled>Önceki dönem · v2.4</option><option disabled>Filo karşılaştırması · v2.4</option></select></div></div>
           <div class="grafik-araclari"><button class="ikincil-btn" title="Yakınlaştır" onclick="grafikYaklastir()"><i data-lucide="zoom-in"></i></button><button class="ikincil-btn" title="Uzaklaştır" onclick="grafikUzaklastir()"><i data-lucide="zoom-out"></i></button><button class="ikincil-btn" onclick="grafikSifirla()"><i data-lucide="maximize-2"></i> Tüm Aralık</button><span class="grafik-yardim">Fare tekeriyle yakınlaştırın · Shift + sürükleme ile zamanda gezinin</span></div>
           <div class="trend-olay-paneli"><div class="trend-olay-paneli-ust"><div class="trend-olay-paneli-baslik"><i data-lucide="siren"></i><span>Olay Katmanı · <strong id="trendOlaySayaci">0 olay</strong></span></div><label class="trend-olay-toggle"><input id="trendOlayGoster" type="checkbox" checked onchange="trendOlayGorunurluguDegisti()">Olayları grafikte göster</label></div><div id="trendOlayListesi" class="trend-olay-listesi"><span class="trend-olay-bos">Veri aralığı seçildiğinde olaylar eşleştirilecek.</span></div></div>
           <div id="grafikVeriOzeti" class="grafik-veri-ozeti"></div><div id="grafikYeri"></div>
         </section>
 
-        <section id="sayfa-olaylar" class="sayfa" data-sayfa="olaylar"><div class="sayfa-ust"><div><h2>Olaylar ve Uyarılar</h2><p>Aktif uyarıları filtreleyin, kapanan olayları ve tetik değerlerini inceleyin.</p></div><button class="ikincil-btn" onclick="olaylariGetir()"><i data-lucide="refresh-cw"></i> Yenile</button></div><div id="olayListesiYeri"></div></section>
+        <section id="sayfa-olaylar" class="sayfa" data-sayfa="olaylar"><div class="sayfa-ust"><div><h2>Olaylar ve Aksiyonlar</h2><p>Uyarıyı yalnızca görüntülemek yerine önceliklendirin, sahiplenin ve bakım sonucuna kadar izleyin.</p></div><button class="ikincil-btn" onclick="olaylariGetir()"><i data-lucide="refresh-cw"></i> Yenile</button></div><div class="modul-bildirimi">Olay kayıtları canlı veritabanından okunur. Sahiplenme ve görev durumu bu sürümde arayüz ön izlemesidir; kalıcı aksiyon ve denetim kaydı v2.4 iş akışıyla bağlanacaktır.</div><article class="panel"><div class="panel-baslik"><div class="panel-baslik-aciklama"><h3>Aksiyon Merkezi</h3><p>Kritik olaydan sorumlu ve sonraki adıma</p></div><span class="gelistirme-rozeti">İş akışı ön izlemesi</span></div><div id="aksiyonMerkeziBuyuk" class="aksiyon-listesi"><div class="bos-panel">Aksiyonlar kontrol ediliyor.</div></div></article><div id="olayListesiYeri" style="margin-top:18px"></div></section>
         <section id="sayfa-kurallar" class="sayfa" data-sayfa="kurallar"><div class="sayfa-ust"><div><h2>Olay Kuralları</h2><p>Bir veya birden fazla sinyal koşuluyla uyarı kuralları oluşturun.</p></div></div><div id="olayKurallariYeri"></div></section>
+
+        <section id="sayfa-raporlar" class="sayfa" data-sayfa="raporlar">
+          <div class="sayfa-ust"><div><h2>Rapor Merkezi</h2><p>Filo, kullanım, olay, bakım ve ham telemetri verilerini yönetim raporlarına dönüştürün.</p></div><button class="ikincil-btn" onclick="raporZamaniniTrendeAktar()"><i data-lucide="sliders-horizontal"></i> Veri Aralığını İncele</button></div>
+          <div class="rapor-filtreleri"><div class="form-grup"><label for="raporBaslangic">Başlangıç</label><input id="raporBaslangic" type="datetime-local"></div><div class="form-grup"><label for="raporBitis">Bitiş</label><input id="raporBitis" type="datetime-local"></div><div class="form-grup"><label for="raporMakine">Makine</label><select id="raporMakine"><option value="iotitan">BYM6-001 · UG-042</option><option disabled>BKOS-014 · eşleme bekliyor</option></select></div><button onclick="raporZamaniniTrendeAktar()"><i data-lucide="search"></i> Veriyi Hazırla</button></div>
+          <div class="rapor-kart-izgara"><article class="rapor-karti"><span class="rapor-ikon"><i data-lucide="file-spreadsheet"></i></span><div><h3>Ham Telemetri</h3><p>Seçilen tarih aralığındaki sinyaller, zaman damgaları ve olaylar.</p><span class="durum-etiketi success">Excel hazır</span></div><button onclick="raporOlustur('telemetri')">Excel İndir</button></article><article class="rapor-karti"><span class="rapor-ikon"><i data-lucide="activity"></i></span><div><h3>Operasyon ve Kullanım</h3><p>Çalışma, rölanti, mesafe, yakıt ve filo kullanım özeti.</p><span class="durum-etiketi">v2.4 rapor şablonu</span></div><button class="ikincil-btn" onclick="raporOlustur('operasyon')">Ön İzle</button></article><article class="rapor-karti"><span class="rapor-ikon"><i data-lucide="triangle-alert"></i></span><div><h3>Olay ve Aksiyon</h3><p>Alarm dağılımı, süre, önem, sorumlu ve kapanış performansı.</p><span class="durum-etiketi">v2.4 iş akışı</span></div><button class="ikincil-btn" onclick="raporOlustur('olay')">Ön İzle</button></article><article class="rapor-karti"><span class="rapor-ikon"><i data-lucide="wrench"></i></span><div><h3>Bakım Uyumu</h3><p>Yaklaşan, geciken ve tamamlanan işlerin filo görünümü.</p><span class="durum-etiketi">v2.4 iş emirleri</span></div><button class="ikincil-btn" onclick="raporOlustur('bakim')">Ön İzle</button></article><article class="rapor-karti"><span class="rapor-ikon"><i data-lucide="database-zap"></i></span><div><h3>Veri Kalitesi</h3><p>Bağlantı, paket tazeliği, eksik sinyal ve offline aktarım kapsamı.</p><span class="durum-etiketi warning">Kısmi görünüm</span></div><button class="ikincil-btn" onclick="sayfaAc('saglik')">Sağlığı Aç</button></article><article class="rapor-karti"><span class="rapor-ikon"><i data-lucide="mail-clock"></i></span><div><h3>Planlı Dağıtım</h3><p>Yetkili alıcılara periyodik PDF/Excel gönderimi.</p><span class="durum-etiketi">Planlanan</span></div><button class="ikincil-btn" onclick="raporOlustur('zamanli')">Planla</button></article></div>
+        </section>
 
         <section id="sayfa-offline" class="sayfa" data-sayfa="offline">
           <div class="sayfa-ust"><div><h2>Offline Veri Aktarımı</h2><p>Tablet veya USB ile alınan Titan veri paketini seçili makineye aktarın.</p></div></div>
@@ -1197,7 +1369,13 @@
           <p class="sayfa-alt-not">Kalıcı kullanıcı ve izin yönetimi, müşteri izolasyonu ve denetim kaydıyla birlikte ikinci güvenlik aşamasında bağlanacaktır.</p>
         </section>
 
-        <section id="sayfa-teknik" class="sayfa" data-sayfa="teknik"><div class="sayfa-ust"><div><h2>Teknik Ayarlar</h2><p>Bu alan yalnızca Titan sistem yöneticileri ve yetkili teknik kullanıcılar içindir.</p></div></div><div class="modul-bildirimi">DBC dosyaları ve CAN kanalı atamaları müşteri operasyon ekranlarından ayrılmıştır.</div><div id="dbcYeri"></div></section>`;
+        <section id="sayfa-cihazlar" class="sayfa" data-sayfa="cihazlar">
+          <div class="sayfa-ust"><div><h2>Cihaz ve OTA Yönetimi</h2><p>Saha cihazlarını, yazılım sürümlerini ve kontrollü uzaktan güncelleme hazırlığını izleyin.</p></div><span class="gelistirme-rozeti"><i data-lucide="radio-tower"></i> Ürünleştirme yol haritası</span></div>
+          <div class="modul-bildirimi">Bu sayfa gelecek üretim mimarisini gösterir. Pilot cihaz bugün Raspberry Pi tabanlıdır; seri çözüm OWA5X / iWave sınıfı otomotiv telematik donanımıyla, imzalı paket ve geri dönüş destekli OTA altyapısıyla planlanmaktadır.</div>
+          <div class="iki-kolon-pro"><article class="panel"><div class="panel-baslik"><div class="panel-baslik-aciklama"><h3>Saha Cihazları</h3><p>Donanım, bağlantı ve ajan durumu</p></div></div><div class="tablo-sarmal"><table><thead><tr><th>Cihaz</th><th>Makine</th><th>Donanım</th><th>Bağlantı</th><th>Yazılım</th><th>Durum</th></tr></thead><tbody><tr><td><strong>iotitan</strong></td><td>BYM6-001</td><td>Pilot · Raspberry Pi</td><td><span id="cihazYonetimDurum" class="durum-etiketi">Kontrol ediliyor</span></td><td>Sürüm bilgisi cihazdan alınacak</td><td><button class="ikincil-btn mini-btn" onclick="cihazYonetimiBilgisi()">İncele</button></td></tr><tr><td>Atanmadı</td><td>BKOS-014</td><td>OWA5X / iWave sınıfı</td><td><span class="durum-etiketi warning">Eşleme bekliyor</span></td><td>—</td><td><button class="ikincil-btn mini-btn" onclick="makineEslestirBilgisi('BKOS')">Eşle</button></td></tr></tbody></table></div></article><article class="panel"><div class="panel-baslik"><div class="panel-baslik-aciklama"><h3>Kontrollü OTA</h3><p>Planlanan güvenli güncelleme yaşam döngüsü</p></div><span class="durum-etiketi">Planlanan</span></div><div class="aksiyon-listesi"><div class="aksiyon-karti"><div class="aksiyon-karti-ust"><h4>1 · İmzalı paket</h4><span class="durum-etiketi">Doğrulama</span></div><p>Yalnızca Titan tarafından imzalanmış sürüm cihaza kabul edilir.</p></div><div class="aksiyon-karti"><div class="aksiyon-karti-ust"><h4>2 · Kademeli dağıtım</h4><span class="durum-etiketi">Pilot filo</span></div><p>Sürüm önce seçili cihazlara uygulanır; bağlantı ve veri sağlığı izlenir.</p></div><div class="aksiyon-karti"><div class="aksiyon-karti-ust"><h4>3 · Güvenli geri dönüş</h4><span class="durum-etiketi">Rollback</span></div><p>Sağlık kontrolü başarısız olursa bilinen kararlı sürüme dönüş hedeflenir.</p></div></div></article></div>
+        </section>
+
+        <section id="sayfa-teknik" class="sayfa" data-sayfa="teknik"><div class="sayfa-ust"><div><h2>DBC ve Sinyaller</h2><p>CAN sinyal sözlüğünü, kanal atamalarını ve teknik veri kapsamını yönetin.</p></div></div><div class="modul-bildirimi">DBC dosyaları ve CAN kanalı atamaları müşteri operasyon ekranlarından ayrılmıştır; bu alan yalnızca yetkili teknik kullanıcılar içindir.</div><div id="dbcYeri"></div></section>`;
 
       document.body.insertAdjacentHTML("afterbegin", `
         <section id="girisEkrani" class="giris-ekrani" aria-label="Titan Fleet & Telemetry giriş">
@@ -1205,7 +1383,7 @@
           <div class="giris-form-alani"><div class="giris-karti"><h2>Hesabınıza giriş yapın</h2><p class="giris-aciklama">Yetkili olduğunuz müşteri hesabı ve makinelerle devam edin.</p><form id="girisFormu" class="giris-formu"><div class="form-grup"><label for="girisEposta">E-posta adresi</label><input id="girisEposta" type="email" autocomplete="username" placeholder="kullanici@firma.com" required></div><div class="form-grup"><label for="girisParola">Parola</label><input id="girisParola" type="password" autocomplete="current-password" placeholder="Parolanızı girin" required></div><div class="giris-yardim"><span>Güvenli kullanıcı oturumu</span><a href="#" onclick="parolaHatirlat(); return false;">Parolamı unuttum</a></div><button id="girisButon" class="giris-buton" type="submit"><i data-lucide="log-in"></i> Güvenli Giriş</button></form><div id="girisHata" class="giris-hata" role="alert"></div><div class="giris-guvenlik"><i data-lucide="shield-check"></i><span>Bu portal yalnızca yetkilendirilmiş kullanıcılar içindir. Oturum ve veri erişimi kullanıcı yetkilerine göre sınırlandırılır.</span></div></div></div>
         </section>
         <div id="uygulamaKabugu" class="uygulama-kabugu gizli">
-          <aside class="yan-menu"><div class="yan-menu-marka"><span class="yan-menu-logo"><img src="${TITAN_LOGO_URL}" alt="Titan Makina"></span><span class="yan-menu-urun"><strong>Fleet & Telemetry</strong><span>Operasyon Portalı</span></span></div><div class="yan-menu-baslik">Operasyon</div><nav class="menu-listesi" aria-label="Ana menü"><button class="menu-buton aktif" data-menu-sayfa="genel" onclick="sayfaAc('genel')"><i data-lucide="layout-dashboard"></i>Genel Bakış</button><button class="menu-buton" data-menu-sayfa="makineler" onclick="sayfaAc('makineler')"><i data-lucide="truck"></i>Makineler</button><button class="menu-buton" data-menu-sayfa="dashboard" onclick="sayfaAc('dashboard')"><i data-lucide="panels-top-left"></i>Dashboardlar</button><button class="menu-buton" data-menu-sayfa="trend" onclick="sayfaAc('trend')"><i data-lucide="chart-no-axes-combined"></i>Trend Analizi</button><button class="menu-buton" data-menu-sayfa="olaylar" onclick="sayfaAc('olaylar')"><i data-lucide="bell-ring"></i>Olaylar ve Uyarılar<span id="menuOlayRozet" class="menu-rozet">—</span></button><button class="menu-buton" data-menu-sayfa="bakim" onclick="sayfaAc('bakim')"><i data-lucide="wrench"></i>Bakım Yönetimi</button></nav><div class="yan-menu-baslik">Yönetim</div><nav class="menu-listesi" aria-label="Yönetim menüsü"><button class="menu-buton" data-menu-sayfa="studio" onclick="sayfaAc('studio')"><i data-lucide="pencil-ruler"></i>Dashboard Tasarımı</button><button class="menu-buton" data-menu-sayfa="kurallar" onclick="sayfaAc('kurallar')"><i data-lucide="git-branch"></i>Olay Kuralları</button><button class="menu-buton" data-menu-sayfa="offline" onclick="sayfaAc('offline')"><i data-lucide="file-up"></i>Offline Aktarım</button><button class="menu-buton" data-menu-sayfa="kullanicilar" onclick="sayfaAc('kullanicilar')"><i data-lucide="users"></i>Kullanıcılar</button><button class="menu-buton" data-menu-sayfa="teknik" onclick="sayfaAc('teknik')"><i data-lucide="settings-2"></i>Teknik Ayarlar</button></nav><div class="yan-menu-makine"><div class="yan-menu-makine-ust"><strong>BYM6-001</strong><span id="yanMakineNokta" class="durum-noktasi"></span></div><p id="yanMakineDurum">Bağlantı kontrol ediliyor</p></div><div class="yan-menu-alt">Portal v${DASHBOARD_SURUM}</div></aside>
+          <aside class="yan-menu"><div class="yan-menu-marka"><span class="yan-menu-logo"><img src="${TITAN_LOGO_URL}" alt="Titan Makina"></span><span class="yan-menu-urun"><strong>Fleet & Telemetry</strong><span>Operasyon Portalı</span></span></div><div class="yan-menu-baslik">Operasyon</div><nav class="menu-listesi" aria-label="Operasyon menüsü"><button class="menu-buton aktif" data-menu-sayfa="genel" onclick="sayfaAc('genel')"><i data-lucide="layout-dashboard"></i>Genel Bakış</button><button class="menu-buton" data-menu-sayfa="makineler" onclick="sayfaAc('makineler')"><i data-lucide="truck"></i>Filo</button><button class="menu-buton" data-menu-sayfa="makine" onclick="sayfaAc('makine')"><i data-lucide="panel-top"></i>Makine Detayı</button><button class="menu-buton" data-menu-sayfa="dashboard" onclick="sayfaAc('dashboard')"><i data-lucide="panels-top-left"></i>Dashboardlar</button><button class="menu-buton" data-menu-sayfa="trend" onclick="sayfaAc('trend')"><i data-lucide="chart-no-axes-combined"></i>Trend Analizi</button><button class="menu-buton" data-menu-sayfa="olaylar" onclick="sayfaAc('olaylar')"><i data-lucide="bell-ring"></i>Olaylar ve Aksiyonlar<span id="menuOlayRozet" class="menu-rozet">—</span></button></nav><div class="yan-menu-baslik">Sağlık ve Bakım</div><nav class="menu-listesi" aria-label="Sağlık ve bakım menüsü"><button class="menu-buton" data-menu-sayfa="saglik" onclick="sayfaAc('saglik')"><i data-lucide="heart-pulse"></i>Sağlık Merkezi</button><button class="menu-buton" data-menu-sayfa="bakim" onclick="sayfaAc('bakim')"><i data-lucide="calendar-range"></i>Bakım Planları</button><button class="menu-buton" data-menu-sayfa="isemirleri" onclick="sayfaAc('isemirleri')"><i data-lucide="clipboard-check"></i>İş Emirleri</button></nav><div class="yan-menu-baslik">Raporlama</div><nav class="menu-listesi" aria-label="Raporlama menüsü"><button class="menu-buton" data-menu-sayfa="raporlar" onclick="sayfaAc('raporlar')"><i data-lucide="file-chart-column"></i>Rapor Merkezi</button></nav><div class="yan-menu-baslik">Yönetim</div><nav class="menu-listesi" aria-label="Yönetim menüsü"><button class="menu-buton" data-menu-sayfa="studio" onclick="sayfaAc('studio')"><i data-lucide="pencil-ruler"></i>Dashboard Tasarımı</button><button class="menu-buton" data-menu-sayfa="kurallar" onclick="sayfaAc('kurallar')"><i data-lucide="git-branch"></i>Olay Kuralları</button><button class="menu-buton" data-menu-sayfa="offline" onclick="sayfaAc('offline')"><i data-lucide="file-up"></i>Offline Aktarım</button><button class="menu-buton" data-menu-sayfa="kullanicilar" onclick="sayfaAc('kullanicilar')"><i data-lucide="users"></i>Kullanıcılar</button><button class="menu-buton" data-menu-sayfa="teknik" onclick="sayfaAc('teknik')"><i data-lucide="database"></i>DBC ve Sinyaller</button><button class="menu-buton" data-menu-sayfa="cihazlar" onclick="sayfaAc('cihazlar')"><i data-lucide="radio-tower"></i>Cihaz ve OTA</button></nav><div class="yan-menu-makine"><div class="yan-menu-makine-ust"><strong>BYM6-001</strong><span id="yanMakineNokta" class="durum-noktasi"></span></div><p id="yanMakineDurum">Bağlantı kontrol ediliyor</p></div><div class="yan-menu-alt">Portal v${DASHBOARD_SURUM}</div></aside>
           <div class="mobil-perde" onclick="mobilMenuKapat()"></div>
           <div class="uygulama-ana"><header class="ust-bar"><button class="mobil-menu-buton" onclick="mobilMenuAc()" aria-label="Menüyü aç"><i data-lucide="menu"></i></button><div class="sayfa-kimlik"><h1 id="sayfaBaslik">Filo Genel Bakış</h1><p id="sayfaAltBaslik">Makine, bağlantı ve olay durumlarının özeti</p></div><div class="ust-bar-sag"><select id="ustMakineSecici" class="makine-secici" aria-label="Makine seç" onchange="makineSecildi(this.value)"><option value="iotitan">BYM6-001 · UG-042</option><option value="" disabled>BKOS-014 · eşleme bekliyor</option></select><button class="ikon-buton" title="Bildirimler" onclick="sayfaAc('olaylar')"><i data-lucide="bell"></i></button><div class="kullanici-karti"><span id="kullaniciAvatar" class="kullanici-avatar">—</span><span class="kullanici-metin"><strong id="kullaniciEposta">—</strong><span>Yetkili kullanıcı</span></span></div><button class="ikon-buton" title="Oturumu kapat" onclick="cikisYap()"><i data-lucide="log-out"></i></button></div></header><main class="icerik">${sayfaGovdeleri}</main></div>
         </div>
@@ -1425,6 +1603,8 @@
       document.getElementById("dashboardSayfaAciklama").textContent = studio ? "Widget ekleyin, sıralayın ve kayıtlı tasarımı yönetin." : "BYM6-001 için kayıtlı dashboardu görüntüleyin.";
       if (sayfa === "olaylar") olaylariGetir();
       if (sayfa === "trend") mevcutVeriSatirlari.length ? sinyaliCiz() : veriGetir();
+      if (sayfa === "raporlar") raporTarihleriniHazirla();
+      if (["makine", "saglik", "cihazlar"].includes(sayfa)) cihazDurumunuGetir();
       if ((sayfa === "dashboard" || sayfa === "studio") && aktifDashboard) dashboardVeriSatirlari.length ? dashboardCiz() : dashboardVerisiGetir();
       mobilMenuKapat();
       if (window.lucide) window.lucide.createIcons();
@@ -1457,6 +1637,16 @@
       chart.update();
     }
     function offlineDosyaSecildi(input) { const dosya = input.files?.[0]; document.getElementById("offlineDosyaBilgisi").textContent = dosya ? `${dosya.name} · ${(dosya.size / 1024 / 1024).toFixed(2)} MB · doğrulama bekliyor` : "Henüz dosya seçilmedi."; if (dosya) toastGoster("Dosya seçildi. Güvenli paket doğrulama servisi bir sonraki aşamada bağlanacak."); }
+    function isEmriBilgisi() { toastGoster("İş emri formu ve kalıcı görev kaydı v2.4 bakım servisiyle etkinleştirilecektir."); }
+    function cihazYonetimiBilgisi() { toastGoster("Cihaz ayrıntısı, sürüm envanteri ve kontrollü OTA kampanyaları ürünleştirme aşamasında bağlanacaktır."); }
+    function makineSekmesiAc(sekme) { document.querySelectorAll("[data-makine-sekme]").forEach((el) => el.classList.toggle("aktif", el.dataset.makineSekme === sekme)); document.querySelectorAll("[data-makine-panel]").forEach((el) => el.classList.toggle("aktif", el.dataset.makinePanel === sekme)); if (window.lucide) window.lucide.createIcons(); }
+    function filoKartlariniFiltrele() { const arama = (document.getElementById("filoArama")?.value || "").trim().toLocaleLowerCase("tr-TR"); const durum = document.getElementById("filoDurumFiltre")?.value || ""; let gorunen = 0; document.querySelectorAll("[data-filo-kart]").forEach((kart) => { const uyuyor = (!arama || (kart.dataset.filoArama || "").toLocaleLowerCase("tr-TR").includes(arama)) && (!durum || kart.dataset.filoDurum === durum); kart.classList.toggle("gizli", !uyuyor); if (uyuyor) gorunen += 1; }); document.getElementById("filoBosSonuc")?.classList.toggle("gizli", gorunen > 0); }
+    function filoFiltreleriniTemizle() { const arama = document.getElementById("filoArama"); const durum = document.getElementById("filoDurumFiltre"); if (arama) arama.value = ""; if (durum) durum.value = ""; filoKartlariniFiltrele(); }
+    function trendCozunurluguDegisti() { sinyaliCiz(); }
+    function grafikGorseliniIndir() { if (!chart) { toastGoster("Önce grafik verisini yükleyin."); return; } const baglanti = document.createElement("a"); baglanti.download = `Titan_BYM6-001_Trend_${new Date().toISOString().slice(0, 10)}.png`; baglanti.href = chart.toBase64Image("image/png", 1); baglanti.click(); }
+    function raporTarihleriniHazirla() { const baslangic = document.getElementById("raporBaslangic"); const bitis = document.getElementById("raporBitis"); if (baslangic && !baslangic.value) baslangic.value = document.getElementById("baslangic")?.value || ""; if (bitis && !bitis.value) bitis.value = document.getElementById("bitis")?.value || ""; }
+    async function raporZamaniniTrendeAktar() { raporTarihleriniHazirla(); const baslangic = document.getElementById("raporBaslangic")?.value; const bitis = document.getElementById("raporBitis")?.value; if (baslangic) document.getElementById("baslangic").value = baslangic; if (bitis) document.getElementById("bitis").value = bitis; await filtreliVeriGetir(); sayfaAc("trend"); }
+    async function raporOlustur(tur) { if (tur === "telemetri") { await raporZamaniniTrendeAktar(); if (mevcutVeriSatirlari.length) veriyiExceleAktar(); else toastGoster("Seçilen rapor aralığında telemetri kaydı bulunamadı."); return; } const adlar = { operasyon: "Operasyon ve kullanım", olay: "Olay ve aksiyon", bakim: "Bakım uyumu", zamanli: "Planlı dağıtım" }; toastGoster(`${adlar[tur] || "Rapor"} şablonu v2.4 raporlama servisiyle etkinleştirilecektir.`); }
 
     async function girisYap(event) {
       event.preventDefault();
@@ -1522,6 +1712,10 @@
       document.getElementById("dashboardBaslangic").value = toLocalInputValue(birSaatOnce);
       document.getElementById("olayFiltreBitis").value = toLocalInputValue(simdi);
       document.getElementById("olayFiltreBaslangic").value = toLocalInputValue(birGunOnce);
+      const raporBitis = document.getElementById("raporBitis");
+      const raporBaslangic = document.getElementById("raporBaslangic");
+      if (raporBitis) raporBitis.value = toLocalInputValue(simdi);
+      if (raporBaslangic) raporBaslangic.value = toLocalInputValue(birGunOnce);
     }
 
     function toLocalInputValue(date) {
@@ -1584,12 +1778,16 @@
         dbcSinyalAdlari = [...sinyaller].sort();
         aktifDbcDosyaAdlari = [...dosyalar].sort();
         dbcKatalogCihazId = cihazId;
+        const detayDbc = document.getElementById("detayDbc");
+        if (detayDbc) detayDbc.textContent = aktifDbcDosyaAdlari.length ? aktifDbcDosyaAdlari.join(", ") : "Aktif DBC yok";
         sinyalListeleriniGuncelle([]);
       } catch (e) {
         console.warn("DBC sinyal katalogu okunamadi:", e);
         dbcSinyalAdlari = [];
         aktifDbcDosyaAdlari = [];
         dbcKatalogCihazId = cihazId;
+        const detayDbc = document.getElementById("detayDbc");
+        if (detayDbc) detayDbc.textContent = "DBC okunamadı";
       }
     }
 
@@ -1651,14 +1849,16 @@
           ? "gecikmeli"
           : "offline";
       const durumMetni = durumSinifi === "online" ? "Bağlı" : durumSinifi === "gecikmeli" ? "Gecikmeli" : "Offline";
-      ["genelMakineNokta", "listeMakineNokta", "yanMakineNokta"].forEach((id) => {
+      ["genelMakineNokta", "listeMakineNokta", "yanMakineNokta", "detayMakineNokta"].forEach((id) => {
         const el = document.getElementById(id);
         if (el) el.className = `durum-noktasi ${durumSinifi}`;
       });
-      ["genelMakineRozet", "listeMakineRozet"].forEach((id) => {
+      ["genelMakineRozet", "listeMakineRozet", "detayMakineRozet"].forEach((id) => {
         const el = document.getElementById(id);
         if (!el) return;
-        el.className = `rozet ${durumSinifi === "online" ? "aktif" : "pasif"}`;
+        el.className = id === "genelMakineRozet"
+          ? `durum-etiketi ${durumSinifi === "online" ? "success" : durumSinifi === "gecikmeli" ? "warning" : "danger"}`
+          : `rozet ${durumSinifi === "online" ? "aktif" : durumSinifi === "gecikmeli" ? "uyari" : "pasif"}`;
         el.textContent = durumMetni;
       });
       const yanDurum = document.getElementById("yanMakineDurum");
@@ -1666,18 +1866,54 @@
       const kpiBagli = document.getElementById("kpiBagliMakine");
       if (kpiBagli) kpiBagli.textContent = durumSinifi === "online" ? "1" : "0";
       const kpiBagliAlt = document.getElementById("kpiBagliAlt");
-      if (kpiBagliAlt) kpiBagliAlt.textContent = Number.isFinite(heartbeatYasi) ? `${durumMetni} · ${gecenSureMetni(heartbeatYasi)}` : "Heartbeat bulunamadı";
+      if (kpiBagliAlt) kpiBagliAlt.textContent = Number.isFinite(heartbeatYasi) ? `${durumSinifi === "online" ? "1 / 2" : "0 / 2"} makine · ${durumMetni} · ${gecenSureMetni(heartbeatYasi)}` : "0 / 2 makine · heartbeat bulunamadı";
+      const kpiKullanilabilirlik = document.getElementById("kpiKullanilabilirlik");
+      if (kpiKullanilabilirlik) kpiKullanilabilirlik.textContent = durumSinifi === "online" ? "%50" : "%0";
 
       const veriZamani = sonTelemetri?.alindi_zaman ? new Date(sonTelemetri.alindi_zaman) : null;
       const veriYasi = veriZamani && Number.isFinite(veriZamani.getTime()) ? Math.max(0, (Date.now() - veriZamani.getTime()) / 1000) : Infinity;
       const sonVeriMetni = Number.isFinite(veriYasi) ? gecenSureMetni(veriYasi) : "Veri yok";
-      ["genelMakineSonVeri", "listeMakineSonVeri"].forEach((id) => { const el = document.getElementById(id); if (el) el.textContent = `Son veri: ${sonVeriMetni}`; });
+      ["genelMakineSonVeri", "listeMakineSonVeri", "detayMakineSonVeri"].forEach((id) => { const el = document.getElementById(id); if (el) el.textContent = `Son veri: ${sonVeriMetni}`; });
       const kpiSon = document.getElementById("kpiSonVeri");
       if (kpiSon) kpiSon.textContent = veriYasi < 60 ? `${Math.floor(veriYasi)} sn` : veriYasi < 3600 ? `${Math.floor(veriYasi / 60)} dk` : Number.isFinite(veriYasi) ? `${Math.floor(veriYasi / 3600)} sa` : "—";
       const volt = document.getElementById("beslemeVoltajDegeri")?.textContent || "— V";
       ["genelMakineVolt"].forEach((id) => { const el = document.getElementById(id); if (el) el.textContent = volt; });
       motorSaatiniGuncelle(sonTelemetri);
       operasyonMetrikleriniGuncelle(sonTelemetri);
+      veriKalitesiniGuncelle(health, sonTelemetri, heartbeatYasi, veriYasi);
+    }
+
+    function durumEtiketiAyarla(id, metin, sinif = "") { const el = document.getElementById(id); if (!el) return; el.textContent = metin; el.className = `durum-etiketi ${sinif}`.trim(); }
+
+    function veriKalitesiniGuncelle(health, sonTelemetri, heartbeatYasi, veriYasi) {
+      const bagli = heartbeatYasi <= ONLINE_ESIK_SN;
+      const gecikmeli = heartbeatYasi > ONLINE_ESIK_SN && heartbeatYasi <= GECIKMELI_ESIK_SN;
+      const canState = String(health?.can_state || "UNKNOWN").toUpperCase();
+      const canRx = sayisalAlan(health?.can_rx_packets) ?? 0;
+      const raporlananYas = sayisalAlan(health?.can_last_frame_age_sn);
+      const sonCerceve = health?.can_last_frame_zamani ? new Date(health.can_last_frame_zamani) : null;
+      const cerceveYasi = raporlananYas !== null ? raporlananYas : sonCerceve ? Math.max(0, (Date.now() - sonCerceve.getTime()) / 1000) : Infinity;
+      const canHata = !health?.can_link_up || ["BUS-OFF", "STOPPED", "UNAVAILABLE"].includes(canState);
+      const canAkisi = bagli && !canHata && canRx > 0 && cerceveYasi <= CAN_PAKET_ESIK_SN;
+      const veriGuncel = veriYasi <= ONLINE_ESIK_SN;
+      const puan = !health ? null : bagli && canAkisi && veriGuncel ? 96 : bagli && !canHata ? 72 : gecikmeli ? 58 : 32;
+      const puanSinifi = puan === null ? "veri-yok" : puan >= 85 ? "iyi" : puan >= 60 ? "uyari" : "kritik";
+      ["genelSaglikPuani", "detaySaglikPuani", "saglikMerkeziPuan"].forEach((id) => { const el = document.getElementById(id); if (!el) return; el.textContent = puan === null ? "—" : puan; el.className = `saglik-puani ${puanSinifi}`; });
+      const baglantiMetni = bagli ? `Bağlı · ${gecenSureMetni(heartbeatYasi)}` : gecikmeli ? `Gecikmeli · ${gecenSureMetni(heartbeatYasi)}` : "Offline";
+      const baglantiSinifi = bagli ? "success" : gecikmeli ? "warning" : "danger";
+      durumEtiketiAyarla("cihazYonetimDurum", baglantiMetni, baglantiSinifi);
+      const detayBaglanti = document.getElementById("detayCihazBaglanti");
+      if (detayBaglanti) detayBaglanti.textContent = baglantiMetni;
+      const detayCan = document.getElementById("detayCanPaket");
+      if (detayCan) detayCan.textContent = canAkisi ? `Güncel · ${gecenSureMetni(cerceveYasi)}` : canHata ? `${canState} · paket yok` : "Arayüz açık · paket yok";
+      const detayBulut = document.getElementById("detayBulutAktarim");
+      if (detayBulut) detayBulut.textContent = Number.isFinite(veriYasi) ? gecenSureMetni(veriYasi) : "Telemetri yok";
+      durumEtiketiAyarla("sistemCanDurum", canAkisi ? "Paket akışı normal" : canHata ? canState : "Paket bekleniyor", canAkisi ? "success" : canHata ? "danger" : "warning");
+      durumEtiketiAyarla("saglikCanRozet", canAkisi ? "Normal" : canHata ? "Kritik" : "Veri yok", canAkisi ? "success" : canHata ? "danger" : "warning");
+      durumEtiketiAyarla("saglikMotorRozet", sonTelemetri ? "İzleniyor" : "Veri yok", sonTelemetri ? "success" : "warning");
+      const kalite = document.getElementById("veriKaliteOzet");
+      if (kalite) { kalite.innerHTML = `<i data-lucide="${canAkisi && veriGuncel ? "shield-check" : "shield-alert"}"></i> ${canAkisi && veriGuncel ? "Veri akışı doğrulandı" : canHata ? "CAN hattı kontrol edilmeli" : "CAN paketi bekleniyor"}`; }
+      if (window.lucide) window.lucide.createIcons();
     }
 
     function sayisalAlan(...degerler) {
@@ -1702,6 +1938,8 @@
 
       if (!health || heartbeatYasi > GECIKMELI_ESIK_SN) {
         lambaAyarla("kuyrukDurumLambasi", "offline", "kuyrukDurumMetni", "Cihaz offline - kuyruk bilinmiyor");
+        const detayKuyruk = document.getElementById("detayKuyruk");
+        if (detayKuyruk) detayKuyruk.textContent = "Cihaz offline · bilinmiyor";
         return { gecmisAktarimi: false };
       }
 
@@ -1717,6 +1955,8 @@
 
       if (toplam === null) {
         lambaAyarla("kuyrukDurumLambasi", "gecikmeli", "kuyrukDurumMetni", "Kuyruk bilgisi bekleniyor");
+        const detayKuyruk = document.getElementById("detayKuyruk");
+        if (detayKuyruk) detayKuyruk.textContent = "Bilgi bekleniyor";
         return { gecmisAktarimi: false };
       }
 
@@ -1724,6 +1964,8 @@
         ? `${Math.round(pending)} bekleyen / ${Math.round(sent)} DB onayi`
         : `${Math.round(toplam)} kayit`;
       const gecmisAktarimi = toplam > 10 || (enEskiYas !== null && enEskiYas > 60);
+      const detayKuyruk = document.getElementById("detayKuyruk");
+      if (detayKuyruk) detayKuyruk.textContent = toplam > 0 ? `${Math.round(toplam)} kayıt · ${ayrinti}` : "Boş · aktarım normal";
 
       if (gecmisAktarimi) {
         const yasMetni = enEskiYas === null ? "" : ` - en eski ${gecenSureMetni(enEskiYas)}`;
@@ -1758,6 +2000,10 @@
       const sayi = anahtar ? Number(veri[anahtar]) : NaN;
       if (!Number.isFinite(sayi)) {
         degerEl.textContent = "--.- V";
+        const detayVolt = document.getElementById("detayVolt");
+        if (detayVolt) detayVolt.textContent = "— V";
+        durumEtiketiAyarla("sistemElektrikDurum", "Besleme verisi yok", "warning");
+        durumEtiketiAyarla("saglikElektrikRozet", "Veri yok", "warning");
         altEl.textContent = dbcSinyalAdlari.some((ad) => /^SPN168(?:_|$)/i.test(ad))
           ? "SPN168 icin kayitli deger yok"
           : "SPN168 aktif DBC'de bulunamadi";
@@ -1766,6 +2012,11 @@
       const kayitZamani = new Date(sonTelemetri.alindi_zaman);
       const gecenSn = Math.max(0, (Date.now() - kayitZamani.getTime()) / 1000);
       degerEl.textContent = `${sayi.toFixed(1)} V`;
+      const detayVolt = document.getElementById("detayVolt");
+      if (detayVolt) detayVolt.textContent = `${sayi.toFixed(1)} V`;
+      const voltNormal = sayi >= 11 && sayi <= 32;
+      durumEtiketiAyarla("sistemElektrikDurum", voltNormal ? "Besleme izleniyor" : "Besleme kontrolü", voltNormal ? "success" : "warning");
+      durumEtiketiAyarla("saglikElektrikRozet", voltNormal ? "Normal" : "Kontrol", voltNormal ? "success" : "warning");
       altEl.textContent = gecenSn <= ONLINE_ESIK_SN
         ? `Canli - ${anahtar}`
         : `Son bilinen: ${kayitZamani.toLocaleString("tr-TR")}`;
@@ -1794,7 +2045,7 @@
     function motorSaatiniGuncelle(sonTelemetri) {
       const { deger } = motorSaatiniAl(sonTelemetri);
       const metin = deger === null ? "— sa" : `${deger.toLocaleString("tr-TR", { maximumFractionDigits: 1 })} sa`;
-      ["genelMakineMotorSaati", "listeMakineMotorSaati", "bakimMotorSaati"].forEach((id) => {
+      ["genelMakineMotorSaati", "listeMakineMotorSaati", "bakimMotorSaati", "detayMotorSaati"].forEach((id) => {
         const el = document.getElementById(id);
         if (el) el.textContent = metin;
       });
@@ -1842,20 +2093,21 @@
         "AnlikYakitTuketimi", "AnlıkYakıtTüketimi", "SPN183",
       ], /(engine.*fuel.*rate|fuel.*rate|anl[iı]k.*yak[iı]t)/i);
 
-      operasyonDegeriniYaz(["operasyonMotorSaati"], motor.deger, "sa");
-      operasyonDegeriniYaz(["operasyonRolanti", "genelMakineRolanti", "listeMakineRolanti"], rolanti.deger, "sa");
-      operasyonDegeriniYaz(["operasyonToplamYakit", "genelMakineYakit", "listeMakineYakit"], toplamYakit.deger, "L");
-      operasyonDegeriniYaz(["operasyonMesafe"], mesafe.deger, "km");
-      operasyonDegeriniYaz(["operasyonHiz"], hiz.deger, "km/sa");
-      operasyonDegeriniYaz(["operasyonYakitDebisi"], yakitDebisi.deger, "L/sa");
+      operasyonDegeriniYaz(["operasyonMotorSaati", "detayMotorSaati"], motor.deger, "sa");
+      operasyonDegeriniYaz(["operasyonRolanti", "genelMakineRolanti", "listeMakineRolanti", "detayRolanti"], rolanti.deger, "sa");
+      operasyonDegeriniYaz(["operasyonToplamYakit", "genelMakineYakit", "listeMakineYakit", "detayYakit"], toplamYakit.deger, "L");
+      operasyonDegeriniYaz(["operasyonMesafe", "detayMesafe"], mesafe.deger, "km");
+      operasyonDegeriniYaz(["operasyonHiz", "detayHiz"], hiz.deger, "km/sa");
+      operasyonDegeriniYaz(["operasyonYakitDebisi", "detayYakitDebisi"], yakitDebisi.deger, "L/sa");
 
       const rolantiOrani = motor.deger > 0 && rolanti.deger !== null
         ? Math.max(0, Math.min(100, rolanti.deger / motor.deger * 100))
         : null;
       const calismaOrani = rolantiOrani === null ? null : 100 - rolantiOrani;
       const yakitVerimi = toplamYakit.deger > 0 && mesafe.deger !== null ? mesafe.deger / toplamYakit.deger : null;
-      operasyonDegeriniYaz(["operasyonRolantiOrani"], rolantiOrani, "%");
-      operasyonDegeriniYaz(["operasyonYakitVerimi"], yakitVerimi, "km/L", 2);
+      operasyonDegeriniYaz(["operasyonRolantiOrani", "kpiRolanti"], rolantiOrani, "%");
+      operasyonDegeriniYaz(["operasyonYakitVerimi", "detayYakitVerimi"], yakitVerimi, "km/L", 2);
+      operasyonDegeriniYaz(["kpiOperasyon"], calismaOrani, "%");
 
       const cubuk = document.querySelector("#operasyonKullanimCubugu .calisma");
       document.getElementById("operasyonKullanimCubugu")?.classList.toggle("veri-yok", calismaOrani === null);
@@ -1864,18 +2116,32 @@
       const rolantiMetni = document.getElementById("operasyonRolantiOraniAlt");
       if (calismaMetni) calismaMetni.textContent = calismaOrani === null ? "Çalışma —" : `Çalışma %${calismaOrani.toFixed(1)}`;
       if (rolantiMetni) rolantiMetni.textContent = rolantiOrani === null ? "Rölanti —" : `Rölanti %${rolantiOrani.toFixed(1)}`;
+      const filoOperasyon = document.getElementById("filoOperasyonParca");
+      const filoRolanti = document.getElementById("filoRolantiParca");
+      const filoOffline = document.getElementById("filoOfflineParca");
+      if (filoOperasyon) filoOperasyon.style.width = calismaOrani === null ? "0%" : `${(calismaOrani / 2).toFixed(1)}%`;
+      if (filoRolanti) filoRolanti.style.width = rolantiOrani === null ? "0%" : `${(rolantiOrani / 2).toFixed(1)}%`;
+      if (filoOffline) filoOffline.style.width = "50%";
+      const filoOran = document.getElementById("filoOperasyonOran");
+      if (filoOran) filoOran.textContent = calismaOrani === null ? "Veri bekleniyor" : `Bağlı makinede %${calismaOrani.toFixed(1)} operasyon / %${rolantiOrani.toFixed(1)} rölanti`;
 
       const bulunan = [motor, rolanti, toplamYakit, mesafe, hiz, yakitDebisi].filter((x) => x.deger !== null).length;
       const not = document.getElementById("operasyonVeriNotu");
       if (not) not.textContent = sonTelemetri
         ? `${bulunan} / 6 operasyon sinyali son telemetri kaydında bulundu`
         : "Operasyon sayaçları için telemetri bekleniyor";
+      const eksik = document.getElementById("detayEksikSinyal");
+      if (eksik) eksik.textContent = `${Math.round((6 - bulunan) / 6 * 100)}%`;
+      const ozet = document.getElementById("makineOzetMetni");
+      if (ozet) ozet.textContent = sonTelemetri ? `${bulunan}/6 temel operasyon sinyali izleniyor. ${calismaOrani === null ? "Çalışma/rölanti oranı için motor ve rölanti sayaçları birlikte gereklidir." : `Tahmini kullanım dağılımı %${calismaOrani.toFixed(1)} operasyon, %${rolantiOrani.toFixed(1)} rölanti.`}` : "Makine özeti için telemetri bekleniyor.";
     }
 
     function bakimPaneliniGuncelle(motorSaati) {
       const satirlar = [...document.querySelectorAll("[data-bakim-araligi]")];
       if (motorSaati === null || !Number.isFinite(motorSaati)) {
         document.getElementById("bakimYaklasan").textContent = "—";
+        const kpiBakim = document.getElementById("kpiBakim");
+        if (kpiBakim) kpiBakim.textContent = "—";
         for (const satir of satirlar) {
           satir.querySelector(".bakim-ilerleme span").style.width = "0%";
           satir.querySelector(".bakim-kalan").textContent = "Motor saati bekleniyor";
@@ -1901,6 +2167,8 @@
         rozet.textContent = yaklasiyor ? "Yaklaşıyor" : "Planlı";
       }
       document.getElementById("bakimYaklasan").textContent = `${enYakin.toLocaleString("tr-TR", { maximumFractionDigits: 1 })} sa`;
+      const kpiBakim = document.getElementById("kpiBakim");
+      if (kpiBakim) kpiBakim.textContent = `${enYakin.toLocaleString("tr-TR", { maximumFractionDigits: 0 })} sa`;
     }
 
     async function dbcYonetiminiYenile() {
@@ -2395,18 +2663,34 @@
       return `${Math.floor(saniye / 3600)} sa ${Math.floor((saniye % 3600) / 60)} dk`;
     }
 
+    function aksiyonDurumlariniAl() { try { return JSON.parse(localStorage.getItem("titan_aksiyon_onizleme") || "{}"); } catch (_) { return {}; } }
+    function olayAnahtari(olay) { return String(olay.id || `${olay.cihaz_id || "cihaz"}_${olay.olay_adi || "olay"}_${olay.baslangic_zamani || "zaman"}`); }
+    function aksiyonKartlariniCiz(olaylar, hedefId, limit = 6) {
+      const hedef = document.getElementById(hedefId);
+      if (!hedef) return;
+      const durumlar = aksiyonDurumlariniAl();
+      const gosterilecek = (olaylar || []).slice(0, limit);
+      if (!gosterilecek.length) { hedef.innerHTML = '<div class="bos-panel">Seçilen zaman aralığında açık aksiyon bulunmuyor.</div>'; return; }
+      hedef.innerHTML = gosterilecek.map((olay) => {
+        const anahtar = olayAnahtari(olay);
+        const onizleme = durumlar[anahtar] || "new";
+        const durumMetni = onizleme === "assigned" ? "Sahiplenildi" : onizleme === "review" ? "İncelemede" : "Yeni";
+        const seviye = String(olay.seviye || "warning").toLowerCase();
+        const zaman = olay.baslangic_zamani ? new Date(olay.baslangic_zamani).toLocaleString("tr-TR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—";
+        const guvenliAnahtar = encodeURIComponent(anahtar).replaceAll("'", "%27");
+        return `<div class="aksiyon-karti ${seviye === "critical" ? "critical" : "warning"}"><div class="aksiyon-karti-ust"><div><h4>${htmlKacir(olay.olay_adi || "Adsız olay")}</h4><p>BYM6-001 · ${zaman}</p></div><span class="durum-etiketi ${seviye === "critical" ? "danger" : "warning"}">${seviye === "critical" ? "Kritik" : "Uyarı"}</span></div><div class="aksiyon-meta"><span>Kaynak: ${htmlKacir(olay.cihaz_id || "iotitan")}</span><span>Durum: <strong>${durumMetni}</strong></span><span>${olay.durum === "open" ? "Olay devam ediyor" : "Olay kapanmış"}</span></div><div class="kart-aksiyonlari"><button class="ikincil-btn mini-btn" onclick="aksiyonDurumuDegistir('${guvenliAnahtar}','assigned')">Sahiplen</button><button class="ikincil-btn mini-btn" onclick="aksiyonDurumuDegistir('${guvenliAnahtar}','review')">İncelemeye Al</button><button class="ikincil-btn mini-btn" onclick="sayfaAc('trend')">Trendde Gör</button><button class="ikincil-btn mini-btn" onclick="sayfaAc('isemirleri')">İş Emrine Dönüştür</button></div></div>`;
+      }).join("");
+    }
+    function aksiyonDurumuDegistir(kodluAnahtar, durum) { const anahtar = decodeURIComponent(kodluAnahtar); const durumlar = aksiyonDurumlariniAl(); durumlar[anahtar] = durum; localStorage.setItem("titan_aksiyon_onizleme", JSON.stringify(durumlar)); const acik = sonOlayListesi.filter((olay) => olay.durum === "open"); aksiyonKartlariniCiz(acik, "genelOlayListesi", 4); aksiyonKartlariniCiz(acik, "aksiyonMerkeziBuyuk", 8); toastGoster(durum === "assigned" ? "Aksiyon arayüz ön izlemesinde sahiplenildi." : "Aksiyon arayüz ön izlemesinde incelemeye alındı."); }
+
     function olayOzetiniGuncelle(olaylar) {
+      sonOlayListesi = olaylar || [];
       const acikOlaylar = (olaylar || []).filter((olay) => olay.durum === "open");
       const sayi = acikOlaylar.length;
       ["kpiAktifOlay", "listeMakineOlay", "menuOlayRozet"].forEach((id) => { const el = document.getElementById(id); if (el) el.textContent = String(sayi); });
-      const liste = document.getElementById("genelOlayListesi");
-      if (!liste) return;
-      const gosterilecek = (sayi ? acikOlaylar : olaylar || []).slice(0, 4);
-      if (!gosterilecek.length) {
-        liste.innerHTML = '<div class="bos-panel">Seçilen zaman aralığında olay bulunmuyor.</div>';
-        return;
-      }
-      liste.innerHTML = gosterilecek.map((olay) => `<div class="olay-mini"><span class="olay-seviye-isareti ${olay.seviye === "critical" ? "critical" : ""}"></span><div><strong>${htmlKacir(olay.olay_adi)}</strong><span>BYM6-001 · ${olay.durum === "open" ? "Devam ediyor" : "Kapanmış olay"}</span></div><span class="olay-zaman">${new Date(olay.baslangic_zamani).toLocaleString("tr-TR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span></div>`).join("");
+      const gosterilecek = acikOlaylar.slice(0, 4);
+      aksiyonKartlariniCiz(gosterilecek, "genelOlayListesi", 4);
+      aksiyonKartlariniCiz(acikOlaylar, "aksiyonMerkeziBuyuk", 8);
     }
 
     async function olaylariGetir() {
@@ -2579,7 +2863,7 @@
         const { satirlar, siniraUlasti } = await telemetriSayfaliGetir(aktifDashboard.cihaz_id, new Date(baslangic).toISOString(), new Date(bitis).toISOString());
         dashboardVeriSatirlari = satirlar;
         dashboardCiz();
-        durumEl.textContent = `${satirlar.length.toLocaleString("tr-TR")} kayıt yüklendi${siniraUlasti ? ` · ilk ${TELEMETRI_MAKSIMUM_KAYIT.toLocaleString("tr-TR")} kayıtla sınırlandı` : ""}. Grafikler en fazla 2.500 noktayla akıcı çizilir.`;
+        durumEl.textContent = `${satirlar.length.toLocaleString("tr-TR")} kayıt yüklendi${siniraUlasti ? ` · ilk ${TELEMETRI_MAKSIMUM_KAYIT.toLocaleString("tr-TR")} kayıtla sınırlandı` : ""}. Grafikler performans için otomatik örneklenir.`;
       } catch (e) {
         durumEl.textContent = "Dashboard verisi alınamadı: " + e.message;
       } finally {
@@ -2890,7 +3174,7 @@
       return null;
     }
 
-    function orneklenmisSatirlar(satirlar, maksimum = 2500) {
+    function orneklenmisSatirlar(satirlar, maksimum = GRAFIK_VARSAYILAN_MAKSIMUM_NOKTA) {
       if (satirlar.length <= maksimum) return satirlar;
       const sonuc = [];
       const adim = (satirlar.length - 1) / (maksimum - 1);
@@ -3406,6 +3690,33 @@
 
     function trendOlayGorunurluguDegisti() { sinyaliCiz(); }
 
+    function trendEsikKatmaniOlustur(esikler) {
+      return {
+        id: "titanTrendEsikKatmani",
+        beforeDatasetsDraw(grafik) {
+          const { ctx, chartArea, scales } = grafik;
+          if (!chartArea || !scales.y) return;
+          ctx.save();
+          for (const esik of esikler) {
+            const y = scales.y.getPixelForValue(esik.deger);
+            if (y < chartArea.top || y > chartArea.bottom) continue;
+            ctx.strokeStyle = esik.renk;
+            ctx.lineWidth = 1.4;
+            ctx.setLineDash([7, 5]);
+            ctx.beginPath();
+            ctx.moveTo(chartArea.left, y);
+            ctx.lineTo(chartArea.right, y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = esik.renk;
+            ctx.font = "600 11px Inter, sans-serif";
+            ctx.fillText(`${esik.etiket}: ${esik.deger}`, chartArea.left + 7, Math.max(chartArea.top + 12, y - 5));
+          }
+          ctx.restore();
+        },
+      };
+    }
+
     function trendOlayinaOdaklan(index) {
       const eslesme = chart?.$titanOlayEslesmeleri?.find((x) => x.kaynakIndex === index);
       if (!chart || !eslesme) { toastGoster("Bu olay için çizilebilir telemetri noktası bulunamadı."); return; }
@@ -3511,7 +3822,9 @@
     function grafigiCiz(satirlar, sinyaller) {
       const ctx = document.getElementById("grafik").getContext("2d");
       if (chart) chart.destroy();
-      const grafikSatirlari = orneklenmisSatirlar(satirlar);
+      const secilenCozunurluk = Number(document.getElementById("trendCozunurluk")?.value);
+      const maksimumNokta = Number.isFinite(secilenCozunurluk) && secilenCozunurluk > 0 ? secilenCozunurluk : GRAFIK_VARSAYILAN_MAKSIMUM_NOKTA;
+      const grafikSatirlari = orneklenmisSatirlar(satirlar, maksimumNokta);
       const zamanlar = grafikSatirlari.map((satir) => satirZamani(satir));
       const zamanDamgalari = zamanlar.map((tarih) => tarih.getTime());
       const olaylarGorunur = document.getElementById("trendOlayGoster")?.checked !== false;
@@ -3538,6 +3851,21 @@
         pointHoverRadius: 4,
         spanGaps: false,
       }));
+      const ortalamaGoster = document.getElementById("trendOrtalamaGoster")?.checked === true;
+      if (ortalamaGoster && datasets[0]) {
+        const sayisalDegerler = datasets[0].data.filter((deger) => Number.isFinite(deger));
+        if (sayisalDegerler.length) {
+          const ortalama = sayisalDegerler.reduce((toplam, deger) => toplam + deger, 0) / sayisalDegerler.length;
+          datasets.push({ label: `${sinyaller[0]} · ort. ${ortalama.toLocaleString("tr-TR", { maximumFractionDigits: 2 })}`, data: grafikSatirlari.map(() => ortalama), borderColor: "#566f7b", backgroundColor: "#566f7b", yAxisID: "y", tension: 0, borderWidth: 1.5, borderDash: [3, 5], pointRadius: 0, pointHoverRadius: 0, spanGaps: true });
+        }
+      }
+      const esikler = [];
+      if (document.getElementById("trendEsikGoster")?.checked !== false) {
+        const alt = sayiyaCevir(document.getElementById("trendEsikAlt")?.value);
+        const ust = sayiyaCevir(document.getElementById("trendEsikUst")?.value);
+        if (alt !== null) esikler.push({ etiket: "Alt sınır", deger: alt, renk: "#d18a18" });
+        if (ust !== null) esikler.push({ etiket: "Üst sınır", deger: ust, renk: "#d64545" });
+      }
       chart = new Chart(ctx, {
         type: "line",
         data: {
@@ -3563,7 +3891,10 @@
             },
           },
         },
-        plugins: olayEslesmeleri.length ? [trendOlayKatmaniOlustur(olayEslesmeleri)] : [],
+        plugins: [
+          ...(olayEslesmeleri.length ? [trendOlayKatmaniOlustur(olayEslesmeleri)] : []),
+          ...(esikler.length ? [trendEsikKatmaniOlustur(esikler)] : []),
+        ],
       });
       chart.$titanZamanlar = zamanDamgalari;
       chart.$titanOlayEslesmeleri = tumOlayEslesmeleri;
